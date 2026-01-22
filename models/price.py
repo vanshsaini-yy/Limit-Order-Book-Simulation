@@ -1,7 +1,8 @@
+from constants import TICK_SIZE
 class Price:
     __slots__ = ("ticks",)
 
-    def __init__(self, value, tick_size):
+    def __init__(self, value, tick_size=TICK_SIZE):
         self.ticks = int(round(value / tick_size))
 
     def __lt__(self, other):

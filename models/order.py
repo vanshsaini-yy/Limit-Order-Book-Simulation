@@ -1,7 +1,7 @@
 from models.price import Price
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(slots=True)
 class Order:
     order_id: int
     side: str
