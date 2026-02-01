@@ -1,0 +1,17 @@
+set(TEST_SOURCES
+    models/test_order.cpp
+    models/test_order_index.cpp
+    models/test_order_book.cpp
+)
+
+add_executable(tests ${TEST_SOURCES})
+
+target_link_libraries(tests
+    PRIVATE
+        lob_core
+        gtest
+        gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(tests)
