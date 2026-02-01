@@ -1,8 +1,10 @@
-add_executable(test_order
+set(TEST_SOURCES
     models/test_order.cpp
 )
 
-target_link_libraries(test_order
+add_executable(tests ${TEST_SOURCES})
+
+target_link_libraries(tests
     PRIVATE
         lob_core
         gtest
@@ -10,4 +12,4 @@ target_link_libraries(test_order
 )
 
 include(GoogleTest)
-gtest_discover_tests(test_order)
+gtest_discover_tests(tests)
