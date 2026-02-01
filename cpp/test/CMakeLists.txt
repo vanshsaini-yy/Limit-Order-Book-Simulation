@@ -1,6 +1,7 @@
 set(TEST_SOURCES
     models/test_order.cpp
     models/test_order_index.cpp
+    models/test_order_book.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})
