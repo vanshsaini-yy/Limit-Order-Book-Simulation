@@ -34,4 +34,6 @@ class Order {
     inline Side getSide() const { return static_cast<Side>(side); }
     inline OrderType getType() const { return static_cast<OrderType>(type); }
     inline uint64_t getTimestamp() const { return timestamp; }
+
+    inline void reduceQty(uint32_t qtyFilled) { qty -= qtyFilled; }
 };

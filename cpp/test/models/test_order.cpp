@@ -34,3 +34,10 @@ TEST_F(OrderTest, DefaultBehaviorIsConstexprAccessible) {
     EXPECT_EQ(o2.getType(), OrderType::Market);
     EXPECT_EQ(o2.getTimestamp(), 1234567890ull);
 }
+
+TEST_F(OrderTest, ReduceQtyDecreasesQuantity) {
+    order->reduceQty(4);
+    EXPECT_EQ(order->getQty(), 6u);
+    order->reduceQty(6);
+    EXPECT_EQ(order->getQty(), 0u);
+}
