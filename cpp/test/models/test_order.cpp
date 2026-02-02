@@ -6,7 +6,7 @@ protected:
     Order* order;
 
     void SetUp() override {
-        order = new Order(1, 0, 10, Side::Buy, OrderType::Limit, 1622547800);
+        order = new Order(1, 1, 0, 10, Side::Buy, OrderType::Limit, 1622547800);
     }
 
     void TearDown() override {
@@ -15,7 +15,8 @@ protected:
 };
 
 TEST_F(OrderTest, GettersReturnExpectedValues) {
-    EXPECT_EQ(order->getId(), 1ull);
+    EXPECT_EQ(order->getOrderID(), 1u);
+    EXPECT_EQ(order->getOwnerID(), 1u);
     EXPECT_EQ(order->getPriceTicks(), 0ull);
     EXPECT_EQ(order->getQty(), 10u);
     EXPECT_EQ(order->getSide(), Side::Buy);
@@ -24,8 +25,9 @@ TEST_F(OrderTest, GettersReturnExpectedValues) {
 }
 
 TEST_F(OrderTest, DefaultBehaviorIsConstexprAccessible) {
-    constexpr Order o2(2, 5, 3, Side::Sell, OrderType::Market, 1234567890);
-    EXPECT_EQ(o2.getId(), 2ull);
+    constexpr Order o2(2, 2, 5, 3, Side::Sell, OrderType::Market, 1234567890);
+    EXPECT_EQ(o2.getOrderID(), 2u);
+    EXPECT_EQ(o2.getOwnerID(), 2u);
     EXPECT_EQ(o2.getPriceTicks(), 5ull);
     EXPECT_EQ(o2.getQty(), 3u);
     EXPECT_EQ(o2.getSide(), Side::Sell);
