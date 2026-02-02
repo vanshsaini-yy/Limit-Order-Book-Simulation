@@ -4,35 +4,25 @@
 #include "models/order_index.hpp"
 #include "models/order.hpp"
 
-TEST(OrderIndexTest, GettersAndIterator) {
+class OrderIndexTest : public ::testing::Test {
+};
+
+TEST_F(OrderIndexTest, ConstructorAndGetters) {
     std::list<std::shared_ptr<Order>> orders;
-    auto o = std::make_shared<Order>(10ull, 100ull, 5u, Side::Buy, OrderType::Limit, 111u);
-    orders.push_back(o);
-    auto it = std::prev(orders.end());
+    auto order1 = std::make_shared<Order>(421, 1, 10, 100, Side::Buy, OrderType::Limit, 1001);
+    auto order2 = std::make_shared<Order>(422, 1, 20, 200, Side::Sell, OrderType::Limit, 1002);
+    orders.push_back(order1);
+    orders.push_back(order2);
+    auto it2 = std::prev(orders.end());
+    auto it1 = std::prev(it2);
 
-    OrderIndex idx(1, 100ull, it);
+    OrderIndex index1(1, order1->getPriceTicks(), it1);
+    OrderIndex index2(0, order2->getPriceTicks(), it2);
 
-    EXPECT_EQ(idx.getIsBuy(), 1);
-    EXPECT_EQ(idx.getPriceTicks(), 100ull);
-
-    auto iter = idx.getOrderIter();
-    EXPECT_EQ(*iter, o);
-    EXPECT_EQ((*iter)->getId(), 10ull);
-    EXPECT_EQ((*iter)->getPriceTicks(), 100ull);
-    EXPECT_EQ((*iter)->getQty(), 5u);
-}
-
-TEST(OrderIndexTest, MultipleOrdersIterator) {
-    std::list<std::shared_ptr<Order>> orders;
-    auto a = std::make_shared<Order>(1ull, 50ull, 2u, Side::Sell, OrderType::Limit, 10u);
-    auto b = std::make_shared<Order>(2ull, 50ull, 3u, Side::Sell, OrderType::Limit, 11u);
-    orders.push_back(a);
-    orders.push_back(b);
-
-    auto it_b = std::prev(orders.end());
-    OrderIndex idx_b(0, 50ull, it_b);
-
-    auto iter = idx_b.getOrderIter();
-    EXPECT_EQ(*iter, b);
-    EXPECT_EQ((*iter)->getId(), 2ull);
+    EXPECT_EQ(index1.getIsBuy(), 1);
+    EXPECT_EQ(index1.getPriceTicks(), 10ull);
+    EXPECT_EQ(index1.getOrderIter(), it1);
+    EXPECT_EQ(index2.getIsBuy(), 0);
+    EXPECT_EQ(index2.getPriceTicks(), 20ull);
+    EXPECT_EQ(index2.getOrderIter(), it2);
 }
