@@ -13,8 +13,8 @@ enum class STPProtocol : uint8_t {
 
 class LimitOrderBook {
     private:
-        std::map<uint64_t, std::list<std::shared_ptr<Order>>, std::greater<uint64_t>> bids;
-        std::map<uint64_t, std::list<std::shared_ptr<Order>>> asks;
+        std::map<uint64_t, std::list<OrderPtr>, std::greater<uint64_t>> bids;
+        std::map<uint64_t, std::list<OrderPtr>> asks;
         std::unordered_map<uint64_t, OrderIndex> orderIndexMap;
         STPProtocol stpProtocol = STPProtocol::CancelBoth;
 
@@ -25,7 +25,7 @@ class LimitOrderBook {
 
         inline STPProtocol getSTPProtocol() const { return stpProtocol; }
 
-        bool addOrder(const std::shared_ptr<Order>& order) {
+        bool addOrder(const OrderPtr &order) {
             if (order->getQty() == 0 || order->getType() == OrderType::Market) return false;
             uint64_t price = order->getPriceTicks();
             if (order->getSide() == Side::Buy) {
@@ -80,7 +80,7 @@ class LimitOrderBook {
             return asks.begin()->first;
         }
 
-        bool isOrderMarketable(const std::shared_ptr<Order>& order) const {
+        bool isOrderMarketable(const OrderPtr &order) const {
             if (order->getQty() == 0) return false;
             if (order->getType() == OrderType::Market) return true;
             if (order->getSide() == Side::Buy) {
@@ -92,13 +92,13 @@ class LimitOrderBook {
             }
         }
 
-        bool isSelfTrade(const std::shared_ptr<Order>& order1, const std::shared_ptr<Order>& order2) const {
+        bool isSelfTrade(const OrderPtr &order1, const OrderPtr &order2) const {
             return order1->getOwnerID() == order2->getOwnerID();
         }
 
-        void enforceSTP(const std::shared_ptr<Order>& order1, const std::shared_ptr<Order>& order2) {
-            const std::shared_ptr<Order>& newest = (order1->getTimestamp() > order2->getTimestamp()) ? order1 : order2;
-            const std::shared_ptr<Order>& oldest = (order1->getTimestamp() > order2->getTimestamp()) ? order2 : order1;
+        void enforceSTP(const OrderPtr &order1, const OrderPtr &order2) {
+            const OrderPtr &newest = (order1->getTimestamp() > order2->getTimestamp()) ? order1 : order2;
+            const OrderPtr &oldest = (order1->getTimestamp() > order2->getTimestamp()) ? order2 : order1;
             if (stpProtocol == STPProtocol::CancelBoth) {
                 cancelOrder(oldest->getOrderID());
                 cancelOrder(newest->getOrderID());
@@ -109,11 +109,10 @@ class LimitOrderBook {
             }
         }
 
-        void matchOrder(const std::shared_ptr<Order>& order) {
+        void matchOrder(const OrderPtr &order) {
             if(order->getSide() == Side::Buy) {
-                while(isOrderMarketable(order) && asks.size()) {
-                    uint64_t bestAsk = getBestAsk();
-                    auto& askList = asks[bestAsk];
+                while (isOrderMarketable(order) && asks.size()) {
+                    auto& askList = asks.begin()->second;
                     auto bestAskOrder = askList.front();
                     if (isSelfTrade(order, bestAskOrder)) {
                         enforceSTP(order, bestAskOrder);
@@ -124,16 +123,16 @@ class LimitOrderBook {
                     bestAskOrder->reduceQty(tradeQty);
                     if (bestAskOrder->getQty() == 0) {
                         askList.pop_front();
+                        orderIndexMap.erase(bestAskOrder->getOrderID());
                         if (askList.empty()) {
-                            asks.erase(bestAsk);
+                            asks.erase(asks.begin());
                         }
                     }
                 }
             }
             else {
-                while(isOrderMarketable(order) && bids.size()) {
-                    uint64_t bestBid = getBestBid();
-                    auto& bidList = bids[bestBid];
+                while (isOrderMarketable(order) && bids.size()) {
+                    auto& bidList = bids.begin()->second;
                     auto bestBidOrder = bidList.front();
                     if (isSelfTrade(order, bestBidOrder)) {
                         enforceSTP(order, bestBidOrder);
@@ -144,8 +143,9 @@ class LimitOrderBook {
                     bestBidOrder->reduceQty(tradeQty);
                     if (bestBidOrder->getQty() == 0) {
                         bidList.pop_front();
+                        orderIndexMap.erase(bestBidOrder->getOrderID());
                         if (bidList.empty()) {
-                            bids.erase(bestBid);
+                            bids.erase(bids.begin());
                         }
                     }
                 }
