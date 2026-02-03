@@ -8,9 +8,9 @@ class OrderIndexTest : public ::testing::Test {
 };
 
 TEST_F(OrderIndexTest, ConstructorAndGetters) {
-    std::list<std::shared_ptr<Order>> orders;
-    auto order1 = std::make_shared<Order>(421, 1, 10, 100, Side::Buy, OrderType::Limit, 1001);
-    auto order2 = std::make_shared<Order>(422, 1, 20, 200, Side::Sell, OrderType::Limit, 1002);
+    std::list<OrderPtr> orders;
+    auto order1 = new Order(421, 1, 10, 100, Side::Buy, OrderType::Limit, 1001);
+    auto order2 = new Order(422, 1, 20, 200, Side::Sell, OrderType::Limit, 1002);
     orders.push_back(order1);
     orders.push_back(order2);
     auto it2 = std::prev(orders.end());
