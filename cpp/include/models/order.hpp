@@ -27,13 +27,13 @@ class Order {
                 timestamp(timestamp_), 
                 flags(0) {}
 
-    inline uint32_t getOrderID() const { return orderID; }
-    inline uint32_t getOwnerID() const { return ownerID; }
-    inline uint64_t getPriceTicks() const { return priceTicks; }
-    inline uint32_t getQty() const { return qty; }
-    inline Side getSide() const { return static_cast<Side>(side); }
-    inline OrderType getType() const { return static_cast<OrderType>(type); }
-    inline uint64_t getTimestamp() const { return timestamp; }
+        inline uint32_t getOrderID() const { return orderID; }
+        inline uint32_t getOwnerID() const { return ownerID; }
+        inline uint64_t getPriceTicks() const { return priceTicks; }
+        inline uint32_t getQty() const { return qty; }
+        inline Side getSide() const { return static_cast<Side>(side); }
+        inline OrderType getType() const { return static_cast<OrderType>(type); }
+        inline uint64_t getTimestamp() const { return timestamp; }
 
-    inline void reduceQty(uint32_t qtyFilled) { qty -= qtyFilled; }
+        inline void reduceQty(uint32_t qtyFilled) { qty -= qtyFilled; }
 };
