@@ -2,6 +2,7 @@
 #include <map>
 #include <unordered_map>
 #include <cstdint>
+#include <cassert>
 #include "models/order.hpp"
 #include "models/order_index.hpp"
 
