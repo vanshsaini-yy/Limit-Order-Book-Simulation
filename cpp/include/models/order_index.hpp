@@ -4,8 +4,6 @@
 #include <cstdint>
 #include "models/order.hpp"
 
-using OrderPtr = Order*;
-
 class OrderIndex{
     private:
         uint8_t isBuy;

@@ -40,3 +40,5 @@ class Order {
         inline void reduceQty(uint32_t qtyFilled) { qty -= qtyFilled; }
         inline void setStatus(OrderStatus newStatus) { status = newStatus; }
 };
+
+using OrderPtr = Order*;
