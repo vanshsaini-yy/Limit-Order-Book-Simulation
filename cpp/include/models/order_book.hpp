@@ -5,47 +5,52 @@
 #include "models/order.hpp"
 #include "models/order_index.hpp"
 
-enum class STPProtocol : uint8_t {
-    CancelNewest = 0,
-    CancelOldest = 1,
-    CancelBoth = 2,
-};
-
 class LimitOrderBook {
     private:
         std::map<uint64_t, std::list<OrderPtr>, std::greater<uint64_t>> bids;
         std::map<uint64_t, std::list<OrderPtr>> asks;
         std::unordered_map<uint64_t, OrderIndex> orderIndexMap;
-        STPProtocol stpProtocol = STPProtocol::CancelBoth;
 
     public:
         LimitOrderBook() = default;
 
-        LimitOrderBook(STPProtocol stpProtocol_) : stpProtocol(stpProtocol_) {}
+        ~LimitOrderBook() {
+            for (auto& [_, orderList] : bids)
+                for (Order* order : orderList)
+                    delete order;
 
-        inline STPProtocol getSTPProtocol() const { return stpProtocol; }
+            for (auto& [_, orderList] : asks)
+                for (Order* order : orderList)
+                    delete order;
+
+            bids.clear();
+            asks.clear();
+            orderIndexMap.clear();
+        }
 
         bool addOrder(const OrderPtr &order) {
+            assert(order != nullptr);
+            assert(orderIndexMap.find(order->getOrderID()) == orderIndexMap.end());
             if (order->getQty() == 0 || order->getType() == OrderType::Market) return false;
             uint64_t price = order->getPriceTicks();
             if (order->getSide() == Side::Buy) {
                 bids[price].push_back(order);
                 auto it = std::prev(bids[price].end());
-                orderIndexMap.emplace(order->getOrderID(), OrderIndex(1, price, it));
+                orderIndexMap.emplace(order->getOrderID(), OrderIndex(Side::Buy, price, it));
             } else {
                 asks[price].push_back(order);
                 auto it = std::prev(asks[price].end());
-                orderIndexMap.emplace(order->getOrderID(), OrderIndex(0, price, it));
+                orderIndexMap.emplace(order->getOrderID(), OrderIndex(Side::Sell, price, it));
             }
             return true;
         }
 
-        bool cancelOrder(uint64_t orderId) {
+        bool removeOrder(uint64_t orderId) {
             auto it = orderIndexMap.find(orderId);
             if (it == orderIndexMap.end())
                 return false;
             OrderIndex& idx = it->second;
-            if (idx.getIsBuy()) {
+            if (idx.getSide() == Side::Buy) {
                 auto bookIt = bids.find(idx.getPriceTicks());
                 if (bookIt != bids.end()) {
                     bookIt->second.erase(idx.getOrderIter());
@@ -81,6 +86,8 @@ class LimitOrderBook {
         }
 
         bool isOrderMarketable(const OrderPtr &order) const {
+            OrderStatus status = order->getStatus();
+            if (status == OrderStatus::Cancelled  || status == OrderStatus::CancelledAfterPartialExecution || status == OrderStatus::Executed) return false;
             if (order->getQty() == 0) return false;
             if (order->getType() == OrderType::Market) return true;
             if (order->getSide() == Side::Buy) {
@@ -92,67 +99,37 @@ class LimitOrderBook {
             }
         }
 
-        bool isSelfTrade(const OrderPtr &order1, const OrderPtr &order2) const {
-            return order1->getOwnerID() == order2->getOwnerID();
-        }
-
-        void enforceSTP(const OrderPtr &order1, const OrderPtr &order2) {
-            const OrderPtr &newest = (order1->getTimestamp() > order2->getTimestamp()) ? order1 : order2;
-            const OrderPtr &oldest = (order1->getTimestamp() > order2->getTimestamp()) ? order2 : order1;
-            if (stpProtocol == STPProtocol::CancelBoth) {
-                cancelOrder(oldest->getOrderID());
-                cancelOrder(newest->getOrderID());
-            } else if (stpProtocol == STPProtocol::CancelNewest) {
-                cancelOrder(newest->getOrderID());
-            } else if (stpProtocol == STPProtocol::CancelOldest) {
-                cancelOrder(oldest->getOrderID());
+        OrderPtr getBestMatchedOrder(const Side side) const {
+            if (side == Side::Buy) {
+                if (asks.empty() || asks.begin()->second.empty()) return nullptr;
+                return asks.begin()->second.front();
+            } else {
+                if (bids.empty() || bids.begin()->second.empty()) return nullptr;
+                return bids.begin()->second.front();
             }
         }
 
-        void matchOrder(const OrderPtr &order) {
-            if(order->getSide() == Side::Buy) {
-                while (isOrderMarketable(order) && asks.size()) {
+        void popFront(const Side side) {
+            if (side == Side::Buy) {
+                if (!asks.empty()) {
                     auto& askList = asks.begin()->second;
                     auto bestAskOrder = askList.front();
-                    if (isSelfTrade(order, bestAskOrder)) {
-                        enforceSTP(order, bestAskOrder);
-                        continue;
-                    }
-                    uint32_t tradeQty = std::min(order->getQty(), bestAskOrder->getQty());
-                    order->reduceQty(tradeQty);
-                    bestAskOrder->reduceQty(tradeQty);
-                    if (bestAskOrder->getQty() == 0) {
-                        askList.pop_front();
-                        orderIndexMap.erase(bestAskOrder->getOrderID());
-                        if (askList.empty()) {
-                            asks.erase(asks.begin());
-                        }
+                    orderIndexMap.erase(bestAskOrder->getOrderID());
+                    askList.pop_front();
+                    if (askList.empty()) {
+                        asks.erase(asks.begin());
                     }
                 }
-            }
-            else {
-                while (isOrderMarketable(order) && bids.size()) {
+            } else {
+                if (!bids.empty()) {
                     auto& bidList = bids.begin()->second;
                     auto bestBidOrder = bidList.front();
-                    if (isSelfTrade(order, bestBidOrder)) {
-                        enforceSTP(order, bestBidOrder);
-                        continue;
-                    }
-                    uint32_t tradeQty = std::min(order->getQty(), bestBidOrder->getQty());
-                    order->reduceQty(tradeQty);
-                    bestBidOrder->reduceQty(tradeQty);
-                    if (bestBidOrder->getQty() == 0) {
-                        bidList.pop_front();
-                        orderIndexMap.erase(bestBidOrder->getOrderID());
-                        if (bidList.empty()) {
-                            bids.erase(bids.begin());
-                        }
+                    orderIndexMap.erase(bestBidOrder->getOrderID());
+                    bidList.pop_front();
+                    if (bidList.empty()) {
+                        bids.erase(bids.begin());
                     }
                 }
             }
-            if (order->getQty() > 0 && order->getType() == OrderType::Limit) {
-                addOrder(order);
-            }
         }
-
 };
