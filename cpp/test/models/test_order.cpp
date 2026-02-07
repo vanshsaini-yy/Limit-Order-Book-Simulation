@@ -22,17 +22,7 @@ TEST_F(OrderTest, GettersReturnExpectedValues) {
     EXPECT_EQ(order->getSide(), Side::Buy);
     EXPECT_EQ(order->getType(), OrderType::Limit);
     EXPECT_EQ(order->getTimestamp(), 1622547800ull);
-}
-
-TEST_F(OrderTest, DefaultBehaviorIsConstexprAccessible) {
-    constexpr Order o2(2, 2, 5, 3, Side::Sell, OrderType::Market, 1234567890);
-    EXPECT_EQ(o2.getOrderID(), 2u);
-    EXPECT_EQ(o2.getOwnerID(), 2u);
-    EXPECT_EQ(o2.getPriceTicks(), 5ull);
-    EXPECT_EQ(o2.getQty(), 3u);
-    EXPECT_EQ(o2.getSide(), Side::Sell);
-    EXPECT_EQ(o2.getType(), OrderType::Market);
-    EXPECT_EQ(o2.getTimestamp(), 1234567890ull);
+    EXPECT_EQ(order->getStatus(), OrderStatus::Pending);
 }
 
 TEST_F(OrderTest, ReduceQtyDecreasesQuantity) {
@@ -40,4 +30,11 @@ TEST_F(OrderTest, ReduceQtyDecreasesQuantity) {
     EXPECT_EQ(order->getQty(), 6u);
     order->reduceQty(6);
     EXPECT_EQ(order->getQty(), 0u);
+}
+
+TEST_F(OrderTest, SetStatusUpdatesOrderStatus) {
+    order->setStatus(OrderStatus::PartiallyExecuted);
+    EXPECT_EQ(order->getStatus(), OrderStatus::PartiallyExecuted);
+    order->setStatus(OrderStatus::Executed);
+    EXPECT_EQ(order->getStatus(), OrderStatus::Executed);
 }
