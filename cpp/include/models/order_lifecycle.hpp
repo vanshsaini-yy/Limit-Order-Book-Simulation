@@ -16,6 +16,8 @@ public:
             return OrderStatus::Cancelled;
         } else if (currentStatus == OrderStatus::PartiallyExecuted) {
             return OrderStatus::CancelledAfterPartialExecution;
+        } else {
+            return currentStatus;
         }
     }
 
