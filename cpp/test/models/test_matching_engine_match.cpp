@@ -2,7 +2,7 @@
 #include <memory>
 #include "models/matching_engine.hpp"
 
-class MatchingEngineTest : public ::testing::Test {
+class MatchingEngineMatchTest : public ::testing::Test {
 protected:
     LimitOrderBook* orderBook;
     STPPolicy* stpPolicy;
@@ -21,7 +21,7 @@ protected:
     }
 };
 
-TEST_F(MatchingEngineTest, MatchLimitBuyToEmptyBook) {
+TEST_F(MatchingEngineMatchTest, MatchLimitBuyToEmptyBook) {
     OrderPtr buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
 
     engine->matchOrder(buyOrder);
@@ -34,7 +34,7 @@ TEST_F(MatchingEngineTest, MatchLimitBuyToEmptyBook) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, MatchLimitSellToEmptyBook) {
+TEST_F(MatchingEngineMatchTest, MatchLimitSellToEmptyBook) {
     OrderPtr sellOrder = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
 
     engine->matchOrder(sellOrder);
@@ -46,7 +46,7 @@ TEST_F(MatchingEngineTest, MatchLimitSellToEmptyBook) {
 
     delete sellOrder;
 }
-TEST_F(MatchingEngineTest, LimitBuyOrderExactMatch) {
+TEST_F(MatchingEngineMatchTest, LimitBuyOrderExactMatch) {
     OrderPtr sellOrder = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
     
@@ -65,7 +65,7 @@ TEST_F(MatchingEngineTest, LimitBuyOrderExactMatch) {
 }
 
 
-TEST_F(MatchingEngineTest, LimitSellOrderExactMatch) {
+TEST_F(MatchingEngineMatchTest, LimitSellOrderExactMatch) {
     OrderPtr buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr sellOrder = new Order(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1622547801);
 
@@ -83,7 +83,7 @@ TEST_F(MatchingEngineTest, LimitSellOrderExactMatch) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitBuyOrderMatchesBestAsk) {
+TEST_F(MatchingEngineMatchTest, LimitBuyOrderMatchesBestAsk) {
     OrderPtr sellOrder1 = new Order(1, 1, 103, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr sellOrder2 = new Order(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr buyOrder = new Order(3, 3, 105, 10, Side::Buy, OrderType::Limit, 1622547802);
@@ -106,7 +106,7 @@ TEST_F(MatchingEngineTest, LimitBuyOrderMatchesBestAsk) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitSellOrderMatchesBestBid) {
+TEST_F(MatchingEngineMatchTest, LimitSellOrderMatchesBestBid) {
     OrderPtr buyOrder1 = new Order(1, 1, 97, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr buyOrder2 = new Order(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr sellOrder = new Order(3, 3, 95, 10, Side::Sell, OrderType::Limit, 1622547802);
@@ -129,7 +129,7 @@ TEST_F(MatchingEngineTest, LimitSellOrderMatchesBestBid) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, RestingBuyOrderPartialFill_IncomingLimitSell) {
+TEST_F(MatchingEngineMatchTest, RestingBuyOrderPartialFill_IncomingLimitSell) {
     OrderPtr buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr sellOrder = new Order(2, 2, 100, 5, Side::Sell, OrderType::Limit, 1622547801);
 
@@ -147,7 +147,7 @@ TEST_F(MatchingEngineTest, RestingBuyOrderPartialFill_IncomingLimitSell) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, RestingSellOrderPartialFill_IncomingLimitBuy) {
+TEST_F(MatchingEngineMatchTest, RestingSellOrderPartialFill_IncomingLimitBuy) {
     OrderPtr sellOrder = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1622547801);
 
@@ -165,7 +165,7 @@ TEST_F(MatchingEngineTest, RestingSellOrderPartialFill_IncomingLimitBuy) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, IncomingLimitBuyOrderPartialFill) {
+TEST_F(MatchingEngineMatchTest, IncomingLimitBuyOrderPartialFill) {
     OrderPtr sellOrder = new Order(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
 
@@ -183,7 +183,7 @@ TEST_F(MatchingEngineTest, IncomingLimitBuyOrderPartialFill) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, IncomingLimitSellOrderPartialFill) {
+TEST_F(MatchingEngineMatchTest, IncomingLimitSellOrderPartialFill) {
     OrderPtr buyOrder = new Order(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr sellOrder = new Order(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1622547801);
 
@@ -201,7 +201,7 @@ TEST_F(MatchingEngineTest, IncomingLimitSellOrderPartialFill) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitBuyOrderSweepsMultipleLevels) {
+TEST_F(MatchingEngineMatchTest, LimitBuyOrderSweepsMultipleLevels) {
     OrderPtr sellOrder1 = new Order(2, 2, 100, 50, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr sellOrder2 = new Order(3, 3, 102, 10, Side::Sell, OrderType::Limit, 1622547802);
     OrderPtr buyOrder = new Order(1, 1, 103, 55, Side::Buy, OrderType::Limit, 1622547803);
@@ -224,7 +224,7 @@ TEST_F(MatchingEngineTest, LimitBuyOrderSweepsMultipleLevels) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitSellOrderSweepsMultipleLevels) {
+TEST_F(MatchingEngineMatchTest, LimitSellOrderSweepsMultipleLevels) {
     OrderPtr buyOrder1 = new Order(2, 2, 100, 50, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr buyOrder2 = new Order(3, 3, 98, 10, Side::Buy, OrderType::Limit, 1622547802);
     OrderPtr sellOrder = new Order(1, 1, 97, 55, Side::Sell, OrderType::Limit, 1622547803);
@@ -247,7 +247,7 @@ TEST_F(MatchingEngineTest, LimitSellOrderSweepsMultipleLevels) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitBuyOrderSweepsMultipleOrdersSameLevel) {
+TEST_F(MatchingEngineMatchTest, LimitBuyOrderSweepsMultipleOrdersSameLevel) {
     OrderPtr sellOrder1 = new Order(2, 2, 100, 50, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr sellOrder2 = new Order(3, 3, 100, 10, Side::Sell, OrderType::Limit, 1622547802);
     OrderPtr buyOrder = new Order(1, 1, 100, 55, Side::Buy, OrderType::Limit, 1622547803);
@@ -270,7 +270,7 @@ TEST_F(MatchingEngineTest, LimitBuyOrderSweepsMultipleOrdersSameLevel) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitSellOrderSweepsMultipleOrdersSameLevel) {
+TEST_F(MatchingEngineMatchTest, LimitSellOrderSweepsMultipleOrdersSameLevel) {
     OrderPtr buyOrder1 = new Order(2, 2, 100, 50, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr buyOrder2 = new Order(3, 3, 100, 10, Side::Buy, OrderType::Limit, 1622547802);
     OrderPtr sellOrder = new Order(1, 1, 100, 55, Side::Sell, OrderType::Limit, 1622547803);
@@ -293,7 +293,7 @@ TEST_F(MatchingEngineTest, LimitSellOrderSweepsMultipleOrdersSameLevel) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, LimitBuyOrderDoesNotMatch) {
+TEST_F(MatchingEngineMatchTest, LimitBuyOrderDoesNotMatch) {
     OrderPtr sellOrder1 = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr sellOrder2 = new Order(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr buyOrder1 = new Order(3, 3, 99, 10, Side::Buy, OrderType::Limit, 1622547802);
@@ -321,7 +321,7 @@ TEST_F(MatchingEngineTest, LimitBuyOrderDoesNotMatch) {
     delete buyOrder2;
 }
 
-TEST_F(MatchingEngineTest, LimitSellOrderDoesNotMatch) {
+TEST_F(MatchingEngineMatchTest, LimitSellOrderDoesNotMatch) {
     OrderPtr buyOrder1 = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr buyOrder2 = new Order(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr sellOrder1 = new Order(3, 3, 101, 10, Side::Sell, OrderType::Limit, 1622547802);
@@ -349,7 +349,7 @@ TEST_F(MatchingEngineTest, LimitSellOrderDoesNotMatch) {
     delete sellOrder2;
 }
 
-TEST_F(MatchingEngineTest, MatchMarketBuyOnEmptyBook) {
+TEST_F(MatchingEngineMatchTest, MatchMarketBuyOnEmptyBook) {
     OrderPtr buyOrder = new Order(1, 1, 0, 10, Side::Buy, OrderType::Market, 1622547800);
 
     engine->matchOrder(buyOrder);
@@ -362,7 +362,7 @@ TEST_F(MatchingEngineTest, MatchMarketBuyOnEmptyBook) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, MatchMarketSellOnEmptyBook) {
+TEST_F(MatchingEngineMatchTest, MatchMarketSellOnEmptyBook) {
     OrderPtr sellOrder = new Order(1, 1, 0, 10, Side::Sell, OrderType::Market, 1622547800);
 
     engine->matchOrder(sellOrder);
@@ -375,7 +375,7 @@ TEST_F(MatchingEngineTest, MatchMarketSellOnEmptyBook) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketBuyOrderExactMatch) {
+TEST_F(MatchingEngineMatchTest, MarketBuyOrderExactMatch) {
     OrderPtr sellOrder = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 0, 10, Side::Buy, OrderType::Market, 1622547801);
 
@@ -393,7 +393,7 @@ TEST_F(MatchingEngineTest, MarketBuyOrderExactMatch) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketSellOrderExactMatch) {
+TEST_F(MatchingEngineMatchTest, MarketSellOrderExactMatch) {
     OrderPtr buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr sellOrder = new Order(2, 2, 0, 10, Side::Sell, OrderType::Market, 1622547801);
 
@@ -411,7 +411,7 @@ TEST_F(MatchingEngineTest, MarketSellOrderExactMatch) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketBuyOrderMatchesBestAsk) {
+TEST_F(MatchingEngineMatchTest, MarketBuyOrderMatchesBestAsk) {
     OrderPtr sellOrder1 = new Order(1, 1, 103, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr sellOrder2 = new Order(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr buyOrder = new Order(3, 3, 0, 10, Side::Buy, OrderType::Market, 1622547802);
@@ -434,7 +434,7 @@ TEST_F(MatchingEngineTest, MarketBuyOrderMatchesBestAsk) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketSellOrderMatchesBestAsk) {
+TEST_F(MatchingEngineMatchTest, MarketSellOrderMatchesBestAsk) {
     OrderPtr buyOrder1 = new Order(1, 1, 97, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr buyOrder2 = new Order(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr sellOrder = new Order(3, 3, 0, 10, Side::Sell, OrderType::Market, 1622547802);
@@ -457,7 +457,7 @@ TEST_F(MatchingEngineTest, MarketSellOrderMatchesBestAsk) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, RestingBuyOrderPartialFill_IncomingMarketSell) {
+TEST_F(MatchingEngineMatchTest, RestingBuyOrderPartialFill_IncomingMarketSell) {
     OrderPtr buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr sellOrder = new Order(2, 2, 0, 5, Side::Sell, OrderType::Market, 1622547801);
 
@@ -475,7 +475,7 @@ TEST_F(MatchingEngineTest, RestingBuyOrderPartialFill_IncomingMarketSell) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, RestingSellOrderPartialFill_IncomingMarketBuy) {
+TEST_F(MatchingEngineMatchTest, RestingSellOrderPartialFill_IncomingMarketBuy) {
     OrderPtr sellOrder = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 0, 5, Side::Buy, OrderType::Market, 1622547801);
 
@@ -493,7 +493,7 @@ TEST_F(MatchingEngineTest, RestingSellOrderPartialFill_IncomingMarketBuy) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, IncomingMarketBuyOrderPartialFill) {
+TEST_F(MatchingEngineMatchTest, IncomingMarketBuyOrderPartialFill) {
     OrderPtr sellOrder = new Order(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 0, 10, Side::Buy, OrderType::Market, 1622547801);
 
@@ -511,7 +511,7 @@ TEST_F(MatchingEngineTest, IncomingMarketBuyOrderPartialFill) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, IncomingMarketSellOrderPartialFill) {
+TEST_F(MatchingEngineMatchTest, IncomingMarketSellOrderPartialFill) {
     OrderPtr buyOrder = new Order(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr sellOrder = new Order(2, 2, 0, 10, Side::Sell, OrderType::Market, 1622547801);
 
@@ -529,7 +529,7 @@ TEST_F(MatchingEngineTest, IncomingMarketSellOrderPartialFill) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketBuyOrderSweepsMultipleLevels) {
+TEST_F(MatchingEngineMatchTest, MarketBuyOrderSweepsMultipleLevels) {
     OrderPtr sellOrder1 = new Order(1, 1, 100, 50, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr sellOrder2 = new Order(2, 2, 102, 10, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr buyOrder = new Order(3, 3, 0, 55, Side::Buy, OrderType::Market, 1622547802);
@@ -552,7 +552,7 @@ TEST_F(MatchingEngineTest, MarketBuyOrderSweepsMultipleLevels) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketSellOrderSweepsMultipleLevels) {
+TEST_F(MatchingEngineMatchTest, MarketSellOrderSweepsMultipleLevels) {
     OrderPtr buyOrder1 = new Order(1, 1, 100, 50, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr buyOrder2 = new Order(2, 2, 98, 10, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr sellOrder = new Order(3, 3, 0, 55, Side::Sell, OrderType::Market, 1622547802);
@@ -575,7 +575,7 @@ TEST_F(MatchingEngineTest, MarketSellOrderSweepsMultipleLevels) {
     delete sellOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketBuyOrderSweepsMultipleOrdersSameLevel) {
+TEST_F(MatchingEngineMatchTest, MarketBuyOrderSweepsMultipleOrdersSameLevel) {
     OrderPtr sellOrder1 = new Order(1, 1, 100, 50, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr sellOrder2 = new Order(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1622547801);
     OrderPtr buyOrder = new Order(3, 3, 0, 55, Side::Buy, OrderType::Market, 1622547802);
@@ -598,7 +598,7 @@ TEST_F(MatchingEngineTest, MarketBuyOrderSweepsMultipleOrdersSameLevel) {
     delete buyOrder;
 }
 
-TEST_F(MatchingEngineTest, MarketSellOrderSweepsMultipleOrdersSameLevel) {
+TEST_F(MatchingEngineMatchTest, MarketSellOrderSweepsMultipleOrdersSameLevel) {
     OrderPtr buyOrder1 = new Order(1, 1, 100, 50, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr buyOrder2 = new Order(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
     OrderPtr sellOrder = new Order(3, 3, 0, 55, Side::Sell, OrderType::Market, 1622547802);
