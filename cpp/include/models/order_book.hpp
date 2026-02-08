@@ -1,3 +1,4 @@
+#pragma once
 #include <list>
 #include <map>
 #include <unordered_map>
@@ -14,20 +15,6 @@ class LimitOrderBook {
 
     public:
         LimitOrderBook() = default;
-
-        ~LimitOrderBook() {
-            for (auto& [_, orderList] : bids)
-                for (Order* order : orderList)
-                    delete order;
-
-            for (auto& [_, orderList] : asks)
-                for (Order* order : orderList)
-                    delete order;
-
-            bids.clear();
-            asks.clear();
-            orderIndexMap.clear();
-        }
 
         bool addOrder(const OrderPtr &order) {
             assert(order != nullptr);
@@ -87,16 +74,20 @@ class LimitOrderBook {
         }
 
         bool isOrderMarketable(const OrderPtr &order) const {
+            assert(order != nullptr);
             OrderStatus status = order->getStatus();
-            if (status == OrderStatus::Cancelled  || status == OrderStatus::CancelledAfterPartialExecution || status == OrderStatus::Executed) return false;
+            assert(status != OrderStatus::Cancelled && status != OrderStatus::CancelledAfterPartialExecution && status != OrderStatus::Executed);
             if (order->getQty() == 0) return false;
+            Side side = order->getSide();
+            if (side == Side::Buy && asks.empty()) return false;
+            if (side == Side::Sell && bids.empty()) return false;
             if (order->getType() == OrderType::Market) return true;
-            if (order->getSide() == Side::Buy) {
+            if (side == Side::Buy) {
                 uint64_t bestAsk = getBestAsk();
-                return bestAsk != 0 && order->getPriceTicks() >= bestAsk;
+                return order->getPriceTicks() >= bestAsk;
             } else {
                 uint64_t bestBid = getBestBid();
-                return bestBid != 0 && order->getPriceTicks() <= bestBid;
+                return order->getPriceTicks() <= bestBid;
             }
         }
 

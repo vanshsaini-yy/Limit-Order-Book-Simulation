@@ -80,7 +80,15 @@ TEST_F(OrderBookTest, GetBestBidAsk) {
     EXPECT_EQ(book.getBestAsk(), 0ull);
 }
 
-TEST_F(OrderBookTest, IsOrderMarketableLimitOrders) {
+TEST_F(OrderBookTest, LimitOrdersMarketableOnEmptyBook) {
+    auto buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    auto sellOrder = new Order(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
+
+    EXPECT_FALSE(book.isOrderMarketable(buyOrder));
+    EXPECT_FALSE(book.isOrderMarketable(sellOrder));
+}
+
+TEST_F(OrderBookTest, LimitOrdersMarketableWithExistingBidsAsks) {
     auto buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     auto sellOrder = new Order(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -98,15 +106,29 @@ TEST_F(OrderBookTest, IsOrderMarketableLimitOrders) {
     EXPECT_FALSE(book.isOrderMarketable(nonMarketableSell));
 }
 
-TEST_F(OrderBookTest, IsOrderMarketableMarketOrders) {
+TEST_F(OrderBookTest, MarketOrdersNotMarketableOnEmptyBook) {
     auto marketBuyOrder = new Order(1, 1, 0, 10, Side::Buy, OrderType::Market, 1000);
     auto marketSellOrder = new Order(2, 2, 0, 10, Side::Sell, OrderType::Market, 1001);
+
+    EXPECT_FALSE(book.isOrderMarketable(marketBuyOrder));
+    EXPECT_FALSE(book.isOrderMarketable(marketSellOrder));
+}
+
+TEST_F(OrderBookTest, MarketOrdersMarketableWithExistingBidsAsks) {
+    auto buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    auto sellOrder = new Order(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
+
+    book.addOrder(buyOrder);
+    book.addOrder(sellOrder);
+
+    auto marketBuyOrder = new Order(3, 3, 0, 10, Side::Buy, OrderType::Market, 1002);
+    auto marketSellOrder = new Order(4, 4, 0, 10, Side::Sell, OrderType::Market, 1003);
 
     EXPECT_TRUE(book.isOrderMarketable(marketBuyOrder));
     EXPECT_TRUE(book.isOrderMarketable(marketSellOrder));
 }
 
-TEST_F(OrderBookTest, IsOrderMarketableZeroQtyOrder) {
+TEST_F(OrderBookTest, ZeroQtyOrderNotMarketable) {
     auto zeroQtyLimitOrder = new Order(1, 1, 100, 0, Side::Buy, OrderType::Limit, 1000);
     auto zeroQtyMarketOrder = new Order(2, 2, 0, 0, Side::Sell, OrderType::Market, 1001);
 
