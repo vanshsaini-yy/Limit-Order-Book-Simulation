@@ -8,9 +8,7 @@ protected:
     Order* sellOrder;
 
     void SetUp() override {
-        // Create a buy order with quantity 100 at price 1000
         buyOrder = new Order(1, 100, 1000, 100, Side::Buy, OrderType::Limit, 1622547800);
-        // Create a sell order with quantity 100 at price 1000
         sellOrder = new Order(2, 200, 1000, 100, Side::Sell, OrderType::Limit, 1622547801);
     }
 
@@ -23,19 +21,16 @@ protected:
 TEST_F(ExecutionEngineTest, ExecuteTradeWithEqualQuantities) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, sellOrder);
     
-    // Both orders should be completely filled
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(buyOrder->getQty(), 0u);
     EXPECT_EQ(sellOrder->getQty(), 0u);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
-    // Create a sell order with larger quantity
     Order* largerSellOrder = new Order(3, 300, 1000, 150, Side::Sell, OrderType::Limit, 1622547802);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, largerSellOrder);
     
-    // Trade should be for the taker's quantity
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(buyOrder->getQty(), 0u);
     EXPECT_EQ(largerSellOrder->getQty(), 50u);
@@ -44,12 +39,10 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithMakerSmallerQuantity) {
-    // Create a buy order with larger quantity
     Order* largerBuyOrder = new Order(4, 400, 1000, 150, Side::Buy, OrderType::Limit, 1622547803);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(largerBuyOrder, sellOrder);
     
-    // Trade should be for the maker's quantity
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(largerBuyOrder->getQty(), 50u);
     EXPECT_EQ(sellOrder->getQty(), 0u);
@@ -58,7 +51,6 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithMakerSmallerQuantity) {
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
-    // Create orders with zero quantity
     Order* emptyBuyOrder = new Order(5, 500, 1000, 0, Side::Buy, OrderType::Limit, 1622547804);
     Order* emptySellOrder = new Order(6, 600, 1000, 0, Side::Sell, OrderType::Limit, 1622547805);
     
@@ -73,7 +65,6 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithOneZeroQuantity) {
-    // Create a sell order with zero quantity
     Order* emptySellOrder = new Order(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder);
@@ -86,7 +77,6 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithOneZeroQuantity) {
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithLargeQuantities) {
-    // Create orders with large quantities
     Order* largeBuyOrder = new Order(10, 1000, 1000, 1000000u, Side::Buy, OrderType::Limit, 1622547809);
     Order* largeSellOrder = new Order(11, 1100, 1000, 2000000u, Side::Sell, OrderType::Limit, 1622547810);
     
@@ -108,7 +98,6 @@ TEST_F(ExecutionEngineTest, ExecuteTradeDoesNotAffectOtherOrderFields) {
     
     ExecutionEngine::executeTrade(buyOrder, sellOrder);
     
-    // Verify that other fields remain unchanged
     EXPECT_EQ(buyOrder->getOrderID(), originalBuyOrderID);
     EXPECT_EQ(buyOrder->getOwnerID(), originalBuyOwnerID);
     EXPECT_EQ(buyOrder->getPriceTicks(), originalBuyPrice);
