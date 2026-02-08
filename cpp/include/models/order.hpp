@@ -17,16 +17,23 @@ class Order {
         OrderStatus status;
 
     public:
-        constexpr Order(uint32_t orderID_, uint32_t ownerID_, uint64_t priceTicks_, uint32_t qty_,
-                        Side side_, OrderType type_, uint64_t timestamp_) noexcept
-            :   orderID(orderID_), 
-                ownerID(ownerID_), 
-                priceTicks(priceTicks_),
-                qty(qty_), 
-                side(side_),
-                type(type_), 
-                timestamp(timestamp_), 
-                status(OrderStatus::Pending) {}
+        Order(
+            uint32_t orderID_, 
+            uint32_t ownerID_, 
+            uint64_t priceTicks_, 
+            uint32_t qty_, 
+            Side side_, 
+            OrderType type_, 
+            uint64_t timestamp_
+        )
+        :   orderID(orderID_), 
+            ownerID(ownerID_), 
+            priceTicks(priceTicks_),
+            qty(qty_), 
+            side(side_),
+            type(type_), 
+            timestamp(timestamp_), 
+            status(OrderStatus::Pending) {}
 
         inline uint32_t getOrderID() const { return orderID; }
         inline uint32_t getOwnerID() const { return ownerID; }
