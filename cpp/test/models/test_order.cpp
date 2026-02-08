@@ -38,3 +38,11 @@ TEST_F(OrderTest, SetStatusUpdatesOrderStatus) {
     order->setStatus(OrderStatus::Executed);
     EXPECT_EQ(order->getStatus(), OrderStatus::Executed);
 }
+
+TEST_F(OrderTest, IsCancelledReturnsTrueForCancelledStatuses) {
+    EXPECT_FALSE(order->isCancelled());
+    order->setStatus(OrderStatus::Cancelled);
+    EXPECT_TRUE(order->isCancelled());
+    order->setStatus(OrderStatus::CancelledAfterPartialExecution);
+    EXPECT_TRUE(order->isCancelled());
+}
