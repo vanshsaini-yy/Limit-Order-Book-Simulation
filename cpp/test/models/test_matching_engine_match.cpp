@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include "models/matching_engine.hpp"
-#include "models/order_book.hpp"
-#include "policy/self_trade_prevention.hpp"
 
 class MatchingEngineTest : public ::testing::Test {
 protected:
