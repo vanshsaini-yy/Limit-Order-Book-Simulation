@@ -3,9 +3,18 @@
 #include <map>
 #include <unordered_map>
 #include <cstdint>
-#include <cassert>
-#include "models/order.hpp"
+#include <expected>
 #include "models/order_index.hpp"
+
+enum class OrderError {
+    InvalidQuantity,        // qty <= 0
+    InvalidPrice,           // priceTicks == 0 for limit orders
+    DuplicateOrderId,       // order ID already exists
+    NullOrder,              // nullptr passed
+    MarketOrderWithPrice,   // market order shouldn't have price constraints
+    AddingCancelledOrder,   // trying to add an order that is already cancelled
+    AddingExecutedOrder     // trying to add an order that is already executed
+};
 
 class LimitOrderBook {
     private:
@@ -16,10 +25,35 @@ class LimitOrderBook {
     public:
         LimitOrderBook() = default;
 
-        bool addOrder(const OrderPtr &order) {
-            assert(order != nullptr);
-            assert(orderIndexMap.find(order->getOrderID()) == orderIndexMap.end());
-            if (order->getQty() == 0 || order->getType() == OrderType::Market) return false;
+        std::expected<void, OrderError> addOrder(const OrderPtr &order) {
+            if (!order) {
+                return std::unexpected(OrderError::NullOrder);
+            }
+            
+            if (order->getQty() <= 0) {
+                return std::unexpected(OrderError::InvalidQuantity);
+            }
+            
+            if (order->getType() == OrderType::Limit && order->getPriceTicks() <= 0) {
+                return std::unexpected(OrderError::InvalidPrice);
+            }
+
+            if (order->getType() == OrderType::Market && order->getPriceTicks() != 0) {
+                return std::unexpected(OrderError::MarketOrderWithPrice);
+            }
+
+            if (order->isCancelled()) {
+                return std::unexpected(OrderError::AddingCancelledOrder);
+            }
+
+            if (order->getStatus() == OrderStatus::Executed) {
+                return std::unexpected(OrderError::AddingExecutedOrder);
+            }
+            
+            if (orderIndexMap.contains(order->getOrderID())) {
+                return std::unexpected(OrderError::DuplicateOrderId);
+            }
+
             uint64_t price = order->getPriceTicks();
             if (order->getSide() == Side::Buy) {
                 bids[price].push_back(order);
@@ -30,7 +64,7 @@ class LimitOrderBook {
                 auto it = std::prev(asks[price].end());
                 orderIndexMap.emplace(order->getOrderID(), OrderIndex(Side::Sell, price, it));
             }
-            return true;
+            return {};
         }
 
         bool removeOrder(uint64_t orderId) {
