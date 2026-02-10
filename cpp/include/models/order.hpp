@@ -47,6 +47,7 @@ class Order {
         inline void reduceQty(uint32_t qtyFilled) { qty -= qtyFilled; }
         inline void setStatus(OrderStatus newStatus) { status = newStatus; }
         inline bool isCancelled() const { return status == OrderStatus::Cancelled || status == OrderStatus::CancelledAfterPartialExecution; }
+        inline bool isExecuted() const { return status == OrderStatus::Executed; }
 };
 
 using OrderPtr = Order*;
