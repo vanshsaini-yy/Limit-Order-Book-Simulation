@@ -1,7 +1,7 @@
 #pragma once
 #include "models/order_book.hpp"
-#include "models/order_lifecycle.hpp"
 #include "models/execution_engine.hpp"
+#include "policy/order_lifecycle.hpp"
 #include "policy/self_trade_prevention.hpp"
 #include "utils/order_utils.hpp"
 

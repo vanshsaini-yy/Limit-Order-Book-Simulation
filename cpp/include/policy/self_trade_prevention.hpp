@@ -1,7 +1,6 @@
 #pragma once
 #include<cstdint>
 #include "models/order.hpp"
-#include "models/order_lifecycle.hpp"
 
 struct STPDecision {
     bool cancelIncoming = false;
