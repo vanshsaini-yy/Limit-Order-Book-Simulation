@@ -1,26 +1,59 @@
 #pragma once
 #include <cstdint>
 
+using PriceTicks = int64_t;
+using Timestamp = uint64_t;
+using OrderID = uint32_t;
+using OwnerID = uint32_t;
+using Quantity = int32_t;
+
 enum class Side : uint8_t { Buy = 0, Sell = 1 };
 enum class OrderType : uint8_t { Limit = 0, Market = 1 };
+enum class OrderStatus : uint16_t { Pending = 0, PartiallyExecuted = 1, Executed = 2, Cancelled = 3, CancelledAfterPartialExecution = 4 };
 
 class Order {
     private:
-        uint64_t   id;
-        uint64_t   priceTicks; 
-        uint32_t   qty;
-        Side       side;
-        OrderType  type;
-        uint64_t   timestamp;
+        PriceTicks priceTicks;
+        Timestamp timestamp;
+        OrderID orderID;
+        OwnerID ownerID;
+        Quantity qty;
+        Side  side;
+        OrderType type;
+        OrderStatus status;
 
     public:
-    constexpr Order(uint64_t id_, uint64_t priceTicks_, uint32_t qty_, Side side_, OrderType type_, uint64_t timestamp_)
-        : id(id_), priceTicks(priceTicks_), qty(qty_), side(side_), type(type_), timestamp(timestamp_) {}
+        Order(
+            OrderID orderID_, 
+            OwnerID ownerID_, 
+            PriceTicks priceTicks_, 
+            Quantity qty_, 
+            Side side_, 
+            OrderType type_, 
+            Timestamp timestamp_
+        )
+        :   orderID(orderID_), 
+            ownerID(ownerID_), 
+            priceTicks(priceTicks_),
+            qty(qty_), 
+            side(side_),
+            type(type_), 
+            timestamp(timestamp_), 
+            status(OrderStatus::Pending) {}
 
-    inline uint64_t getId() const { return id; }
-    inline uint64_t getPriceTicks() const { return priceTicks; }
-    inline uint32_t getQty() const { return qty; }
-    inline Side getSide() const { return side; }
-    inline OrderType getType() const { return type; }
-    inline uint64_t getTimestamp() const { return timestamp; }
+        inline OrderID getOrderID() const { return orderID; }
+        inline OwnerID getOwnerID() const { return ownerID; }
+        inline PriceTicks getPriceTicks() const { return priceTicks; }
+        inline Quantity getQty() const { return qty; }
+        inline Side getSide() const { return side; }
+        inline OrderType getType() const { return type; }
+        inline Timestamp getTimestamp() const { return timestamp; }
+        inline OrderStatus getStatus() const { return status; }
+
+        inline void reduceQty(Quantity qtyFilled) { qty -= qtyFilled; }
+        inline void setStatus(OrderStatus newStatus) { status = newStatus; }
+        inline bool isCancelled() const { return status == OrderStatus::Cancelled || status == OrderStatus::CancelledAfterPartialExecution; }
+        inline bool isExecuted() const { return status == OrderStatus::Executed; }
 };
+
+using OrderPtr = Order*;
