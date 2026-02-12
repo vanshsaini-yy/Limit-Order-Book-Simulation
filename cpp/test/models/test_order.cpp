@@ -15,21 +15,21 @@ protected:
 };
 
 TEST_F(OrderTest, GettersReturnExpectedValues) {
-    EXPECT_EQ(order->getOrderID(), 1u);
-    EXPECT_EQ(order->getOwnerID(), 1u);
-    EXPECT_EQ(order->getPriceTicks(), 0ull);
-    EXPECT_EQ(order->getQty(), 10u);
+    EXPECT_EQ(order->getOrderID(), 1);
+    EXPECT_EQ(order->getOwnerID(), 1);
+    EXPECT_EQ(order->getPriceTicks(), 0);
+    EXPECT_EQ(order->getQty(), 10);
     EXPECT_EQ(order->getSide(), Side::Buy);
     EXPECT_EQ(order->getType(), OrderType::Limit);
-    EXPECT_EQ(order->getTimestamp(), 1622547800ull);
+    EXPECT_EQ(order->getTimestamp(), 1622547800);
     EXPECT_EQ(order->getStatus(), OrderStatus::Pending);
 }
 
 TEST_F(OrderTest, ReduceQtyDecreasesQuantity) {
     order->reduceQty(4);
-    EXPECT_EQ(order->getQty(), 6u);
+    EXPECT_EQ(order->getQty(), 6);
     order->reduceQty(6);
-    EXPECT_EQ(order->getQty(), 0u);
+    EXPECT_EQ(order->getQty(), 0);
 }
 
 TEST_F(OrderTest, SetStatusUpdatesOrderStatus) {

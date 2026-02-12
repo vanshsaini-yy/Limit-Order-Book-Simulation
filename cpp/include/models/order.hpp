@@ -1,11 +1,11 @@
 #pragma once
 #include <cstdint>
 
-using PriceTicks = uint64_t;
+using PriceTicks = int64_t;
 using Timestamp = uint64_t;
 using OrderID = uint32_t;
 using OwnerID = uint32_t;
-using Quantity = uint32_t;
+using Quantity = int32_t;
 
 enum class Side : uint8_t { Buy = 0, Sell = 1 };
 enum class OrderType : uint8_t { Limit = 0, Market = 1 };
