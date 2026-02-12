@@ -14,7 +14,7 @@ class MatchingEngine {
         explicit MatchingEngine(STPPolicy* policy, LimitOrderBook* book)
             : stpPolicy(policy), orderBook(book) {}
 
-        void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const uint32_t incomingInitialQty) {
+        void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty) {
             STPDecision decision = stpPolicy->getDecision();
             if (decision.cancelIncoming) {
                 incomingOrder->setStatus(
@@ -30,10 +30,10 @@ class MatchingEngine {
         }
 
         void matchOrder(const OrderPtr &incomingOrder) {
-            uint32_t incomingInitialQty = incomingOrder->getQty();
+            Quantity incomingInitialQty = incomingOrder->getQty();
             Side incomingSide = incomingOrder->getSide();
             while (orderBook->isOrderMarketable(incomingOrder)) {
-                auto restingOrder = orderBook->getBestMatchedOrder(incomingSide);
+                auto restingOrder = orderBook->getMatchedOrder(incomingSide);
                 auto restingInitialQty = restingOrder->getQty();
                 if (isSelfTrade(restingOrder, incomingOrder)) {
                     applySTPPolicy(restingOrder, incomingOrder, incomingInitialQty);
