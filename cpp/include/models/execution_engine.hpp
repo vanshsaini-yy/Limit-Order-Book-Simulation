@@ -4,8 +4,8 @@
 
 class ExecutionEngine {
 public:
-    static uint32_t executeTrade(const OrderPtr& taker, const OrderPtr& maker) {
-        uint32_t tradedQty = std::min(taker->getQty(), maker->getQty());
+    static Quantity executeTrade(const OrderPtr& taker, const OrderPtr& maker) {
+        Quantity tradedQty = std::min(taker->getQty(), maker->getQty());
         taker->reduceQty(tradedQty);
         maker->reduceQty(tradedQty);
         return tradedQty;

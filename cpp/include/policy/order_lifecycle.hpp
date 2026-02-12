@@ -3,7 +3,7 @@
 
 class OrderLifecycle {
 public:
-    static OrderStatus afterCancelIncoming(const uint32_t initialQty, const uint32_t remainingQty) {
+    static OrderStatus afterCancelIncoming(const Quantity initialQty, const Quantity remainingQty) {
         if (remainingQty < initialQty) {
             return OrderStatus::CancelledAfterPartialExecution;
         } else {
@@ -21,7 +21,7 @@ public:
         }
     }
 
-    static OrderStatus afterMatching(const uint32_t initialQty, const uint32_t remainingQty, const OrderType type) {
+    static OrderStatus afterMatching(const Quantity initialQty, const Quantity remainingQty, const OrderType type) {
         if (remainingQty == 0) {
             return OrderStatus::Executed;
         } else if (remainingQty < initialQty) {
