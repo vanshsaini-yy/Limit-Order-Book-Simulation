@@ -4,129 +4,107 @@
 #include <unordered_map>
 #include <cstdint>
 #include <expected>
-#include "models/order_index.hpp"
+#include "policy/order_validation.hpp"
 
-enum class OrderError {
-    InvalidQuantity,        // qty <= 0
-    InvalidPrice,           // priceTicks == 0 for limit orders
-    DuplicateOrderId,       // order ID already exists
-    NullOrder,              // nullptr passed
-    MarketOrderWithPrice,   // market order shouldn't have price constraints
-    AddingCancelledOrder,   // trying to add an order that is already cancelled
-    AddingExecutedOrder     // trying to add an order that is already executed
-};
+using BidStructure = std::map<PriceTicks, std::list<OrderPtr>, std::greater<PriceTicks>>;
+using AskStructure = std::map<PriceTicks, std::list<OrderPtr>>;
 
 class LimitOrderBook {
     private:
-        std::map<uint64_t, std::list<OrderPtr>, std::greater<uint64_t>> bids;
-        std::map<uint64_t, std::list<OrderPtr>> asks;
-        std::unordered_map<uint64_t, OrderIndex> orderIndexMap;
+        BidStructure bids;
+        AskStructure asks;
+        std::unordered_map<OrderID, std::list<OrderPtr>::iterator> orderIDMap;
 
     public:
         LimitOrderBook() = default;
 
-        std::expected<void, OrderError> addOrder(const OrderPtr &order) {
-            if (!order) {
-                return std::unexpected(OrderError::NullOrder);
-            }
-            
-            if (order->getQty() <= 0) {
-                return std::unexpected(OrderError::InvalidQuantity);
-            }
-            
-            if (order->getType() == OrderType::Limit && order->getPriceTicks() <= 0) {
-                return std::unexpected(OrderError::InvalidPrice);
-            }
+        bool doesOrderExist(OrderID orderId) const {
+            return orderIDMap.contains(orderId);
+        }
 
-            if (order->getType() == OrderType::Market && order->getPriceTicks() != 0) {
-                return std::unexpected(OrderError::MarketOrderWithPrice);
-            }
+        std::optional<PriceTicks> getBestBid() const {
+            if (bids.empty()) return std::nullopt;
+            return bids.begin()->first;
+        }
 
-            if (order->isCancelled()) {
-                return std::unexpected(OrderError::AddingCancelledOrder);
-            }
+        std::optional<PriceTicks> getBestAsk() const {
+            if (asks.empty()) return std::nullopt;
+            return asks.begin()->first;
+        }
 
-            if (order->getStatus() == OrderStatus::Executed) {
-                return std::unexpected(OrderError::AddingExecutedOrder);
+        RejectionReason addOrder(const OrderPtr &order) {
+            RejectionReason validationResult = OrderValidator::validateBeforeAdding(order);
+            if (validationResult != RejectionReason::None) {
+                return validationResult;
             }
-            
-            if (orderIndexMap.contains(order->getOrderID())) {
-                return std::unexpected(OrderError::DuplicateOrderId);
+            OrderID orderID = order->getOrderID();
+            if (doesOrderExist(orderID)) {
+                return RejectionReason::AddingDuplicateOrder;
             }
-
-            uint64_t price = order->getPriceTicks();
+            PriceTicks price = order->getPriceTicks();
             if (order->getSide() == Side::Buy) {
                 bids[price].push_back(order);
                 auto it = std::prev(bids[price].end());
-                orderIndexMap.emplace(order->getOrderID(), OrderIndex(Side::Buy, price, it));
+                orderIDMap.emplace(orderID, it);
             } else {
                 asks[price].push_back(order);
                 auto it = std::prev(asks[price].end());
-                orderIndexMap.emplace(order->getOrderID(), OrderIndex(Side::Sell, price, it));
+                orderIDMap.emplace(orderID, it);
             }
-            return {};
+            return RejectionReason::None;
         }
 
-        bool removeOrder(uint64_t orderId) {
-            auto it = orderIndexMap.find(orderId);
-            if (it == orderIndexMap.end())
-                return false;
-            OrderIndex& idx = it->second;
-            if (idx.getSide() == Side::Buy) {
-                auto bookIt = bids.find(idx.getPriceTicks());
+        RejectionReason removeOrder(OrderID orderId) {
+            auto it = orderIDMap.find(orderId);
+            if (it == orderIDMap.end())
+                return RejectionReason::OrderToBeRemovedDoesNotExist;
+            OrderPtr order = *(it->second);
+            RejectionReason validationResult = OrderValidator::validateBeforeRemoving(order);
+            if (validationResult != RejectionReason::None) {
+                return validationResult;
+            }
+            if (order->getSide() == Side::Buy) {
+                auto bookIt = bids.find(order->getPriceTicks());
                 if (bookIt != bids.end()) {
-                    bookIt->second.erase(idx.getOrderIter());
+                    bookIt->second.erase(it->second);
                     if (bookIt->second.empty())
                         bids.erase(bookIt);
                 }
                 else {
-                    return false;
+                    return RejectionReason::OrderBookInvariantViolation;
                 }
             } else {
-                auto bookIt = asks.find(idx.getPriceTicks());
+                auto bookIt = asks.find(order->getPriceTicks());
                 if (bookIt != asks.end()) {
-                    bookIt->second.erase(idx.getOrderIter());
+                    bookIt->second.erase(it->second);
                     if (bookIt->second.empty())
                         asks.erase(bookIt);
                 }
                 else {
-                    return false;
+                    return RejectionReason::OrderBookInvariantViolation;
                 }
             }
-            orderIndexMap.erase(it);
-            return true;
-        }
-
-        uint64_t getBestBid() const {
-            if (bids.empty()) return 0;
-            return bids.begin()->first;
-        }
-
-        uint64_t getBestAsk() const {
-            if (asks.empty()) return 0;
-            return asks.begin()->first;
+            orderIDMap.erase(it);
+            return RejectionReason::None;
         }
 
         bool isOrderMarketable(const OrderPtr &order) const {
-            assert(order != nullptr);
-            OrderStatus status = order->getStatus();
-            assert(status != OrderStatus::Cancelled && status != OrderStatus::CancelledAfterPartialExecution && status != OrderStatus::Executed);
             if (order->getQty() == 0) return false;
             Side side = order->getSide();
             if (side == Side::Buy && asks.empty()) return false;
             if (side == Side::Sell && bids.empty()) return false;
             if (order->getType() == OrderType::Market) return true;
             if (side == Side::Buy) {
-                uint64_t bestAsk = getBestAsk();
+                auto bestAsk = getBestAsk();
                 return order->getPriceTicks() >= bestAsk;
             } else {
-                uint64_t bestBid = getBestBid();
+                auto bestBid = getBestBid();
                 return order->getPriceTicks() <= bestBid;
             }
         }
 
-        OrderPtr getBestMatchedOrder(const Side side) const {
-            if (side == Side::Buy) {
+        OrderPtr getMatchedOrder(const Side incomingSide) const {
+            if (incomingSide == Side::Buy) {
                 if (asks.empty() || asks.begin()->second.empty()) return nullptr;
                 return asks.begin()->second.front();
             } else {
@@ -135,12 +113,12 @@ class LimitOrderBook {
             }
         }
 
-        void popFront(const Side side) {
-            if (side == Side::Buy) {
+        void popFront(const Side incomingSide) {
+            if (incomingSide == Side::Buy) {
                 if (!asks.empty()) {
                     auto& askList = asks.begin()->second;
                     auto bestAskOrder = askList.front();
-                    orderIndexMap.erase(bestAskOrder->getOrderID());
+                    orderIDMap.erase(bestAskOrder->getOrderID());
                     askList.pop_front();
                     if (askList.empty()) {
                         asks.erase(asks.begin());
@@ -150,7 +128,7 @@ class LimitOrderBook {
                 if (!bids.empty()) {
                     auto& bidList = bids.begin()->second;
                     auto bestBidOrder = bidList.front();
-                    orderIndexMap.erase(bestBidOrder->getOrderID());
+                    orderIDMap.erase(bestBidOrder->getOrderID());
                     bidList.pop_front();
                     if (bidList.empty()) {
                         bids.erase(bids.begin());
