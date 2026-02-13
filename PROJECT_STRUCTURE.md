@@ -36,8 +36,6 @@ This repository contains a C++23 limit order book simulator with a focus on core
   - `MatchingEngine` orchestrates matching, self-trade checks, lifecycle updates, and book updates.
 - [cpp/include/infra/trade_logger.hpp](cpp/include/infra/trade_logger.hpp)
   - `TradeLogger` interface for trade logging sinks.
-- [cpp/include/infra/file_trade_logger.hpp](cpp/include/infra/file_trade_logger.hpp)
-  - `FileTradeLogger` CSV-based file logger.
 - [cpp/include/infra/binary_trade_logger.hpp](cpp/include/infra/binary_trade_logger.hpp)
   - `BinaryTradeLogger` and `TradeLogRecord` for binary logging.
 - [cpp/include/utils/order_utils.hpp](cpp/include/utils/order_utils.hpp)
