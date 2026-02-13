@@ -7,6 +7,7 @@ set(TEST_SOURCES
     models/test_matching_engine_match.cpp
     models/test_matching_engine_stp.cpp
     infra/test_binary_trade_logger.cpp
+    infra/test_trade_id_generator.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})
