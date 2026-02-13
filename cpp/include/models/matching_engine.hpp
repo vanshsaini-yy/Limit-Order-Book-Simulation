@@ -5,14 +5,27 @@
 #include "policy/self_trade_prevention.hpp"
 #include "utils/order_utils.hpp"
 
+class TradeLogger;
+class TradeIdGenerator;
+
 class MatchingEngine {
     private:
         LimitOrderBook* orderBook;
         STPPolicy* stpPolicy;
+        TradeLogger* tradeLogger;
+        TradeIdGenerator* tradeIdGenerator;
 
     public:
-        explicit MatchingEngine(STPPolicy* policy, LimitOrderBook* book)
-            : stpPolicy(policy), orderBook(book) {}
+        explicit MatchingEngine(
+            STPPolicy* policy,
+            LimitOrderBook* book,
+            TradeLogger* logger = nullptr,
+            TradeIdGenerator* idGenerator = nullptr
+        )
+            : stpPolicy(policy),
+              orderBook(book),
+              tradeLogger(logger),
+              tradeIdGenerator(idGenerator) {}
 
         void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty) {
             STPDecision decision = stpPolicy->getDecision();
@@ -44,7 +57,7 @@ class MatchingEngine {
                         continue;
                     }
                 }
-                ExecutionEngine::executeTrade(incomingOrder, restingOrder);
+                ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
                 restingOrder->setStatus(
                     OrderLifecycle::afterMatching(restingInitialQty, restingOrder->getQty(), OrderType::Limit)
                 );
