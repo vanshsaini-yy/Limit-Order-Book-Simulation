@@ -6,6 +6,7 @@ set(TEST_SOURCES
     utils/test_order_utils.cpp
     models/test_matching_engine_match.cpp
     models/test_matching_engine_stp.cpp
+    infra/test_binary_trade_logger.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})
