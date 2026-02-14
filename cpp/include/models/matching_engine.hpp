@@ -1,7 +1,6 @@
 #pragma once
 #include "models/order_book.hpp"
 #include "models/execution_engine.hpp"
-#include "policy/order_lifecycle.hpp"
 #include "policy/self_trade_prevention.hpp"
 #include "utils/order_utils.hpp"
 
@@ -57,13 +56,18 @@ class MatchingEngine {
                         continue;
                     }
                 }
-                ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
+                Quantity tradedQty = ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
+                orderBook->recordExecution(tradedQty);
                 restingOrder->setStatus(
                     OrderLifecycle::afterMatching(restingInitialQty, restingOrder->getQty(), OrderType::Limit)
                 );
                 if (restingOrder->getQty() == 0) {
                     orderBook->popFront(incomingSide);
                 }
+            }
+            if (incomingOrder->getType() == OrderType::Cancel) {
+                orderBook->cancelOrder(incomingOrder->getOrderID());
+                orderBook->recordCancellation();
             }
             OrderStatus finalStatus = OrderLifecycle::afterMatching(incomingInitialQty, incomingOrder->getQty(), incomingOrder->getType());
             incomingOrder->setStatus(finalStatus);

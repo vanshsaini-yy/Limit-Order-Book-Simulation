@@ -22,6 +22,10 @@ public:
     }
 
     static OrderStatus afterMatching(const Quantity initialQty, const Quantity remainingQty, const OrderType type) {
+        if (type == OrderType::Cancel) {
+            return OrderStatus::Executed;
+        }
+
         if (remainingQty == 0) {
             return OrderStatus::Executed;
         } else if (remainingQty < initialQty) {

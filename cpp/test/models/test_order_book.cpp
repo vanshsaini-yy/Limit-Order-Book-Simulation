@@ -52,6 +52,19 @@ TEST_F(OrderBookTest, AddMarketOrderFails) {
     delete marketOrder2;
 }
 
+TEST_F(OrderBookTest, AddCancelOrderFails) {
+    OrderPtr cancelOrder1 = new Order(1, 1, 0, 10, Side::Buy, OrderType::Cancel, 1000);
+    OrderPtr cancelOrder2 = new Order(2, 2, 0, 10, Side::Sell, OrderType::Cancel, 1001);
+
+    EXPECT_EQ(book.addOrder(cancelOrder1), RejectionReason::AddingCancelOrder);
+    EXPECT_FALSE(book.doesOrderExist(1));
+    EXPECT_EQ(book.addOrder(cancelOrder2), RejectionReason::AddingCancelOrder);
+    EXPECT_FALSE(book.doesOrderExist(2));
+
+    delete cancelOrder1;
+    delete cancelOrder2;
+}
+
 TEST_F(OrderBookTest, AddOrderWithInvalidPriceFails) {
     OrderPtr invalidPriceOrder1 = new Order(1, 1, 0, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr invalidPriceOrder2 = new Order(2, 2, -10, 10, Side::Sell, OrderType::Limit, 1001);
@@ -99,29 +112,33 @@ TEST_F(OrderBookTest, AddDuplicateOrderFails) {
     delete order;
 }
 
-TEST_F(OrderBookTest, RemoveOrderSuccess) {
+TEST_F(OrderBookTest, CancelOrderSuccess) {
     OrderPtr order1 = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = new Order(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(order1);
     book.addOrder(order2);
+    order2->setStatus(OrderStatus::PartiallyExecuted);
 
-    EXPECT_EQ(book.removeOrder(1), RejectionReason::None);
+    EXPECT_EQ(book.cancelOrder(1), RejectionReason::None);
     EXPECT_FALSE(book.doesOrderExist(1));
-    EXPECT_EQ(book.removeOrder(2), RejectionReason::None);
+    EXPECT_EQ(order1->getStatus(), OrderStatus::Cancelled);
+
+    EXPECT_EQ(book.cancelOrder(2), RejectionReason::None);
     EXPECT_FALSE(book.doesOrderExist(2));
+    EXPECT_EQ(order2->getStatus(), OrderStatus::CancelledAfterPartialExecution);
 
     delete order1;
     delete order2;
 }
 
-TEST_F(OrderBookTest, RemoveNonExistingOrderFails) {
-    EXPECT_EQ(book.removeOrder(999), RejectionReason::OrderToBeRemovedDoesNotExist);
-    EXPECT_FALSE(book.doesOrderExist(999));
-    EXPECT_EQ(book.removeOrder(1001), RejectionReason::OrderToBeRemovedDoesNotExist);
-    EXPECT_FALSE(book.doesOrderExist(1001));
+TEST_F(OrderBookTest, CancelNonExistingOrderFails) {
+    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderToBeCancelledDoesNotExist);
+    EXPECT_FALSE(book.doesOrderExist(1));
+    EXPECT_EQ(book.cancelOrder(2), RejectionReason::OrderToBeCancelledDoesNotExist);
+    EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, RemoveCancelledOrderFails) {
+TEST_F(OrderBookTest, CancelCancelledOrderFails) {
     OrderPtr order1 = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = new Order(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(order1);
@@ -129,30 +146,30 @@ TEST_F(OrderBookTest, RemoveCancelledOrderFails) {
     order1->setStatus(OrderStatus::Cancelled);
     order2->setStatus(OrderStatus::CancelledAfterPartialExecution);
 
-    EXPECT_EQ(book.removeOrder(1), RejectionReason::OrderBookInvariantViolation);
-    EXPECT_EQ(book.removeOrder(2), RejectionReason::OrderBookInvariantViolation);
+    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderBookInvariantViolation);
+    EXPECT_EQ(book.cancelOrder(2), RejectionReason::OrderBookInvariantViolation);
 
     delete order1;
     delete order2;
 }
 
-TEST_F(OrderBookTest, RemoveExecutedOrderFails) {
+TEST_F(OrderBookTest, CancelExecutedOrderFails) {
     OrderPtr order = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
     order->setStatus(OrderStatus::Executed);
 
-    EXPECT_EQ(book.removeOrder(1), RejectionReason::OrderBookInvariantViolation);
+    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderBookInvariantViolation);
 
     delete order;
 }
 
-TEST_F(OrderBookTest, DoubleRemoveFails) {
+TEST_F(OrderBookTest, DoubleCancelFails) {
     OrderPtr order = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
-    EXPECT_EQ(book.removeOrder(1), RejectionReason::None);
+    EXPECT_EQ(book.cancelOrder(1), RejectionReason::None);
     EXPECT_FALSE(book.doesOrderExist(1));
-    EXPECT_EQ(book.removeOrder(1), RejectionReason::OrderToBeRemovedDoesNotExist);
+    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_FALSE(book.doesOrderExist(1));
 
     delete order;
@@ -172,14 +189,14 @@ TEST_F(OrderBookTest, GetBestBidAsk) {
     EXPECT_EQ(book.getBestBid(), 105ull);
     EXPECT_EQ(book.getBestAsk(), 110ull);
 
-    book.removeOrder(2);
-    book.removeOrder(3);
+    book.cancelOrder(2);
+    book.cancelOrder(3);
 
     EXPECT_EQ(book.getBestBid(), 100ull);
     EXPECT_EQ(book.getBestAsk(), 115ull);
 
-    book.removeOrder(1);
-    book.removeOrder(4);
+    book.cancelOrder(1);
+    book.cancelOrder(4);
 
     EXPECT_EQ(book.getBestBid(), std::nullopt);
     EXPECT_EQ(book.getBestAsk(), std::nullopt);
@@ -282,13 +299,13 @@ TEST_F(OrderBookTest, GetMatchedOrderBuyReturnsBestAskAndFifo) {
     book.addOrder(ask3);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), ask1);
 
-    book.removeOrder(1);
+    book.cancelOrder(1);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), ask2);
 
-    book.removeOrder(2);
+    book.cancelOrder(2);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), ask3);
 
-    book.removeOrder(3); 
+    book.cancelOrder(3); 
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), nullptr);
 
     delete ask1;
@@ -306,13 +323,13 @@ TEST_F(OrderBookTest, GetMatchedOrderSellReturnsBestBidAndFifo) {
     book.addOrder(bid3);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), bid1);
 
-    book.removeOrder(1);
+    book.cancelOrder(1);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), bid2);
 
-    book.removeOrder(2);
+    book.cancelOrder(2);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), bid3);
 
-    book.removeOrder(3);
+    book.cancelOrder(3);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), nullptr);
 
     delete bid1;

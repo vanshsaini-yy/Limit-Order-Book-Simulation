@@ -8,6 +8,7 @@
 #include <expected>
 #include "models/market_structure_snapshot.hpp"
 #include "policy/order_validation.hpp"
+#include "policy/order_lifecycle.hpp"
 
 using BidStructure = std::map<PriceTicks, std::list<OrderPtr>, std::greater<PriceTicks>>;
 using AskStructure = std::map<PriceTicks, std::list<OrderPtr>>;
@@ -126,12 +127,12 @@ class LimitOrderBook {
             return RejectionReason::None;
         }
 
-        RejectionReason removeOrder(OrderID orderId) {
+        RejectionReason cancelOrder(OrderID orderId) {
             auto it = orderIDMap.find(orderId);
             if (it == orderIDMap.end())
-                return RejectionReason::OrderToBeRemovedDoesNotExist;
+                return RejectionReason::OrderToBeCancelledDoesNotExist;
             OrderPtr order = *(it->second);
-            RejectionReason validationResult = OrderValidator::validateBeforeRemoving(order);
+            RejectionReason validationResult = OrderValidator::validateBeforeCancelling(order);
             if (validationResult != RejectionReason::None) {
                 return validationResult;
             }
@@ -156,16 +157,32 @@ class LimitOrderBook {
                     return RejectionReason::OrderBookInvariantViolation;
                 }
             }
+            order->setStatus(OrderLifecycle::afterCancelResting(order->getStatus()));
             orderIDMap.erase(it);
             return RejectionReason::None;
         }
 
         bool isOrderMarketable(const OrderPtr &order) const {
-            if (order->getQty() == 0) return false;
+            if (order->getType() == OrderType::Cancel) {
+                return false;
+            }
+
+            if (order->getQty() == 0) {
+                return false;
+            }
+
             Side side = order->getSide();
-            if (side == Side::Buy && asks.empty()) return false;
-            if (side == Side::Sell && bids.empty()) return false;
-            if (order->getType() == OrderType::Market) return true;
+            if (side == Side::Buy && asks.empty()) {
+                return false;
+            }
+            if (side == Side::Sell && bids.empty()) {
+                return false;
+            }
+
+            if (order->getType() == OrderType::Market) {
+                return true;
+            }
+
             if (side == Side::Buy) {
                 auto bestAsk = getBestAsk();
                 return order->getPriceTicks() >= bestAsk;

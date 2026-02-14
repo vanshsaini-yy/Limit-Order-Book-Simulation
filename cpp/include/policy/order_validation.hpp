@@ -7,12 +7,11 @@ enum class RejectionReason : uint8_t {
     InvalidQuantity,                    // qty <= 0
     InvalidPrice,                       // priceTicks <= 0 for limit orders
     AddingMarketOrder,                  // market order shouldn't be added to the book
+    AddingCancelOrder,                  // cancel order shouldn't be added to the book
     AddingDuplicateOrder,               // trying to add an order that already exists
     AddingCancelledOrder,               // trying to add an order that is already cancelled
     AddingExecutedOrder,                // trying to add an order that is already executed
-    OrderToBeRemovedDoesNotExist,       // trying to cancel an order that doesn't exist
-    OrderToBeRemovedAlreadyCancelled,   // trying to cancel an order that is already cancelled
-    OrderToBeRemovedAlreadyExecuted,    // trying to cancel an order that is already executed
+    OrderToBeCancelledDoesNotExist,     // trying to cancel an order that doesn't exist
     OrderBookInvariantViolation         // order book invariant violation
 };
 
@@ -25,6 +24,10 @@ class OrderValidator {
             
             if (order->getType() == OrderType::Market) {
                 return RejectionReason::AddingMarketOrder;
+            }
+
+            if (order->getType() == OrderType::Cancel) {
+                return RejectionReason::AddingCancelOrder;
             }
 
             if (order->getQty() <= 0) {
@@ -46,8 +49,13 @@ class OrderValidator {
             return RejectionReason::None;
         }
 
-        static RejectionReason validateBeforeRemoving(const OrderPtr &order) {
-            if (!order || order->isCancelled() || order->isExecuted()) {
+        static RejectionReason validateBeforeCancelling(const OrderPtr &order) {
+            if (!order || 
+                order->getType() == OrderType::Cancel || 
+                order->getType() == OrderType::Market ||
+                order->isCancelled() || 
+                order->isExecuted()
+            ) {
                 return RejectionReason::OrderBookInvariantViolation;
             }
 

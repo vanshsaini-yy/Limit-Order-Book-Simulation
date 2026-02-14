@@ -8,7 +8,7 @@ using OwnerID = uint32_t;
 using Quantity = int32_t;
 
 enum class Side : uint8_t { Buy = 0, Sell = 1 };
-enum class OrderType : uint8_t { Limit = 0, Market = 1 };
+enum class OrderType : uint8_t { Limit = 0, Market = 1, Cancel = 2 };
 enum class OrderStatus : uint16_t { Pending = 0, PartiallyExecuted = 1, Executed = 2, Cancelled = 3, CancelledAfterPartialExecution = 4 };
 
 class Order {
