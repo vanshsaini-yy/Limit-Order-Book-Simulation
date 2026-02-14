@@ -12,7 +12,6 @@ struct LevelInfo {
 };
 
 struct SideSummaries {
-    std::optional<PriceTicks> bestPrice;
     Quantity totalQuantity;
     uint32_t orderCount;
     uint64_t totalNotionalValue;
@@ -21,6 +20,7 @@ struct SideSummaries {
 struct TempoMetrics {
     uint32_t executionCount;
     uint32_t cancelCount;
+    uint64_t totalVolumeExecuted;
 };
 
 struct MarketStructureSnapshot {
