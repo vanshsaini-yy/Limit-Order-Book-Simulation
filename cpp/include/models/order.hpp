@@ -1,13 +1,14 @@
 #pragma once
 #include <cstdint>
 
-using PriceTicks = int64_t;
+using PriceTicks = int32_t;
 using Timestamp = uint64_t;
 using OrderID = uint32_t;
+using LinkedCancelOrderID = uint32_t;
 using OwnerID = uint32_t;
 using Quantity = int32_t;
 
-enum class Side : uint8_t { Buy = 0, Sell = 1 };
+enum class Side : uint8_t { Buy = 0, Sell = 1, None = 2 };
 enum class OrderType : uint8_t { Limit = 0, Market = 1, Cancel = 2 };
 enum class OrderStatus : uint16_t { Pending = 0, PartiallyExecuted = 1, Executed = 2, Cancelled = 3, CancelledAfterPartialExecution = 4 };
 
@@ -21,6 +22,7 @@ class Order {
         Side  side;
         OrderType type;
         OrderStatus status;
+        LinkedCancelOrderID linkedCancelOrderID;
 
     public:
         Order(
@@ -30,7 +32,8 @@ class Order {
             Quantity qty_, 
             Side side_, 
             OrderType type_, 
-            Timestamp timestamp_
+            Timestamp timestamp_,
+            LinkedCancelOrderID linkedCancelOrderID_ = 0
         )
         :   orderID(orderID_), 
             ownerID(ownerID_), 
@@ -39,7 +42,8 @@ class Order {
             side(side_),
             type(type_), 
             timestamp(timestamp_), 
-            status(OrderStatus::Pending) {}
+            status(OrderStatus::Pending),
+            linkedCancelOrderID(linkedCancelOrderID_) {}
 
         inline OrderID getOrderID() const { return orderID; }
         inline OwnerID getOwnerID() const { return ownerID; }
@@ -49,6 +53,7 @@ class Order {
         inline OrderType getType() const { return type; }
         inline Timestamp getTimestamp() const { return timestamp; }
         inline OrderStatus getStatus() const { return status; }
+        inline LinkedCancelOrderID getLinkedCancelOrderID() const { return linkedCancelOrderID; }
 
         inline void reduceQty(Quantity qtyFilled) { qty -= qtyFilled; }
         inline void setStatus(OrderStatus newStatus) { status = newStatus; }
