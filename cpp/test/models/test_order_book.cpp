@@ -433,3 +433,300 @@ TEST_F(OrderBookTest, PopFrontSellRemovesEmptyBidLevel) {
     delete bid1;
     delete bid2;
 }
+
+TEST_F(OrderBookTest, TradeExecutionCountInitiallyZero) {
+    EXPECT_EQ(book.getTradeExecutionCount(), 0u);
+}
+
+TEST_F(OrderBookTest, TotalVolumeTradedInitiallyZero) {
+    EXPECT_EQ(book.getTotalVolumeTraded(), 0u);
+}
+
+TEST_F(OrderBookTest, RecordExecutionIgnoresNonPositiveQty) {
+    book.recordExecution(-5);
+
+    EXPECT_EQ(book.getTradeExecutionCount(), 0u);
+    EXPECT_EQ(book.getTotalVolumeTraded(), 0u);
+}
+
+TEST_F(OrderBookTest, RecordExecutionIncrementsCountsAndVolume) {
+    book.recordExecution(10);
+    EXPECT_EQ(book.getTradeExecutionCount(), 1u);
+    EXPECT_EQ(book.getTotalVolumeTraded(), 10u);
+
+    book.recordExecution(25);
+    EXPECT_EQ(book.getTradeExecutionCount(), 2u);
+    EXPECT_EQ(book.getTotalVolumeTraded(), 35u);
+}
+
+TEST_F(OrderBookTest, OrderCancellationCountInitiallyZero) {
+    EXPECT_EQ(book.getOrderCancellationCount(), 0u);
+}
+
+TEST_F(OrderBookTest, RecordCancellationIncrementsCount) {
+    book.recordCancellation();
+    EXPECT_EQ(book.getOrderCancellationCount(), 1u);
+
+    book.recordCancellation();
+    EXPECT_EQ(book.getOrderCancellationCount(), 2u);
+}
+
+TEST_F(OrderBookTest, SnapshotEmptyBook) {
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, std::nullopt);
+    EXPECT_EQ(snap.bestAsk, std::nullopt);
+    EXPECT_EQ(snap.spread, std::nullopt);
+    EXPECT_EQ(snap.mid, std::nullopt);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 0);
+    EXPECT_EQ(snap.bidSummary.orderCount, 0u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 0u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 0);
+    EXPECT_EQ(snap.askSummary.orderCount, 0u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 0u);
+
+    EXPECT_TRUE(snap.bidDepths.empty());
+    EXPECT_TRUE(snap.askDepths.empty());
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+}
+
+TEST_F(OrderBookTest, SnapshotSingleBidLevelSingleBidOrder) {
+    OrderPtr bid = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    book.addOrder(bid);
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, 100ull);
+    EXPECT_EQ(snap.bestAsk, std::nullopt);
+    EXPECT_EQ(snap.spread, std::nullopt);
+    EXPECT_EQ(snap.mid, std::nullopt);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 10);
+    EXPECT_EQ(snap.bidSummary.orderCount, 1u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1000u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 0);
+    EXPECT_EQ(snap.askSummary.orderCount, 0u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 0u);
+
+    ASSERT_EQ(snap.bidDepths.size(), 1u);
+    EXPECT_EQ(snap.bidDepths[0].price, 100);
+    EXPECT_EQ(snap.bidDepths[0].totalQuantity, 10);
+    EXPECT_EQ(snap.bidDepths[0].orderCount, 1u);
+    EXPECT_TRUE(snap.askDepths.empty());
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+
+    delete bid;
+}
+
+TEST_F(OrderBookTest, SnapshotSingleAskLevelSingleAskOrder) {
+    OrderPtr ask = new Order(1, 1, 110, 7, Side::Sell, OrderType::Limit, 1000);
+    book.addOrder(ask);
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, std::nullopt);
+    EXPECT_EQ(snap.bestAsk, 110ull);
+    EXPECT_EQ(snap.spread, std::nullopt);
+    EXPECT_EQ(snap.mid, std::nullopt);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 0);
+    EXPECT_EQ(snap.bidSummary.orderCount, 0u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 0u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 7);
+    EXPECT_EQ(snap.askSummary.orderCount, 1u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 770u);
+
+    EXPECT_TRUE(snap.bidDepths.empty());
+    ASSERT_EQ(snap.askDepths.size(), 1u);
+    EXPECT_EQ(snap.askDepths[0].price, 110);
+    EXPECT_EQ(snap.askDepths[0].totalQuantity, 7);
+    EXPECT_EQ(snap.askDepths[0].orderCount, 1u);
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+
+    delete ask;
+}
+
+TEST_F(OrderBookTest, SnapshotSingleBidOrderSingleAskOrder) {
+    OrderPtr bid = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr ask = new Order(2, 2, 110, 5, Side::Sell, OrderType::Limit, 1001);
+    book.addOrder(bid);
+    book.addOrder(ask);
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, 100ull);
+    EXPECT_EQ(snap.bestAsk, 110ull);
+    EXPECT_EQ(snap.spread, 10ull);
+    EXPECT_EQ(snap.mid, 105ull);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 10);
+    EXPECT_EQ(snap.bidSummary.orderCount, 1u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1000u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 5);
+    EXPECT_EQ(snap.askSummary.orderCount, 1u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 550u);
+
+    ASSERT_EQ(snap.bidDepths.size(), 1u);
+    EXPECT_EQ(snap.bidDepths[0].price, 100);
+    EXPECT_EQ(snap.bidDepths[0].totalQuantity, 10);
+    EXPECT_EQ(snap.bidDepths[0].orderCount, 1u);
+
+    ASSERT_EQ(snap.askDepths.size(), 1u);
+    EXPECT_EQ(snap.askDepths[0].price, 110);
+    EXPECT_EQ(snap.askDepths[0].totalQuantity, 5);
+    EXPECT_EQ(snap.askDepths[0].orderCount, 1u);
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+
+    delete bid;
+    delete ask;
+}
+
+TEST_F(OrderBookTest, SnapshotSingleBidLevelMultipleBidOrders) {
+    OrderPtr bid1 = new Order(1, 1, 100, 3, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr bid2 = new Order(2, 2, 100, 7, Side::Buy, OrderType::Limit, 1001);
+    book.addOrder(bid1);
+    book.addOrder(bid2);
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, 100ull);
+    EXPECT_EQ(snap.bestAsk, std::nullopt);
+    EXPECT_EQ(snap.spread, std::nullopt);
+    EXPECT_EQ(snap.mid, std::nullopt);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 10);
+    EXPECT_EQ(snap.bidSummary.orderCount, 2u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1000u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 0);
+    EXPECT_EQ(snap.askSummary.orderCount, 0u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 0u);
+
+    ASSERT_EQ(snap.bidDepths.size(), 1u);
+    EXPECT_EQ(snap.bidDepths[0].price, 100);
+    EXPECT_EQ(snap.bidDepths[0].totalQuantity, 10);
+    EXPECT_EQ(snap.bidDepths[0].orderCount, 2u);
+    EXPECT_TRUE(snap.askDepths.empty());
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+
+    delete bid1;
+    delete bid2;
+}
+
+TEST_F(OrderBookTest, SnapshotSingleAskLevelMultipleAskOrders) {
+    OrderPtr ask1 = new Order(1, 1, 110, 4, Side::Sell, OrderType::Limit, 1000);
+    OrderPtr ask2 = new Order(2, 2, 110, 6, Side::Sell, OrderType::Limit, 1001);
+    book.addOrder(ask1);
+    book.addOrder(ask2);
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, std::nullopt);
+    EXPECT_EQ(snap.bestAsk, 110ull);
+    EXPECT_EQ(snap.spread, std::nullopt);
+    EXPECT_EQ(snap.mid, std::nullopt);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 0);
+    EXPECT_EQ(snap.bidSummary.orderCount, 0u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 0u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 10);
+    EXPECT_EQ(snap.askSummary.orderCount, 2u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 1100u);
+
+    EXPECT_TRUE(snap.bidDepths.empty());
+    ASSERT_EQ(snap.askDepths.size(), 1u);
+    EXPECT_EQ(snap.askDepths[0].price, 110);
+    EXPECT_EQ(snap.askDepths[0].totalQuantity, 10);
+    EXPECT_EQ(snap.askDepths[0].orderCount, 2u);
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+
+    delete ask1;
+    delete ask2;
+}
+
+TEST_F(OrderBookTest, SnapshotMultipleBidAskLevels) {
+    OrderPtr bid1 = new Order(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr bid2 = new Order(2, 2, 105, 8, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr ask1 = new Order(3, 3, 110, 4, Side::Sell, OrderType::Limit, 1002);
+    OrderPtr ask2 = new Order(4, 4, 108, 6, Side::Sell, OrderType::Limit, 1003);
+    book.addOrder(bid1);
+    book.addOrder(bid2);
+    book.addOrder(ask1);
+    book.addOrder(ask2);
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.timestamp, 1234u);
+    EXPECT_EQ(snap.bestBid, 105ull);
+    EXPECT_EQ(snap.bestAsk, 108ull);
+    EXPECT_EQ(snap.spread, 3ull);
+    EXPECT_EQ(snap.mid, 106ull);
+
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 13);
+    EXPECT_EQ(snap.bidSummary.orderCount, 2u);
+    EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1340u);
+
+    EXPECT_EQ(snap.askSummary.totalQuantity, 10);
+    EXPECT_EQ(snap.askSummary.orderCount, 2u);
+    EXPECT_EQ(snap.askSummary.totalNotionalValue, 1088u);
+
+    ASSERT_EQ(snap.bidDepths.size(), 2u);
+    EXPECT_EQ(snap.bidDepths[0].price, 105);
+    EXPECT_EQ(snap.bidDepths[1].price, 100);
+
+    ASSERT_EQ(snap.askDepths.size(), 2u);
+    EXPECT_EQ(snap.askDepths[0].price, 108);
+    EXPECT_EQ(snap.askDepths[1].price, 110);
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 0u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 0u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
+
+    delete bid1;
+    delete bid2;
+    delete ask1;
+    delete ask2;
+}
+
+TEST_F(OrderBookTest, SnapshotTempoPropagation) {
+    book.recordExecution(10);
+    book.recordExecution(5);
+    book.recordCancellation();
+    book.recordCancellation();
+
+    auto snap = book.snapshot(1234);
+
+    EXPECT_EQ(snap.tempo.tradeExecutionCount, 2u);
+    EXPECT_EQ(snap.tempo.orderCancellationCount, 2u);
+    EXPECT_EQ(snap.tempo.totalVolumeTraded, 15u);
+}
