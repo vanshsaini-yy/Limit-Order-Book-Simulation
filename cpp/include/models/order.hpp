@@ -4,7 +4,6 @@
 using PriceTicks = int32_t;
 using Timestamp = uint64_t;
 using OrderID = uint32_t;
-using LinkedCancelOrderID = uint32_t;
 using OwnerID = uint32_t;
 using Quantity = int32_t;
 
@@ -22,7 +21,7 @@ class Order {
         Side  side;
         OrderType type;
         OrderStatus status;
-        LinkedCancelOrderID linkedCancelOrderID;
+        OrderID linkedOrderID;
 
     public:
         Order(
@@ -33,7 +32,7 @@ class Order {
             Side side_, 
             OrderType type_, 
             Timestamp timestamp_,
-            LinkedCancelOrderID linkedCancelOrderID_ = 0
+            OrderID linkedOrderID_ = 0
         )
         :   orderID(orderID_), 
             ownerID(ownerID_), 
@@ -43,7 +42,7 @@ class Order {
             type(type_), 
             timestamp(timestamp_), 
             status(OrderStatus::Pending),
-            linkedCancelOrderID(linkedCancelOrderID_) {}
+            linkedOrderID(linkedOrderID_) {}
 
         inline OrderID getOrderID() const { return orderID; }
         inline OwnerID getOwnerID() const { return ownerID; }
@@ -53,7 +52,7 @@ class Order {
         inline OrderType getType() const { return type; }
         inline Timestamp getTimestamp() const { return timestamp; }
         inline OrderStatus getStatus() const { return status; }
-        inline LinkedCancelOrderID getLinkedCancelOrderID() const { return linkedCancelOrderID; }
+        inline OrderID getLinkedOrderID() const { return linkedOrderID; }
 
         inline void reduceQty(Quantity qtyFilled) { qty -= qtyFilled; }
         inline void setStatus(OrderStatus newStatus) { status = newStatus; }
