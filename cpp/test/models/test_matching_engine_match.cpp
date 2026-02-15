@@ -46,6 +46,7 @@ TEST_F(MatchingEngineMatchTest, MatchLimitSellToEmptyBook) {
 
     delete sellOrder;
 }
+
 TEST_F(MatchingEngineMatchTest, LimitBuyOrderExactMatch) {
     OrderPtr sellOrder = new Order(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
     OrderPtr buyOrder = new Order(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
@@ -63,7 +64,6 @@ TEST_F(MatchingEngineMatchTest, LimitBuyOrderExactMatch) {
     delete sellOrder;
     delete buyOrder;
 }
-
 
 TEST_F(MatchingEngineMatchTest, LimitSellOrderExactMatch) {
     OrderPtr buyOrder = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
