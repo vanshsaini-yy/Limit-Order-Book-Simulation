@@ -61,7 +61,7 @@ class LimitOrderBook {
             }
             OrderID orderID = order->getOrderID();
             if (doesOrderExist(orderID)) {
-                return RejectionReason::AddingDuplicateOrder;
+                return RejectionReason::OrderToBeAddedAlreadyExists;
             }
             PriceTicks price = order->getPriceTicks();
             Side side = order->getSide();
@@ -83,7 +83,7 @@ class LimitOrderBook {
         RejectionReason cancelOrder(OrderID orderId) {
             auto it = orderIDMap.find(orderId);
             if (it == orderIDMap.end())
-            return RejectionReason::OrderToBeCancelledDoesNotExist;
+                return RejectionReason::OrderToBeCancelledDoesNotExist;
             OrderPtr order = *(it->second);
             RejectionReason validationResult = OrderValidator::validateBeforeCancelling(order);
             if (validationResult != RejectionReason::None) {
