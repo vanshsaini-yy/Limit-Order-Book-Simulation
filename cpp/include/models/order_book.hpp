@@ -25,62 +25,23 @@ class LimitOrderBook {
     public:
         LimitOrderBook() = default;
 
-        MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const {
-            MarketStructureSnapshot snapshot{};
-            snapshot.timestamp = now;
-            snapshot.bestBid = getBestBid();
-            snapshot.bestAsk = getBestAsk();
-            if (snapshot.bestBid.has_value() && snapshot.bestAsk.has_value()) {
-                snapshot.spread = snapshot.bestAsk.value() - snapshot.bestBid.value();
-                snapshot.mid = (snapshot.bestAsk.value() + snapshot.bestBid.value()) / 2;
-            }
-            
-            snapshot.bidSummary.totalQuantity = 0;
-            snapshot.bidSummary.orderCount = 0;
-            snapshot.bidSummary.totalNotionalValue = 0;
-
-            snapshot.askSummary.totalQuantity = 0;
-            snapshot.askSummary.orderCount = 0;
-            snapshot.askSummary.totalNotionalValue = 0;
-
-            snapshot.bidDepths.clear();
-            snapshot.askDepths.clear();
-
-            std::size_t bidLevels = 0;
-            for (const auto& [price, orders] : bids) {
-                Quantity levelQty = 0;
-                for (const auto& order : orders) {
-                    levelQty += order->getQty();
-                }
-                snapshot.bidSummary.totalQuantity += levelQty;
-                snapshot.bidSummary.orderCount += static_cast<uint32_t>(orders.size());
-                snapshot.bidSummary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
-                if (bidLevels < depthLimit) {
-                    snapshot.bidDepths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(orders.size())});
-                    ++bidLevels;
-                }
-            }
-
-            std::size_t askLevels = 0;
-            for (const auto& [price, orders] : asks) {
-                Quantity levelQty = 0;
-                for (const auto& order : orders) {
-                    levelQty += order->getQty();
-                }
-                snapshot.askSummary.totalQuantity += levelQty;
-                snapshot.askSummary.orderCount += static_cast<uint32_t>(orders.size());
-                snapshot.askSummary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
-                if (askLevels < depthLimit) {
-                    snapshot.askDepths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(orders.size())});
-                    ++askLevels;
-                }
-            }
-
-            snapshot.tempo.tradeExecutionCount = tradeExecutionCount;
-            snapshot.tempo.orderCancellationCount = orderCancellationCount;
-            snapshot.tempo.totalVolumeTraded = totalVolumeTraded;
-            return snapshot;
+        bool doesOrderExist(OrderID orderId) const {
+            return orderIDMap.contains(orderId);
         }
+        
+        std::optional<PriceTicks> getBestBid() const {
+            if (bids.empty()) return std::nullopt;
+            return bids.begin()->first;
+        }
+        
+        std::optional<PriceTicks> getBestAsk() const {
+            if (asks.empty()) return std::nullopt;
+            return asks.begin()->first;
+        }
+        
+        inline uint32_t getTradeExecutionCount() const { return tradeExecutionCount; }
+        inline uint32_t getOrderCancellationCount() const { return orderCancellationCount; }
+        inline uint64_t getTotalVolumeTraded() const { return totalVolumeTraded; }
 
         void recordExecution(Quantity tradedQty) {
             if (tradedQty > 0) {
@@ -88,29 +49,11 @@ class LimitOrderBook {
                 totalVolumeTraded += tradedQty;
             }
         }
-
+    
         void recordCancellation() {
             ++orderCancellationCount;
         }
-
-        bool doesOrderExist(OrderID orderId) const {
-            return orderIDMap.contains(orderId);
-        }
-
-        std::optional<PriceTicks> getBestBid() const {
-            if (bids.empty()) return std::nullopt;
-            return bids.begin()->first;
-        }
-
-        std::optional<PriceTicks> getBestAsk() const {
-            if (asks.empty()) return std::nullopt;
-            return asks.begin()->first;
-        }
-
-        inline uint32_t getTradeExecutionCount() const { return tradeExecutionCount; }
-        inline uint32_t getOrderCancellationCount() const { return orderCancellationCount; }
-        inline uint64_t getTotalVolumeTraded() const { return totalVolumeTraded; }
-
+        
         RejectionReason addOrder(const OrderPtr &order) {
             RejectionReason validationResult = OrderValidator::validateBeforeAdding(order);
             if (validationResult != RejectionReason::None) {
@@ -121,22 +64,26 @@ class LimitOrderBook {
                 return RejectionReason::AddingDuplicateOrder;
             }
             PriceTicks price = order->getPriceTicks();
-            if (order->getSide() == Side::Buy) {
+            Side side = order->getSide();
+            if (side == Side::Buy) {
                 bids[price].push_back(order);
                 auto it = std::prev(bids[price].end());
                 orderIDMap.emplace(orderID, it);
-            } else {
+            } else if (side == Side::Sell) {
                 asks[price].push_back(order);
                 auto it = std::prev(asks[price].end());
                 orderIDMap.emplace(orderID, it);
             }
+            else {
+                return RejectionReason::OrderBookInvariantViolation;
+            }
             return RejectionReason::None;
         }
-
+        
         RejectionReason cancelOrder(OrderID orderId) {
             auto it = orderIDMap.find(orderId);
             if (it == orderIDMap.end())
-                return RejectionReason::OrderToBeCancelledDoesNotExist;
+            return RejectionReason::OrderToBeCancelledDoesNotExist;
             OrderPtr order = *(it->second);
             RejectionReason validationResult = OrderValidator::validateBeforeCancelling(order);
             if (validationResult != RejectionReason::None) {
@@ -147,7 +94,7 @@ class LimitOrderBook {
                 if (bookIt != bids.end()) {
                     bookIt->second.erase(it->second);
                     if (bookIt->second.empty())
-                        bids.erase(bookIt);
+                    bids.erase(bookIt);
                 }
                 else {
                     return RejectionReason::OrderBookInvariantViolation;
@@ -157,7 +104,7 @@ class LimitOrderBook {
                 if (bookIt != asks.end()) {
                     bookIt->second.erase(it->second);
                     if (bookIt->second.empty())
-                        asks.erase(bookIt);
+                    asks.erase(bookIt);
                 }
                 else {
                     return RejectionReason::OrderBookInvariantViolation;
@@ -167,16 +114,16 @@ class LimitOrderBook {
             orderIDMap.erase(it);
             return RejectionReason::None;
         }
-
+        
         bool isOrderMarketable(const OrderPtr &order) const {
             if (order->getType() == OrderType::Cancel) {
                 return false;
             }
-
+            
             if (order->getQty() == 0) {
                 return false;
             }
-
+            
             Side side = order->getSide();
             if (side == Side::Buy && asks.empty()) {
                 return false;
@@ -184,11 +131,11 @@ class LimitOrderBook {
             if (side == Side::Sell && bids.empty()) {
                 return false;
             }
-
+            
             if (order->getType() == OrderType::Market) {
                 return true;
             }
-
+            
             if (side == Side::Buy) {
                 auto bestAsk = getBestAsk();
                 return order->getPriceTicks() >= bestAsk;
@@ -197,7 +144,7 @@ class LimitOrderBook {
                 return order->getPriceTicks() <= bestBid;
             }
         }
-
+        
         OrderPtr getMatchedOrder(const Side incomingSide) const {
             if (incomingSide == Side::Buy) {
                 if (asks.empty() || asks.begin()->second.empty()) return nullptr;
@@ -207,7 +154,7 @@ class LimitOrderBook {
                 return bids.begin()->second.front();
             }
         }
-
+        
         void popFront(const Side incomingSide) {
             if (incomingSide == Side::Buy) {
                 if (!asks.empty()) {
@@ -231,4 +178,61 @@ class LimitOrderBook {
                 }
             }
         }
-};
+
+        MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const {
+            MarketStructureSnapshot snapshot{};
+            snapshot.timestamp = now;
+            snapshot.bestBid = getBestBid();
+            snapshot.bestAsk = getBestAsk();
+            if (snapshot.bestBid.has_value() && snapshot.bestAsk.has_value()) {
+                snapshot.spread = snapshot.bestAsk.value() - snapshot.bestBid.value();
+                snapshot.mid = (snapshot.bestAsk.value() + snapshot.bestBid.value()) / 2;
+            }
+            
+            snapshot.bidSummary.totalQuantity = 0;
+            snapshot.bidSummary.orderCount = 0;
+            snapshot.bidSummary.totalNotionalValue = 0;
+    
+            snapshot.askSummary.totalQuantity = 0;
+            snapshot.askSummary.orderCount = 0;
+            snapshot.askSummary.totalNotionalValue = 0;
+    
+            snapshot.bidDepths.clear();
+            snapshot.askDepths.clear();
+    
+            std::size_t bidLevels = 0;
+            for (const auto& [price, orders] : bids) {
+                Quantity levelQty = 0;
+                for (const auto& order : orders) {
+                    levelQty += order->getQty();
+                }
+                snapshot.bidSummary.totalQuantity += levelQty;
+                snapshot.bidSummary.orderCount += static_cast<uint32_t>(orders.size());
+                snapshot.bidSummary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
+                if (bidLevels < depthLimit) {
+                    snapshot.bidDepths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(orders.size())});
+                    ++bidLevels;
+                }
+            }
+    
+            std::size_t askLevels = 0;
+            for (const auto& [price, orders] : asks) {
+                Quantity levelQty = 0;
+                for (const auto& order : orders) {
+                    levelQty += order->getQty();
+                }
+                snapshot.askSummary.totalQuantity += levelQty;
+                snapshot.askSummary.orderCount += static_cast<uint32_t>(orders.size());
+                snapshot.askSummary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
+                if (askLevels < depthLimit) {
+                    snapshot.askDepths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(orders.size())});
+                    ++askLevels;
+                }
+            }
+    
+            snapshot.tempo.tradeExecutionCount = tradeExecutionCount;
+            snapshot.tempo.orderCancellationCount = orderCancellationCount;
+            snapshot.tempo.totalVolumeTraded = totalVolumeTraded;
+            return snapshot;
+        }  
+    };
