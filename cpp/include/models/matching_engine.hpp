@@ -32,12 +32,14 @@ class MatchingEngine {
                 incomingOrder->setStatus(
                     OrderLifecycle::afterCancelIncoming(incomingInitialQty, incomingOrder->getQty())
                 );
+                orderBook->recordCancellation();
             }
             if (decision.cancelResting) {
                 restingOrder->setStatus(
                     OrderLifecycle::afterCancelResting(restingOrder->getStatus())
                 );
                 orderBook->popFront(incomingOrder->getSide());
+                orderBook->recordCancellation();
             }
         }
 
