@@ -50,15 +50,13 @@ class OrderValidator {
         }
 
         static RejectionReason validateBeforeCancelling(const OrderPtr &order) {
-            if (!order || 
-                order->getType() == OrderType::Cancel || 
-                order->getType() == OrderType::Market ||
-                order->isCancelled() || 
-                order->isExecuted()
-            ) {
-                return RejectionReason::OrderBookInvariantViolation;
+            if (order && 
+                order->getType() != OrderType::Cancel && 
+                order->getType() != OrderType::Market &&
+                !order->isCancelled() && 
+                !order->isExecuted()) {
+                return RejectionReason::None;
             }
-
-            return RejectionReason::None;
+            return RejectionReason::OrderBookInvariantViolation;
         }
 };
