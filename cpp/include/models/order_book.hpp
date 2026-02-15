@@ -18,9 +18,9 @@ class LimitOrderBook {
         BidStructure bids;
         AskStructure asks;
         std::unordered_map<OrderID, std::list<OrderPtr>::iterator> orderIDMap;
-        uint32_t executionCount = 0;
-        uint32_t cancelCount = 0;
-        uint64_t totalVolumeExecuted = 0;
+        uint32_t tradeExecutionCount = 0;
+        uint32_t orderCancellationCount = 0;
+        uint64_t totalVolumeTraded = 0;
 
     public:
         LimitOrderBook() = default;
@@ -76,19 +76,21 @@ class LimitOrderBook {
                 }
             }
 
-            snapshot.tempo.executionCount = executionCount;
-            snapshot.tempo.cancelCount = cancelCount;
-            snapshot.tempo.totalVolumeExecuted = totalVolumeExecuted;
+            snapshot.tempo.tradeExecutionCount = tradeExecutionCount;
+            snapshot.tempo.orderCancellationCount = orderCancellationCount;
+            snapshot.tempo.totalVolumeTraded = totalVolumeTraded;
             return snapshot;
         }
 
-        void recordExecution(Quantity qtyExecuted) {
-            ++executionCount;
-            totalVolumeExecuted += qtyExecuted;
+        void recordExecution(Quantity tradedQty) {
+            if (tradedQty > 0) {
+                ++tradeExecutionCount;
+                totalVolumeTraded += tradedQty;
+            }
         }
 
         void recordCancellation() {
-            ++cancelCount;
+            ++orderCancellationCount;
         }
 
         bool doesOrderExist(OrderID orderId) const {
@@ -104,6 +106,10 @@ class LimitOrderBook {
             if (asks.empty()) return std::nullopt;
             return asks.begin()->first;
         }
+
+        inline uint32_t getTradeExecutionCount() const { return tradeExecutionCount; }
+        inline uint32_t getOrderCancellationCount() const { return orderCancellationCount; }
+        inline uint64_t getTotalVolumeTraded() const { return totalVolumeTraded; }
 
         RejectionReason addOrder(const OrderPtr &order) {
             RejectionReason validationResult = OrderValidator::validateBeforeAdding(order);
