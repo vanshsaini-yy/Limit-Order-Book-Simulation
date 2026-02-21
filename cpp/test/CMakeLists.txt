@@ -4,8 +4,10 @@ set(TEST_SOURCES
     models/test_execution_engine.cpp
     models/test_trade.cpp
     utils/test_order_utils.cpp
+    models/test_matching_engine_validation.cpp
     models/test_matching_engine_match.cpp
     models/test_matching_engine_stp.cpp
+    models/test_matching_engine_execution.cpp
     infra/test_binary_trade_logger.cpp
     infra/test_trade_id_generator.cpp
 )

@@ -18,9 +18,9 @@ struct SideSummaries {
 };
 
 struct TempoMetrics {
-    uint32_t executionCount;
-    uint32_t cancelCount;
-    uint64_t totalVolumeExecuted;
+    uint32_t tradeExecutionCount;
+    uint32_t orderCancellationCount;
+    uint64_t totalVolumeTraded;
 };
 
 struct MarketStructureSnapshot {
