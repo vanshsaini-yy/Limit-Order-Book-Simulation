@@ -32,34 +32,49 @@ class MatchingEngine {
                 incomingOrder->setStatus(
                     OrderLifecycle::afterCancelIncoming(incomingInitialQty, incomingOrder->getQty())
                 );
-                orderBook->recordCancellation();
             }
+
             if (decision.cancelResting) {
                 restingOrder->setStatus(
                     OrderLifecycle::afterCancelResting(restingOrder->getStatus())
                 );
                 orderBook->popFront(incomingOrder->getSide());
-                orderBook->recordCancellation();
             }
         }
 
-        void matchOrder(const OrderPtr &incomingOrder) {
+        RejectionReason matchOrder(const OrderPtr &incomingOrder) {
+            RejectionReason validationResult = OrderValidator::validateBeforeMatching(incomingOrder);
+            if (validationResult != RejectionReason::None) {
+                if (incomingOrder) {
+                    incomingOrder->setStatus(OrderStatus::Cancelled);
+                }
+                return validationResult;
+            }
+
+            if (orderBook->doesOrderExist(incomingOrder->getOrderID())) {
+                return RejectionReason::OrderToBeAddedAlreadyExists;
+            }
+
             Quantity incomingInitialQty = incomingOrder->getQty();
             Side incomingSide = incomingOrder->getSide();
+
             while (orderBook->isOrderMarketable(incomingOrder)) {
-                auto restingOrder = orderBook->getMatchedOrder(incomingSide);
-                auto restingInitialQty = restingOrder->getQty();
+                OrderPtr restingOrder = orderBook->getMatchedOrder(incomingSide);
+                Quantity restingInitialQty = restingOrder->getQty();
+
                 if (isSelfTrade(restingOrder, incomingOrder)) {
                     applySTPPolicy(restingOrder, incomingOrder, incomingInitialQty);
                     if (incomingOrder->isCancelled()) {
-                        return;
+                        return RejectionReason::None;
                     }
                     if (restingOrder->isCancelled()) {
                         continue;
                     }
                 }
+
                 Quantity tradedQty = ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
                 orderBook->recordExecution(tradedQty);
+
                 restingOrder->setStatus(
                     OrderLifecycle::afterMatching(restingInitialQty, restingOrder->getQty(), OrderType::Limit)
                 );
@@ -67,14 +82,28 @@ class MatchingEngine {
                     orderBook->popFront(incomingSide);
                 }
             }
+
             if (incomingOrder->getType() == OrderType::Cancel) {
-                orderBook->cancelOrder(incomingOrder->getOrderID());
+                RejectionReason cancelResult = orderBook->cancelOrder(incomingOrder->getLinkedOrderID());
+                if (cancelResult != RejectionReason::None) {
+                    incomingOrder->setStatus(OrderStatus::Cancelled);
+                    return cancelResult;
+                }
                 orderBook->recordCancellation();
             }
+
             OrderStatus finalStatus = OrderLifecycle::afterMatching(incomingInitialQty, incomingOrder->getQty(), incomingOrder->getType());
             incomingOrder->setStatus(finalStatus);
+
             if (finalStatus == OrderStatus::Pending || finalStatus == OrderStatus::PartiallyExecuted) {
-                orderBook->addOrder(incomingOrder);
+                RejectionReason addResult = orderBook->addOrder(incomingOrder);
+                if (addResult != RejectionReason::None) {
+                    incomingOrder->setStatus(
+                        OrderLifecycle::afterCancelResting(incomingOrder->getStatus())
+                    );
+                    return addResult;
+                }
             }
+            return RejectionReason::None;
         }
 };
