@@ -1,6 +1,34 @@
 #include <gtest/gtest.h>
+#include <vector>
+#include "infra/trade_id_generator.hpp"
+#include "infra/trade_logger.hpp"
 #include "models/execution_engine.hpp"
 #include "models/order.hpp"
+#include "models/trade.hpp"
+
+class MockTradeLogger : public TradeLogger {
+public:
+    std::vector<Trade> trades;
+
+    void log(const Trade& trade) override {
+        trades.push_back(trade);
+    }
+
+    void flush() override {}
+    void close() override {}
+};
+
+class MockTradeIdGenerator : public TradeIdGenerator {
+public:
+    explicit MockTradeIdGenerator(TradeID id) : fixedId(id) {}
+
+    TradeID nextId() override {
+        return fixedId;
+    }
+
+private:
+    TradeID fixedId;
+};
 
 class ExecutionEngineTest : public ::testing::Test {
 protected:
@@ -8,7 +36,7 @@ protected:
     Order* sellOrder;
 
     void SetUp() override {
-        buyOrder = new Order(1, 100, 1000, 100, Side::Buy, OrderType::Limit, 1622547800);
+        buyOrder = new Order(1, 100, 1000, 100, Side::Buy, OrderType::Market, 1622547800);
         sellOrder = new Order(2, 200, 1000, 100, Side::Sell, OrderType::Limit, 1622547801);
     }
 
@@ -102,4 +130,34 @@ TEST_F(ExecutionEngineTest, ExecuteTradeDoesNotAffectOtherOrderFields) {
     EXPECT_EQ(buyOrder->getOwnerID(), originalBuyOwnerID);
     EXPECT_EQ(buyOrder->getPriceTicks(), originalBuyPrice);
     EXPECT_EQ(buyOrder->getTimestamp(), originalBuyTimestamp);
+}
+
+TEST_F(ExecutionEngineTest, LogsTradeWhenQtyTraded) {
+    MockTradeLogger logger;
+    MockTradeIdGenerator idGenerator(9001);
+
+    Quantity tradedQty = ExecutionEngine::executeTrade(buyOrder, sellOrder, &logger, &idGenerator);
+
+    ASSERT_EQ(logger.trades.size(), 1u);
+    const Trade& trade = logger.trades.front();
+    EXPECT_EQ(trade.getTradeID(), 9001u);
+    EXPECT_EQ(trade.getTakerOrderID(), buyOrder->getOrderID());
+    EXPECT_EQ(trade.getMakerOrderID(), sellOrder->getOrderID());
+    EXPECT_EQ(trade.getPriceTicks(), sellOrder->getPriceTicks());
+    EXPECT_EQ(trade.getQty(), tradedQty);
+    EXPECT_EQ(trade.getSide(), buyOrder->getSide());
+    EXPECT_EQ(trade.getTimestamp(), buyOrder->getTimestamp());
+}
+
+TEST_F(ExecutionEngineTest, DoesNotLogWhenTradedQtyZero) {
+    MockTradeLogger logger;
+    MockTradeIdGenerator idGenerator(9002);
+    Order* emptySellOrder = new Order(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
+
+    Quantity tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder, &logger, &idGenerator);
+
+    EXPECT_EQ(tradedQty, 0);
+    EXPECT_TRUE(logger.trades.empty());
+
+    delete emptySellOrder;
 }
