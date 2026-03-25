@@ -7,6 +7,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+#include <cassert>
 
 #include "models/matching_engine.hpp"
 #include "models/order_book.hpp"
@@ -58,11 +59,11 @@ double benchmarkAddOrders(std::size_t n) {
     orders.reserve(n);
 
     for (std::size_t i = 0; i < n; ++i) {
-        OrderID orderId = static_cast<OrderID>(i);
-        OwnerID ownerId = static_cast<OwnerID>(i);
+        OrderID orderId = static_cast<OrderID>(i + 1);
+        OwnerID ownerId = static_cast<OwnerID>(i + 1);
         PriceTicks price = static_cast<PriceTicks>(100 + (i % 10));
         Quantity qty = 10;
-        Timestamp timestamp = static_cast<Timestamp>(i);
+        Timestamp timestamp = static_cast<Timestamp>(i + 1);
         orders.push_back(std::make_unique<Order>(
             orderId,
             ownerId,
@@ -75,7 +76,7 @@ double benchmarkAddOrders(std::size_t n) {
     }
 
     return measureBatchNsPerOp(n, [&](std::size_t i) {
-        engine.matchOrder(orders[i].get());
+        assert(engine.matchOrder(orders[i].get()) == RejectionReason::None);
     });
 }
 
@@ -88,11 +89,11 @@ double benchmarkExecuteOrders(std::size_t n) {
     restingLimitOrders.reserve(n);
 
     for (std::size_t i = 0; i < n; ++i) {
-        OrderID orderId = static_cast<OrderID>(i);
-        OwnerID ownerId = static_cast<OwnerID>(i);
+        OrderID orderId = static_cast<OrderID>(i + 1);
+        OwnerID ownerId = static_cast<OwnerID>(i + 1);
         PriceTicks price = static_cast<PriceTicks>(100 + (i % 10));
         Quantity qty = 10;
-        Timestamp timestamp = static_cast<Timestamp>(i);
+        Timestamp timestamp = static_cast<Timestamp>(i + 1);
         restingLimitOrders.push_back(std::make_unique<Order>(
             orderId,
             ownerId,
@@ -102,16 +103,16 @@ double benchmarkExecuteOrders(std::size_t n) {
             OrderType::Limit,
             timestamp
         ));
-        engine.matchOrder(restingLimitOrders.back().get());
+        assert(engine.matchOrder(restingLimitOrders.back().get()) == RejectionReason::None);
     }
 
     std::vector<std::unique_ptr<Order>> incomingMarketOrders;
     incomingMarketOrders.reserve(n);
     for (std::size_t i = 0; i < n; ++i) {
-        OrderID orderId = static_cast<OrderID>(n + i);
-        OwnerID ownerId = static_cast<OwnerID>(n + i);
+        OrderID orderId = static_cast<OrderID>(n + i + 1);
+        OwnerID ownerId = static_cast<OwnerID>(n + i + 1);
         Quantity qty = 10;
-        Timestamp timestamp = static_cast<Timestamp>(n + i);
+        Timestamp timestamp = static_cast<Timestamp>(n + i + 1);
         incomingMarketOrders.push_back(std::make_unique<Order>(
             orderId,
             ownerId,
@@ -124,7 +125,7 @@ double benchmarkExecuteOrders(std::size_t n) {
     }
 
     return measureBatchNsPerOp(n, [&](std::size_t i) {
-        engine.matchOrder(incomingMarketOrders[i].get());
+        assert(engine.matchOrder(incomingMarketOrders[i].get()) == RejectionReason::None);
     });
 }
 
@@ -137,11 +138,11 @@ double benchmarkCancelOrders(std::size_t n) {
     restingLimitOrders.reserve(n);
 
     for (std::size_t i = 0; i < n; ++i) {
-        OrderID orderId = static_cast<OrderID>(i);
-        OwnerID ownerId = static_cast<OwnerID>(i);
+        OrderID orderId = static_cast<OrderID>(i + 1);
+        OwnerID ownerId = static_cast<OwnerID>(i + 1);
         PriceTicks price = static_cast<PriceTicks>(100 + (i % 10));
         Quantity qty = 10;
-        Timestamp timestamp = static_cast<Timestamp>(i);
+        Timestamp timestamp = static_cast<Timestamp>(i + 1);
         restingLimitOrders.push_back(std::make_unique<Order>(
             orderId,
             ownerId,
@@ -151,16 +152,16 @@ double benchmarkCancelOrders(std::size_t n) {
             OrderType::Limit, 
             timestamp
         ));
-        engine.matchOrder(restingLimitOrders.back().get());
+        assert(engine.matchOrder(restingLimitOrders.back().get()) == RejectionReason::None);
     }
 
     std::vector<std::unique_ptr<Order>> incomingCancelOrders;
     incomingCancelOrders.reserve(n);
     for (std::size_t i = 0; i < n; ++i) {
-        OrderID orderId = static_cast<OrderID>(n + i);
-        OwnerID ownerId = static_cast<OwnerID>(i);
-        Timestamp timestamp = static_cast<Timestamp>(n + i);
-        OrderID linkedId = static_cast<OrderID>(i);
+        OrderID orderId = static_cast<OrderID>(n + i + 1);
+        OwnerID ownerId = static_cast<OwnerID>(i + 1);
+        Timestamp timestamp = static_cast<Timestamp>(n + i + 1);
+        OrderID linkedId = static_cast<OrderID>(i + 1);
         incomingCancelOrders.push_back(std::make_unique<Order>(
             orderId,
             ownerId,
@@ -174,7 +175,7 @@ double benchmarkCancelOrders(std::size_t n) {
     }
 
     return measureBatchNsPerOp(n, [&](std::size_t i) {
-        engine.matchOrder(incomingCancelOrders[i].get());
+        assert(engine.matchOrder(incomingCancelOrders[i].get()) == RejectionReason::None);
     });
 }
 
