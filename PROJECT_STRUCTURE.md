@@ -10,8 +10,6 @@ This repository contains a C++23 limit order book simulator with a focus on core
 
 ## Directory Map
 - [cpp/include](cpp/include)
-  - [cpp/include/agents](cpp/include/agents): agent-facing adapters and connectors (empty placeholder today).
-  - [cpp/include/data](cpp/include/data): shared runtime constants and configuration helpers.
   - [cpp/include/infra](cpp/include/infra): logging and trade identifier infrastructure.
   - [cpp/include/models](cpp/include/models): core domain models and matching logic.
   - [cpp/include/policy](cpp/include/policy): validation, lifecycle, and self-trade prevention policies.
@@ -24,8 +22,6 @@ This repository contains a C++23 limit order book simulator with a focus on core
 - [build](build): generated build artifacts (safe to ignore in reviews).
 
 ## Core Headers & Responsibilities
-- [cpp/include/data/constants.hpp](cpp/include/data/constants.hpp)
-  - shared runtime constants used across the simulator (pricing, quantities, etc.).
 - [cpp/include/models/order.hpp](cpp/include/models/order.hpp)
   - `Order` type and core enums (`Side`, `OrderType`, `OrderStatus`) plus scalar aliases.
 - [cpp/include/models/trade.hpp](cpp/include/models/trade.hpp)
