@@ -32,10 +32,10 @@ if(LOB_BUILD_PYTHON_BINDINGS)
 
     if(LOB_PYBIND11_READY AND COMMAND pybind11_add_module)
         pybind11_add_module(limit_order_book
-            python/python_module.cpp
-            python/order_bindings.cpp
-            python/matching_engine_facade.cpp
-            python/matching_engine_facade_bindings.cpp
+            python_binding/python_module.cpp
+            python_binding/order_bindings.cpp
+            python_binding/matching_engine_facade.cpp
+            python_binding/matching_engine_facade_bindings.cpp
         )
 
         target_link_libraries(limit_order_book

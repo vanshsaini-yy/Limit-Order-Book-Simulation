@@ -67,7 +67,12 @@ void bindMatchingEngineFacade(py::module_& module) {
             py::arg("trade_log_file_path") = "trades.bin",
             py::arg("trade_id_start") = 1
         )
-        .def("match_order", &MatchingEngineFacade::matchOrder, py::arg("order"))
+        .def(
+            "match_order",
+            &MatchingEngineFacade::matchOrder,
+            py::arg("order"),
+            "Match an order using shared ownership; mutates the same Order object in place."
+        )
         .def(
             "snapshot",
             [](const MatchingEngineFacade& facade, Timestamp now, std::size_t depthLimit) {

@@ -38,7 +38,7 @@ void bindOrderTypes(py::module_& module) {
         .value("OrderBookInvariantViolation", RejectionReason::OrderBookInvariantViolation)
         .export_values();
 
-    py::class_<Order>(module, "Order")
+    py::class_<Order, std::shared_ptr<Order>>(module, "Order")
         .def(
             py::init<OrderID, OwnerID, PriceTicks, Quantity, Side, OrderType, Timestamp, OrderID>(),
             py::arg("order_id"),

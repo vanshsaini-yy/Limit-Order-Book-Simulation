@@ -77,8 +77,8 @@ MatchingEngineFacade::MatchingEngineFacade(
     }
 }
 
-RejectionReason MatchingEngineFacade::matchOrder(Order& incomingOrder) {
-    return matchingEngine->matchOrder(&incomingOrder);
+RejectionReason MatchingEngineFacade::matchOrder(const OrderPtr& incomingOrder) {
+    return matchingEngine->matchOrder(incomingOrder);
 }
 
 MarketStructureSnapshot MatchingEngineFacade::snapshot(Timestamp now, std::size_t depthLimit) const {

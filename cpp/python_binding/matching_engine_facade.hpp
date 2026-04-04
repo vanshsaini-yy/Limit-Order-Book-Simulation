@@ -48,7 +48,7 @@ public:
     MatchingEngineFacade& operator=(const MatchingEngineFacade&) = delete;
     MatchingEngineFacade(MatchingEngineFacade&&) noexcept = default;
     MatchingEngineFacade& operator=(MatchingEngineFacade&&) noexcept = default;
-
-    RejectionReason matchOrder(Order& incomingOrder);
+    
+    RejectionReason matchOrder(const OrderPtr& incomingOrder);
     MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const;
 };

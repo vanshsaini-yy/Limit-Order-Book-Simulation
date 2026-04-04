@@ -32,17 +32,12 @@ private:
 
 class ExecutionEngineTest : public ::testing::Test {
 protected:
-    Order* buyOrder;
-    Order* sellOrder;
+    OrderPtr buyOrder;
+    OrderPtr sellOrder;
 
     void SetUp() override {
-        buyOrder = new Order(1, 100, 1000, 100, Side::Buy, OrderType::Market, 1622547800);
-        sellOrder = new Order(2, 200, 1000, 100, Side::Sell, OrderType::Limit, 1622547801);
-    }
-
-    void TearDown() override {
-        delete buyOrder;
-        delete sellOrder;
+        buyOrder = std::make_shared<Order>(1, 100, 1000, 100, Side::Buy, OrderType::Market, 1622547800);
+        sellOrder = std::make_shared<Order>(2, 200, 1000, 100, Side::Sell, OrderType::Limit, 1622547801);
     }
 };
 
@@ -55,67 +50,55 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithEqualQuantities) {
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
-    Order* largerSellOrder = new Order(3, 300, 1000, 150, Side::Sell, OrderType::Limit, 1622547802);
+    OrderPtr largerSellOrder = std::make_shared<Order>(3, 300, 1000, 150, Side::Sell, OrderType::Limit, 1622547802);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, largerSellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(buyOrder->getQty(), 0u);
     EXPECT_EQ(largerSellOrder->getQty(), 50u);
-    
-    delete largerSellOrder;
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithMakerSmallerQuantity) {
-    Order* largerBuyOrder = new Order(4, 400, 1000, 150, Side::Buy, OrderType::Limit, 1622547803);
+    OrderPtr largerBuyOrder = std::make_shared<Order>(4, 400, 1000, 150, Side::Buy, OrderType::Limit, 1622547803);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(largerBuyOrder, sellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(largerBuyOrder->getQty(), 50u);
     EXPECT_EQ(sellOrder->getQty(), 0u);
-    
-    delete largerBuyOrder;
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
-    Order* emptyBuyOrder = new Order(5, 500, 1000, 0, Side::Buy, OrderType::Limit, 1622547804);
-    Order* emptySellOrder = new Order(6, 600, 1000, 0, Side::Sell, OrderType::Limit, 1622547805);
+    OrderPtr emptyBuyOrder = std::make_shared<Order>(5, 500, 1000, 0, Side::Buy, OrderType::Limit, 1622547804);
+    OrderPtr emptySellOrder = std::make_shared<Order>(6, 600, 1000, 0, Side::Sell, OrderType::Limit, 1622547805);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(emptyBuyOrder, emptySellOrder);
     
     EXPECT_EQ(tradedQty, 0u);
     EXPECT_EQ(emptyBuyOrder->getQty(), 0u);
     EXPECT_EQ(emptySellOrder->getQty(), 0u);
-    
-    delete emptyBuyOrder;
-    delete emptySellOrder;
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithOneZeroQuantity) {
-    Order* emptySellOrder = new Order(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
+    OrderPtr emptySellOrder = std::make_shared<Order>(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder);
     
     EXPECT_EQ(tradedQty, 0u);
     EXPECT_EQ(buyOrder->getQty(), 100u);
     EXPECT_EQ(emptySellOrder->getQty(), 0u);
-    
-    delete emptySellOrder;
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithLargeQuantities) {
-    Order* largeBuyOrder = new Order(10, 1000, 1000, 1000000u, Side::Buy, OrderType::Limit, 1622547809);
-    Order* largeSellOrder = new Order(11, 1100, 1000, 2000000u, Side::Sell, OrderType::Limit, 1622547810);
+    OrderPtr largeBuyOrder = std::make_shared<Order>(10, 1000, 1000, 1000000u, Side::Buy, OrderType::Limit, 1622547809);
+    OrderPtr largeSellOrder = std::make_shared<Order>(11, 1100, 1000, 2000000u, Side::Sell, OrderType::Limit, 1622547810);
     
     uint32_t tradedQty = ExecutionEngine::executeTrade(largeBuyOrder, largeSellOrder);
     
     EXPECT_EQ(tradedQty, 1000000u);
     EXPECT_EQ(largeBuyOrder->getQty(), 0u);
     EXPECT_EQ(largeSellOrder->getQty(), 1000000u);
-    
-    delete largeBuyOrder;
-    delete largeSellOrder;
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeDoesNotAffectOtherOrderFields) {
@@ -152,12 +135,10 @@ TEST_F(ExecutionEngineTest, LogsTradeWhenQtyTraded) {
 TEST_F(ExecutionEngineTest, DoesNotLogWhenTradedQtyZero) {
     MockTradeLogger logger;
     MockTradeIdGenerator idGenerator(9002);
-    Order* emptySellOrder = new Order(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
+    OrderPtr emptySellOrder = std::make_shared<Order>(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
 
     Quantity tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder, &logger, &idGenerator);
 
     EXPECT_EQ(tradedQty, 0);
     EXPECT_TRUE(logger.trades.empty());
-
-    delete emptySellOrder;
 }

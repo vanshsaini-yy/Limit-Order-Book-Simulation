@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 
 using PriceTicks = int32_t;
 using Timestamp = uint64_t;
@@ -60,4 +61,4 @@ class Order {
         inline bool isExecuted() const { return status == OrderStatus::Executed; }
 };
 
-using OrderPtr = Order*;
+using OrderPtr = std::shared_ptr<Order>;
