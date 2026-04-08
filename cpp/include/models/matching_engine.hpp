@@ -84,7 +84,7 @@ class MatchingEngine {
             }
 
             if (incomingOrder->getType() == OrderType::Cancel) {
-                RejectionReason cancelResult = orderBook->cancelOrder(incomingOrder->getLinkedOrderID());
+                RejectionReason cancelResult = orderBook->cancelOrder(incomingOrder->getLinkedOrderID(), incomingOrder->getOwnerID());
                 if (cancelResult != RejectionReason::None) {
                     incomingOrder->setStatus(OrderStatus::Cancelled);
                     return cancelResult;

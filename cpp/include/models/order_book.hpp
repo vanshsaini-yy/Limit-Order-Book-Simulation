@@ -80,11 +80,14 @@ class LimitOrderBook {
             return RejectionReason::None;
         }
         
-        RejectionReason cancelOrder(OrderID orderId) {
+        RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID) {
             auto it = orderIDMap.find(orderId);
             if (it == orderIDMap.end())
                 return RejectionReason::OrderToBeCancelledDoesNotExist;
             OrderPtr order = *(it->second);
+            if (order->getOwnerID() != requesterOwnerID) {
+                return RejectionReason::OrderToBeCancelledDoesNotExist;
+            }
             RejectionReason validationResult = OrderValidator::validateBeforeCancelling(order);
             if (validationResult != RejectionReason::None) {
                 return validationResult;
@@ -113,6 +116,13 @@ class LimitOrderBook {
             order->setStatus(OrderLifecycle::afterCancelResting(order->getStatus()));
             orderIDMap.erase(it);
             return RejectionReason::None;
+        }
+
+        RejectionReason cancelOrder(OrderID orderId) {
+            auto it = orderIDMap.find(orderId);
+            if (it == orderIDMap.end())
+                return RejectionReason::OrderToBeCancelledDoesNotExist;
+            return cancelOrder(orderId, (*(it->second))->getOwnerID());
         }
         
         bool isOrderMarketable(const OrderPtr &order) const {
