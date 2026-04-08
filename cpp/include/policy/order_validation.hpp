@@ -9,7 +9,7 @@ enum class RejectionReason : uint8_t {
     InvalidMarketOrder,                 // market order that doesn't meet the criteria for a valid market order
     InvalidCancelOrder,                 // cancel order that doesn't meet the criteria for a valid cancel order
     OrderToBeAddedAlreadyExists,        // trying to add an order that already exists
-    OrderToBeCancelledDoesNotExist,     // trying to cancel an order that doesn't exist
+    OrderToBeCancelledDoesNotExist,     // trying to cancel an order that doesn't exist or trying to cancel an order that wasn't placed by the same owner
     OrderBookInvariantViolation,        // order book invariant violation
 };
 

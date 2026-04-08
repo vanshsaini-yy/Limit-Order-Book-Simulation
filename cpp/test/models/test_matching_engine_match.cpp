@@ -608,6 +608,18 @@ TEST_F(MatchingEngineMatchTest, CancelOrder_Cancels_Pending_RestingOrder) {
     EXPECT_EQ(orderBook->getBestAsk(), std::nullopt);
 }
 
+TEST_F(MatchingEngineMatchTest, CancelOrder_DoesNotCancel_OrderOwnedByAnotherUser) {
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
+    engine->matchOrder(order);
+    OrderPtr cancelOrder = std::make_shared<Order>(2, 2, 0, 0, Side::None, OrderType::Cancel, 1622547801, order->getOrderID());
+
+    EXPECT_EQ(engine->matchOrder(cancelOrder), RejectionReason::OrderToBeCancelledDoesNotExist);
+    EXPECT_EQ(cancelOrder->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(order->getStatus(), OrderStatus::Pending);
+    EXPECT_TRUE(orderBook->doesOrderExist(order->getOrderID()));
+    EXPECT_EQ(orderBook->getBestBid(), 100u);
+}
+
 TEST_F(MatchingEngineMatchTest, CancelOrder_Cancels_PartiallyExecuted_RestingOrder) {
     OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     OrderPtr order2 = std::make_shared<Order>(2, 2, 100, 5, Side::Sell, OrderType::Limit, 1622547801);
