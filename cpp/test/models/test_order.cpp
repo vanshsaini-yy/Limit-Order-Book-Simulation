@@ -3,17 +3,12 @@
 
 class OrderTest : public ::testing::Test {
 protected:
-    Order* order1;
-    Order* order2;
+    OrderPtr order1;
+    OrderPtr order2;
 
     void SetUp() override {
-        order1 = new Order(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
-        order2 = new Order(2, 1, 0, 0, Side::None, OrderType::Cancel, 1622547801, 1);
-    }
-
-    void TearDown() override {
-        delete order1;
-        delete order2;
+        order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
+        order2 = std::make_shared<Order>(2, 1, 0, 0, Side::None, OrderType::Cancel, 1622547801, 1);
     }
 };
 
