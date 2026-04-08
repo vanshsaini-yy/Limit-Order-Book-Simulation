@@ -6,7 +6,7 @@ This repository contains a C++23 limit order book simulator with a focus on core
 ## Build & Test Flow
 - Entry script: [run.sh](run.sh) (creates/uses [build](build), runs configure, build, then `ctest --output-on-failure` from inside [build](build)).
 - Top-level build config: [CMakeLists.txt](CMakeLists.txt).
-- C++ library config: [cpp/CMakeLists.txt](cpp/CMakeLists.txt) (header-only `lob_core` interface target + tests).
+- C++ library config: [cpp/CMakeLists.txt](cpp/CMakeLists.txt) (header-only `lob_core` interface target, tests, and optional `pybind11`-based Python bindings when `LOB_BUILD_PYTHON_BINDINGS=ON`).
 
 ## Directory Map
 - [cpp/include](cpp/include)
@@ -14,6 +14,7 @@ This repository contains a C++23 limit order book simulator with a focus on core
   - [cpp/include/models](cpp/include/models): core domain models and matching logic.
   - [cpp/include/policy](cpp/include/policy): validation, lifecycle, and self-trade prevention policies.
   - [cpp/include/utils](cpp/include/utils): lightweight helpers.
+- [cpp/python_binding](cpp/python_binding): binding layer that exposes selected C++ models and matching-engine workflows to Python via `pybind11`.
 - [cpp/test](cpp/test)
   - [cpp/test/infra](cpp/test/infra): infrastructure-focused unit tests (loggers, trade ID generators).
   - [cpp/test/models](cpp/test/models): model and engine unit tests.
@@ -44,6 +45,22 @@ This repository contains a C++23 limit order book simulator with a focus on core
   - `BinaryTradeLogger` and `TradeLogRecord` for binary logging.
 - [cpp/include/utils/order_utils.hpp](cpp/include/utils/order_utils.hpp)
   - `isSelfTrade()` helper for ownership checks.
+
+## Python Binding Components
+- [cpp/python_binding/python_module.cpp](cpp/python_binding/python_module.cpp)
+  - module entry point that assembles the exported Python module.
+- [cpp/python_binding/order_bindings.hpp](cpp/python_binding/order_bindings.hpp)
+  - declarations for registering order-related enums and types with `pybind11`.
+- [cpp/python_binding/order_bindings.cpp](cpp/python_binding/order_bindings.cpp)
+  - bindings for `Order` and related domain enums exposed to Python.
+- [cpp/python_binding/matching_engine_facade.hpp](cpp/python_binding/matching_engine_facade.hpp)
+  - façade API that presents a Python-friendly wrapper around matching-engine operations.
+- [cpp/python_binding/matching_engine_facade.cpp](cpp/python_binding/matching_engine_facade.cpp)
+  - façade implementation that adapts Python-facing calls to core engine behavior.
+- [cpp/python_binding/matching_engine_facade_bindings.hpp](cpp/python_binding/matching_engine_facade_bindings.hpp)
+  - declarations for registering the façade bindings with the Python module.
+- [cpp/python_binding/matching_engine_facade_bindings.cpp](cpp/python_binding/matching_engine_facade_bindings.cpp)
+  - `pybind11` bindings for the matching-engine façade and Python-visible execution flow.
 
 ## Policy Components
 - [cpp/include/policy/order_validation.hpp](cpp/include/policy/order_validation.hpp)
