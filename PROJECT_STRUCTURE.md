@@ -18,7 +18,7 @@ This repository contains a C++23 limit order book simulator with a focus on core
   - [cpp/test/infra](cpp/test/infra): infrastructure-focused unit tests (loggers, trade ID generators).
   - [cpp/test/models](cpp/test/models): model and engine unit tests.
   - [cpp/test/utils](cpp/test/utils): utility unit tests.
-- [googletest](googletest): vendored GoogleTest framework.
+- [googletest](googletest): GoogleTest framework (vendored if present locally; otherwise fetched via `FetchContent` during CMake configure).
 - [build](build): generated build artifacts (safe to ignore in reviews).
 
 ## Core Headers & Responsibilities
