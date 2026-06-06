@@ -23,20 +23,13 @@ class Trade {
             Quantity qty_,
             Side side_,
             Timestamp timestamp_
-        )
-        :   tradeID(tradeID_),
-            takerOrderID(takerOrderID_),
-            makerOrderID(makerOrderID_),
-            priceTicks(priceTicks_),
-            qty(qty_),
-            side(side_),
-            timestamp(timestamp_) {}
+        );
 
-        inline TradeID getTradeID() const { return tradeID; }
-        inline Timestamp getTimestamp() const { return timestamp; }
-        inline PriceTicks getPriceTicks() const { return priceTicks; }
-        inline Quantity getQty() const { return qty; }
-        inline Side getSide() const { return side; }
-        inline OrderID getTakerOrderID() const { return takerOrderID; }
-        inline OrderID getMakerOrderID() const { return makerOrderID; }
+        TradeID    getTradeID()      const;
+        Timestamp  getTimestamp()    const;
+        PriceTicks getPriceTicks()   const;
+        Quantity   getQty()          const;
+        Side       getSide()         const;
+        OrderID    getTakerOrderID() const;
+        OrderID    getMakerOrderID() const;
 };
