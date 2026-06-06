@@ -19,46 +19,37 @@ class Order {
         OrderID orderID;
         OwnerID ownerID;
         Quantity qty;
-        Side  side;
+        Side side;
         OrderType type;
         OrderStatus status;
         OrderID linkedOrderID;
 
     public:
         Order(
-            OrderID orderID_, 
-            OwnerID ownerID_, 
-            PriceTicks priceTicks_, 
-            Quantity qty_, 
-            Side side_, 
-            OrderType type_, 
+            OrderID orderID_,
+            OwnerID ownerID_,
+            PriceTicks priceTicks_,
+            Quantity qty_,
+            Side side_,
+            OrderType type_,
             Timestamp timestamp_,
             OrderID linkedOrderID_ = 0
-        )
-        :   orderID(orderID_), 
-            ownerID(ownerID_), 
-            priceTicks(priceTicks_),
-            qty(qty_), 
-            side(side_),
-            type(type_), 
-            timestamp(timestamp_), 
-            status(OrderStatus::Pending),
-            linkedOrderID(linkedOrderID_) {}
+        );
 
-        inline OrderID getOrderID() const { return orderID; }
-        inline OwnerID getOwnerID() const { return ownerID; }
-        inline PriceTicks getPriceTicks() const { return priceTicks; }
-        inline Quantity getQty() const { return qty; }
-        inline Side getSide() const { return side; }
-        inline OrderType getType() const { return type; }
-        inline Timestamp getTimestamp() const { return timestamp; }
-        inline OrderStatus getStatus() const { return status; }
-        inline OrderID getLinkedOrderID() const { return linkedOrderID; }
+        OrderID     getOrderID()       const;
+        OwnerID     getOwnerID()       const;
+        PriceTicks  getPriceTicks()    const;
+        Quantity    getQty()           const;
+        Side        getSide()          const;
+        OrderType   getType()          const;
+        Timestamp   getTimestamp()     const;
+        OrderStatus getStatus()        const;
+        OrderID     getLinkedOrderID() const;
 
-        inline void reduceQty(Quantity qtyFilled) { qty -= qtyFilled; }
-        inline void setStatus(OrderStatus newStatus) { status = newStatus; }
-        inline bool isCancelled() const { return status == OrderStatus::Cancelled || status == OrderStatus::CancelledAfterPartialExecution; }
-        inline bool isExecuted() const { return status == OrderStatus::Executed; }
+        void reduceQty(Quantity qtyFilled);
+        void setStatus(OrderStatus newStatus);
+        bool isCancelled() const;
+        bool isExecuted()  const;
 };
 
 using OrderPtr = std::shared_ptr<Order>;

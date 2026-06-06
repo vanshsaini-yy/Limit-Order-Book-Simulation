@@ -1,11 +1,23 @@
-add_library(lob_core INTERFACE)
+add_library(lob_core STATIC
+    src/models/order.cpp
+    src/models/trade.cpp
+    src/models/order_book.cpp
+    src/models/matching_engine.cpp
+    src/models/execution_engine.cpp
+    src/policy/order_validation.cpp
+    src/policy/order_lifecycle.cpp
+    src/policy/self_trade_prevention.cpp
+    src/infra/monotonic_trade_id_generator.cpp
+    src/infra/binary_trade_logger.cpp
+    src/utils/order_utils.cpp
+)
 
 target_include_directories(lob_core
-    INTERFACE
+    PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_compile_features(lob_core INTERFACE cxx_std_23)
+target_compile_features(lob_core PUBLIC cxx_std_23)
 
 option(LOB_BUILD_PYTHON_BINDINGS "Build Python bindings module" OFF)
 option(LOB_FETCH_PYBIND11_IF_MISSING "Fetch pybind11 when not available on system" ON)

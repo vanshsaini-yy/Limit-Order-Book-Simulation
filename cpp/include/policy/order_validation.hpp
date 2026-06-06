@@ -15,77 +15,10 @@ enum class RejectionReason : uint8_t {
 
 class OrderValidator {
     public:
-        static RejectionReason validateLimitOrder(const OrderPtr &order, bool allowPartialExecution = false) {
-            if (order->getPriceTicks() > 0 &&
-                order->getQty() > 0 &&
-                order->getSide() != Side::None &&
-                (order->getStatus() == OrderStatus::Pending || (allowPartialExecution && order->getStatus() == OrderStatus::PartiallyExecuted)) &&
-                order->getOrderID() != 0 &&
-                order->getLinkedOrderID() == 0) {
-                return RejectionReason::None;
-            }
-
-            return RejectionReason::InvalidLimitOrder;
-        }
-
-        static RejectionReason validateMarketOrder(const OrderPtr &order) {
-            if (order->getPriceTicks() == 0 &&
-                order->getQty() > 0 &&
-                order->getSide() != Side::None &&
-                order->getStatus() == OrderStatus::Pending &&
-                order->getOrderID() != 0 &&
-                order->getLinkedOrderID() == 0) {
-                return RejectionReason::None;
-            }
-
-            return RejectionReason::InvalidMarketOrder;
-        }
-
-        static RejectionReason validateCancelOrder(const OrderPtr &order) {
-            if (order->getPriceTicks() == 0 &&
-                order->getQty() == 0 &&
-                order->getSide() == Side::None &&
-                order->getStatus() == OrderStatus::Pending &&
-                order->getOrderID() != 0 &&
-                order->getLinkedOrderID() != 0 && 
-                order->getLinkedOrderID() != order->getOrderID()) {
-                return RejectionReason::None;
-            }
-
-            return RejectionReason::InvalidCancelOrder;
-        }
-
-        static RejectionReason validateBeforeAdding(const OrderPtr &order) {
-            if (order && validateLimitOrder(order, true) == RejectionReason::None) {
-                return RejectionReason::None;
-            }
-            return RejectionReason::OrderBookInvariantViolation;
-        }
-
-        static RejectionReason validateBeforeCancelling(const OrderPtr &order) {
-            if (order && validateLimitOrder(order, true) == RejectionReason::None) {
-                return RejectionReason::None;
-            }
-            return RejectionReason::OrderBookInvariantViolation;
-        }
-
-        static RejectionReason validateBeforeMatching(const OrderPtr &order) {
-            if (!order) {
-                return RejectionReason::NullOrder;
-            }
-
-            if(order->getType() == OrderType::Limit) {
-                return validateLimitOrder(order);
-            }
-
-            if (order->getType() == OrderType::Market) {
-                return validateMarketOrder(order);
-            }
-
-            if (order->getType() == OrderType::Cancel) {
-                return validateCancelOrder(order);
-            }
-
-            return RejectionReason::InvalidOrderType;
-        }
+        static RejectionReason validateLimitOrder(const OrderPtr &order, bool allowPartialExecution = false);
+        static RejectionReason validateMarketOrder(const OrderPtr &order);
+        static RejectionReason validateCancelOrder(const OrderPtr &order);
+        static RejectionReason validateBeforeAdding(const OrderPtr &order);
+        static RejectionReason validateBeforeCancelling(const OrderPtr &order);
+        static RejectionReason validateBeforeMatching(const OrderPtr &order);
 };
