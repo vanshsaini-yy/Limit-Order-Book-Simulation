@@ -37,7 +37,6 @@ class LimitOrderBook {
 
         RejectionReason addOrder(const OrderPtr &order);
         RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID);
-        RejectionReason cancelOrder(OrderID orderId);
 
         bool     isOrderMarketable(const OrderPtr &order) const;
         OrderPtr getMatchedOrder(const Side incomingSide) const;

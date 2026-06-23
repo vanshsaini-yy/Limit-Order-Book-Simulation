@@ -97,19 +97,19 @@ TEST_F(OrderBookTest, CancelOrderSuccess) {
     book.addOrder(order2);
     order2->setStatus(OrderStatus::PartiallyExecuted);
 
-    EXPECT_EQ(book.cancelOrder(1), RejectionReason::None);
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::None);
     EXPECT_FALSE(book.doesOrderExist(1));
     EXPECT_EQ(order1->getStatus(), OrderStatus::Cancelled);
 
-    EXPECT_EQ(book.cancelOrder(2), RejectionReason::None);
+    EXPECT_EQ(book.cancelOrder(2, 2), RejectionReason::None);
     EXPECT_FALSE(book.doesOrderExist(2));
     EXPECT_EQ(order2->getStatus(), OrderStatus::CancelledAfterPartialExecution);
 }
 
 TEST_F(OrderBookTest, CancelNonExistingOrderFails) {
-    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderToBeCancelledDoesNotExist);
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_FALSE(book.doesOrderExist(1));
-    EXPECT_EQ(book.cancelOrder(2), RejectionReason::OrderToBeCancelledDoesNotExist);
+    EXPECT_EQ(book.cancelOrder(2, 2), RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
@@ -121,8 +121,8 @@ TEST_F(OrderBookTest, CancelCancelledOrderFails) {
     order1->setStatus(OrderStatus::Cancelled);
     order2->setStatus(OrderStatus::CancelledAfterPartialExecution);
 
-    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderBookInvariantViolation);
-    EXPECT_EQ(book.cancelOrder(2), RejectionReason::OrderBookInvariantViolation);
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::OrderBookInvariantViolation);
+    EXPECT_EQ(book.cancelOrder(2, 2), RejectionReason::OrderBookInvariantViolation);
 }
 
 TEST_F(OrderBookTest, CancelExecutedOrderFails) {
@@ -130,17 +130,57 @@ TEST_F(OrderBookTest, CancelExecutedOrderFails) {
     book.addOrder(order);
     order->setStatus(OrderStatus::Executed);
 
-    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderBookInvariantViolation);
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::OrderBookInvariantViolation);
 }
 
 TEST_F(OrderBookTest, DoubleCancelFails) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
-    EXPECT_EQ(book.cancelOrder(1), RejectionReason::None);
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::None);
     EXPECT_FALSE(book.doesOrderExist(1));
-    EXPECT_EQ(book.cancelOrder(1), RejectionReason::OrderToBeCancelledDoesNotExist);
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_FALSE(book.doesOrderExist(1));
+}
+
+TEST_F(OrderBookTest, CancelOrderWithMatchingOwnerIDSucceeds) {
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    book.addOrder(order);
+
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::None);
+    EXPECT_FALSE(book.doesOrderExist(1));
+    EXPECT_EQ(order->getStatus(), OrderStatus::Cancelled);
+}
+
+TEST_F(OrderBookTest, CancelOrderWithMismatchedOwnerIDFails) {
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    book.addOrder(order);
+
+    EXPECT_EQ(book.cancelOrder(1, 2), RejectionReason::OrderToBeCancelledDoesNotExist);
+}
+
+TEST_F(OrderBookTest, CancelOrderWithMismatchedOwnerIDDoesNotModifyOrder) {
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    book.addOrder(order);
+
+    book.cancelOrder(1, 2);
+
+    EXPECT_EQ(order->getStatus(), OrderStatus::Pending);
+    EXPECT_TRUE(book.doesOrderExist(1));
+}
+
+TEST_F(OrderBookTest, CancelNonExistingOrderWithOwnerIDFails) {
+    EXPECT_EQ(book.cancelOrder(999, 1), RejectionReason::OrderToBeCancelledDoesNotExist);
+}
+
+TEST_F(OrderBookTest, CancelPartiallyExecutedOrderWithMatchingOwnerIDSucceeds) {
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
+    book.addOrder(order);
+    order->setStatus(OrderStatus::PartiallyExecuted);
+
+    EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::None);
+    EXPECT_FALSE(book.doesOrderExist(1));
+    EXPECT_EQ(order->getStatus(), OrderStatus::CancelledAfterPartialExecution);
 }
 
 TEST_F(OrderBookTest, GetBestBidAsk) {
@@ -157,14 +197,14 @@ TEST_F(OrderBookTest, GetBestBidAsk) {
     EXPECT_EQ(book.getBestBid(), 105ull);
     EXPECT_EQ(book.getBestAsk(), 110ull);
 
-    book.cancelOrder(2);
-    book.cancelOrder(3);
+    book.cancelOrder(2, 2);
+    book.cancelOrder(3, 3);
 
     EXPECT_EQ(book.getBestBid(), 100ull);
     EXPECT_EQ(book.getBestAsk(), 115ull);
 
-    book.cancelOrder(1);
-    book.cancelOrder(4);
+    book.cancelOrder(1, 1);
+    book.cancelOrder(4, 4);
 
     EXPECT_EQ(book.getBestBid(), std::nullopt);
     EXPECT_EQ(book.getBestAsk(), std::nullopt);
@@ -241,13 +281,13 @@ TEST_F(OrderBookTest, GetMatchedOrderBuyReturnsBestAskAndFifo) {
     book.addOrder(ask3);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), ask1);
 
-    book.cancelOrder(1);
+    book.cancelOrder(1, 1);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), ask2);
 
-    book.cancelOrder(2);
+    book.cancelOrder(2, 2);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), ask3);
 
-    book.cancelOrder(3); 
+    book.cancelOrder(3, 3);
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), nullptr);
 }
 
@@ -261,13 +301,13 @@ TEST_F(OrderBookTest, GetMatchedOrderSellReturnsBestBidAndFifo) {
     book.addOrder(bid3);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), bid1);
 
-    book.cancelOrder(1);
+    book.cancelOrder(1, 1);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), bid2);
 
-    book.cancelOrder(2);
+    book.cancelOrder(2, 2);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), bid3);
 
-    book.cancelOrder(3);
+    book.cancelOrder(3, 3);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), nullptr);
 }
 
@@ -631,4 +671,56 @@ TEST_F(OrderBookTest, SnapshotTempoPropagation) {
     EXPECT_EQ(snap.tempo.tradeExecutionCount, 2u);
     EXPECT_EQ(snap.tempo.orderCancellationCount, 2u);
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 15u);
+}
+
+TEST_F(OrderBookTest, SnapshotDepthLimitZeroReturnsEmptyDepthsButFullSummary) {
+    OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr bid2 = std::make_shared<Order>(2, 2, 105, 8, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr ask1 = std::make_shared<Order>(3, 3, 110, 4, Side::Sell, OrderType::Limit, 1002);
+    book.addOrder(bid1);
+    book.addOrder(bid2);
+    book.addOrder(ask1);
+
+    auto snap = book.snapshot(1234, 0);
+
+    EXPECT_TRUE(snap.bidDepths.empty());
+    EXPECT_TRUE(snap.askDepths.empty());
+    EXPECT_EQ(snap.bidSummary.totalQuantity, 13);
+    EXPECT_EQ(snap.bidSummary.orderCount, 2u);
+    EXPECT_EQ(snap.askSummary.totalQuantity, 4);
+    EXPECT_EQ(snap.askSummary.orderCount, 1u);
+}
+
+TEST_F(OrderBookTest, SnapshotDepthLimitLargerThanLevelsReturnsAll) {
+    OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr bid2 = std::make_shared<Order>(2, 2, 105, 8, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr ask1 = std::make_shared<Order>(3, 3, 110, 4, Side::Sell, OrderType::Limit, 1002);
+    book.addOrder(bid1);
+    book.addOrder(bid2);
+    book.addOrder(ask1);
+
+    auto snap = book.snapshot(1234, 100);
+
+    EXPECT_EQ(snap.bidDepths.size(), 2u);
+    EXPECT_EQ(snap.askDepths.size(), 1u);
+}
+
+TEST_F(OrderBookTest, SnapshotDepthLimitTwoReturnsTwoLevels) {
+    OrderPtr bid1 = std::make_shared<Order>(1, 1, 95,  3, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr bid3 = std::make_shared<Order>(3, 3, 105, 8, Side::Buy, OrderType::Limit, 1002);
+    OrderPtr ask1 = std::make_shared<Order>(4, 4, 110, 4, Side::Sell, OrderType::Limit, 1003);
+    OrderPtr ask2 = std::make_shared<Order>(5, 5, 115, 6, Side::Sell, OrderType::Limit, 1004);
+    OrderPtr ask3 = std::make_shared<Order>(6, 6, 120, 2, Side::Sell, OrderType::Limit, 1005);
+    book.addOrder(bid1);
+    book.addOrder(bid2);
+    book.addOrder(bid3);
+    book.addOrder(ask1);
+    book.addOrder(ask2);
+    book.addOrder(ask3);
+
+    auto snap = book.snapshot(1234, 2);
+
+    ASSERT_EQ(snap.bidDepths.size(), 2u);
+    ASSERT_EQ(snap.askDepths.size(), 2u);
 }
