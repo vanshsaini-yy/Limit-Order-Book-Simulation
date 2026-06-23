@@ -15,7 +15,7 @@ std::optional<PriceTicks> LimitOrderBook::getBestAsk() const {
     return asks.begin()->first;
 }
 
-uint32_t LimitOrderBook::getTradeExecutionCount()   const { return tradeExecutionCount; }
+uint32_t LimitOrderBook::getTradeExecutionCount()    const { return tradeExecutionCount; }
 uint32_t LimitOrderBook::getOrderCancellationCount() const { return orderCancellationCount; }
 uint64_t LimitOrderBook::getTotalVolumeTraded()      const { return totalVolumeTraded; }
 
@@ -89,13 +89,6 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
     order->setStatus(OrderLifecycle::afterCancelResting(order->getStatus()));
     orderIDMap.erase(it);
     return RejectionReason::None;
-}
-
-RejectionReason LimitOrderBook::cancelOrder(OrderID orderId) {
-    auto it = orderIDMap.find(orderId);
-    if (it == orderIDMap.end())
-        return RejectionReason::OrderToBeCancelledDoesNotExist;
-    return cancelOrder(orderId, (*(it->second))->getOwnerID());
 }
 
 bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
