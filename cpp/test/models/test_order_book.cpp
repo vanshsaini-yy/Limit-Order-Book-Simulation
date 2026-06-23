@@ -83,11 +83,19 @@ TEST_F(OrderBookTest, AddExecutedOrderViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(1));
 }
 
-TEST_F(OrderBookTest, AddDuplicateOrderFails) {
+TEST_F(OrderBookTest, AddSameOrderTwiceFails) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
     EXPECT_EQ(book.addOrder(order), RejectionReason::OrderToBeAddedAlreadyExists);
+}
+
+TEST_F(OrderBookTest, AddDistinctOrderWithDuplicateIDFails) {
+    OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr order2 = std::make_shared<Order>(1, 2, 105, 5, Side::Buy, OrderType::Limit, 1001);
+    book.addOrder(order1);
+
+    EXPECT_EQ(book.addOrder(order2), RejectionReason::OrderToBeAddedAlreadyExists);
 }
 
 TEST_F(OrderBookTest, CancelOrderSuccess) {
@@ -266,6 +274,16 @@ TEST_F(OrderBookTest, ZeroQtyOrderNotMarketable) {
     EXPECT_FALSE(book.isOrderMarketable(zeroQtyMarketOrder));
 }
 
+TEST_F(OrderBookTest, CancelTypeOrderNotMarketable) {
+    OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
+    book.addOrder(buyOrder);
+    book.addOrder(sellOrder);
+
+    OrderPtr cancelOrder = std::make_shared<Order>(3, 3, 0, 0, Side::None, OrderType::Cancel, 1002);
+    EXPECT_FALSE(book.isOrderMarketable(cancelOrder));
+}
+
 TEST_F(OrderBookTest, GetMatchedOrderEmptyBookReturnsNull) {
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), nullptr);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), nullptr);
@@ -404,6 +422,7 @@ TEST_F(OrderBookTest, TotalVolumeTradedInitiallyZero) {
 
 TEST_F(OrderBookTest, RecordExecutionIgnoresNonPositiveQty) {
     book.recordExecution(-5);
+    book.recordExecution(0);
 
     EXPECT_EQ(book.getTradeExecutionCount(), 0u);
     EXPECT_EQ(book.getTotalVolumeTraded(), 0u);
