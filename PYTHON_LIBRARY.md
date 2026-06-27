@@ -31,37 +31,37 @@ import limit_order_book as lob
 
 ## Enums
 
-### `Side`
-- `Side.BUY`
-- `Side.SELL`
-- `Side.NONE`
+### Side
+- BUY
+- SELL
+- NONE
 
-### `OrderType`
-- `OrderType.LIMIT`
-- `OrderType.MARKET`
-- `OrderType.CANCEL`
+### OrderType
+- LIMIT
+- MARKET
+- CANCEL
 
-### `OrderStatus`
-- `OrderStatus.PENDING`
-- `OrderStatus.PARTIALLY_EXECUTED`
-- `OrderStatus.EXECUTED`
-- `OrderStatus.CANCELLED`
-- `OrderStatus.CANCELLED_AFTER_PARTIAL_EXECUTION`
+### OrderStatus
+- PENDING
+- PARTIALLY_EXECUTED
+- EXECUTED
+- CANCELLED
+- CANCELLED_AFTER_PARTIAL_EXECUTION
 
-### `RejectionReason`
-- `RejectionReason.NONE`
-- `RejectionReason.NULL_ORDER`
-- `RejectionReason.INVALID_ORDER_TYPE`
-- `RejectionReason.INVALID_LIMIT_ORDER`
-- `RejectionReason.INVALID_MARKET_ORDER`
-- `RejectionReason.INVALID_CANCEL_ORDER`
-- `RejectionReason.ORDER_TO_BE_ADDED_ALREADY_EXISTS`
-- `RejectionReason.ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST`
-- `RejectionReason.ORDER_BOOK_INVARIANT_VIOLATION`
+### RejectionReason
+- NONE
+- NULL_ORDER
+- INVALID_ORDER_TYPE
+- INVALID_LIMIT_ORDER
+- INVALID_MARKET_ORDER
+- INVALID_CANCEL_ORDER
+- ORDER_TO_BE_ADDED_ALREADY_EXISTS
+- ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST
+- ORDER_BOOK_INVARIANT_VIOLATION
 
 ---
 
-## Class: `Order`
+## Class: Order
 
 ### Constructor
 
@@ -97,22 +97,22 @@ lob.Order(
 
 ### Order validation rules (important)
 
-- `LIMIT` orders should have:
+- LIMIT orders require:
   - `price_ticks > 0`
   - `qty > 0`
-  - `side == BUY or SELL`
+  - `side` is BUY or SELL
   - `order_id != 0`
   - `linked_order_id == 0`
-- `MARKET` orders should have:
+- MARKET orders require:
   - `price_ticks == 0`
   - `qty > 0`
-  - `side == BUY or SELL`
+  - `side` is BUY or SELL
   - `order_id != 0`
   - `linked_order_id == 0`
-- `CANCEL` orders should have:
+- CANCEL orders require:
   - `price_ticks == 0`
   - `qty == 0`
-  - `side == NONE`
+  - `side` is NONE
   - `order_id != 0`
   - `linked_order_id != 0`
   - `linked_order_id != order_id`
@@ -121,17 +121,20 @@ Invalid orders are rejected through `RejectionReason`.
 
 ---
 
-## Class: `MatchingEngineFacade`
+## Class: MatchingEngine
 
 ### Constructor
 
 ```python
-lob.MatchingEngineFacade(
+lob.MatchingEngine(
     stp_policy: str,
     trade_id_generator: str = "none",
+    trade_id_start: int = 1,
     trade_logger: str = "none",
     trade_log_file_path: str = "trades.bin",
-    trade_id_start: int = 1,
+    tick_size: float = 0.01,
+    lot_size: float = 1.0,
+    time_interval: float = 1.0,
 )
 ```
 
@@ -158,49 +161,69 @@ All string options below are case-insensitive (for example, `"CANCEL_BOTH"` and 
 
 Invalid option values raise `ValueError` from Python (mapped from C++ `std::invalid_argument`).
 
+### Read-only properties
+
+- `tick_size: float`
+- `lot_size: float`
+- `time_interval: float`
+
+### Scaling
+
+All input to the engine uses raw integer units. The three scalars are applied only at output (in `snapshot()`):
+
+| Scalar | Applied to |
+|---|---|
+| `tick_size` | `best_bid`, `best_ask`, `spread`, `mid`, depth `price`, `total_notional_value` |
+| `lot_size` | `total_quantity` (summary + depth), `total_volume_traded`, `total_notional_value` |
+| `time_interval` | `timestamp` |
+
+`total_notional_value` is computed as `sum(price_ticks × qty)` internally and then scaled by `tick_size × lot_size`, giving true currency notional.
+
+`Order.price_ticks` (input) is always a raw integer. `snapshot()` depth `price` is always a scaled float. Never pass a scaled float where `price_ticks` is expected.
+
 ### Methods
 
-#### `match_order(order: lob.Order) -> lob.RejectionReason`
+#### match_order(order: lob.Order) -> lob.RejectionReason
 
 Submits an order for validation/matching/cancellation.
 
-- Returns `RejectionReason.NONE` when accepted.
-- Returns a non-`RejectionReason.NONE` rejection reason when not accepted.
+- Returns `RejectionReason.NONE` on success.
+- Returns a non-`NONE` rejection reason when not accepted.
 - The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds).
 
-#### `snapshot(now: int, depth_limit: int = 5) -> dict`
+#### snapshot(now: int, depth_limit: int = 5) -> dict
 
 Returns a dictionary describing market structure:
 
 ```python
 {
-  "timestamp": int,
-  "best_bid": Optional[int],
-  "best_ask": Optional[int],
-  "spread": Optional[int],
-  "mid": Optional[int],
+  "timestamp": float,
+  "best_bid": Optional[float],
+  "best_ask": Optional[float],
+  "spread": Optional[float],
+  "mid": Optional[float],
   "bid_summary": {
-    "total_quantity": int,
+    "total_quantity": float,
     "order_count": int,
-    "total_notional_value": int,
+    "total_notional_value": float,
   },
   "ask_summary": {
-    "total_quantity": int,
+    "total_quantity": float,
     "order_count": int,
-    "total_notional_value": int,
+    "total_notional_value": float,
   },
   "bid_depths": [
-    {"price_ticks": int, "total_quantity": int, "order_count": int},
+    {"price": float, "total_quantity": float, "order_count": int},
     ...
   ],
   "ask_depths": [
-    {"price_ticks": int, "total_quantity": int, "order_count": int},
+    {"price": float, "total_quantity": float, "order_count": int},
     ...
   ],
   "tempo": {
     "trade_execution_count": int,
     "order_cancellation_count": int,
-    "total_volume_traded": int,
+    "total_volume_traded": float,
   },
 }
 ```
@@ -213,7 +236,7 @@ Returns a dictionary describing market structure:
 import limit_order_book as lob
 
 
-engine = lob.MatchingEngineFacade(
+engine = lob.MatchingEngine(
     stp_policy="cancel_both",
     trade_id_generator="none",
     trade_logger="none",
