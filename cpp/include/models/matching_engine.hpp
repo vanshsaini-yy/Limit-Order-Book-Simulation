@@ -15,7 +15,7 @@ class MatchingEngine {
         TradeIdGenerator* tradeIdGenerator;
 
     public:
-        explicit MatchingEngine(
+        MatchingEngine(
             STPPolicy* policy,
             LimitOrderBook* book,
             TradeLogger* logger = nullptr,

@@ -59,14 +59,20 @@ std::unique_ptr<TradeLogger> MatchingEngineFacade::makeTradeLogger(
 MatchingEngineFacade::MatchingEngineFacade(
     const std::string& stpPolicyName,
     const std::string& tradeIdGeneratorName,
+    TradeID tradeIdStart,
     const std::string& tradeLoggerName,
     const std::string& tradeLogFilePath,
-    TradeID tradeIdStart
+    double tickSize_,
+    double lotSize_,
+    double timeInterval_
 )
-    : orderBook(std::make_unique<LimitOrderBook>()),
+    : tickSize(tickSize_),
+      lotSize(lotSize_),
+      timeInterval(timeInterval_),
+      orderBook(std::make_unique<LimitOrderBook>()),
       stpPolicy(makeSTPPolicy(stpPolicyName)),
-      tradeLogger(makeTradeLogger(tradeLoggerName, tradeLogFilePath)),
       tradeIdGenerator(makeTradeIdGenerator(tradeIdGeneratorName, tradeIdStart)),
+      tradeLogger(makeTradeLogger(tradeLoggerName, tradeLogFilePath)),
       matchingEngine(std::make_unique<MatchingEngine>(
           stpPolicy.get(),
           orderBook.get(),

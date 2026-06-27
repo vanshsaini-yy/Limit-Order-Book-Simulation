@@ -12,13 +12,17 @@
 #include "models/market_structure_snapshot.hpp"
 #include "models/order_book.hpp"
 #include "policy/self_trade_prevention.hpp"
+#include "utils/constants.hpp"
 
 class MatchingEngineFacade {
 private:
+    double tickSize;
+    double lotSize;
+    double timeInterval;
     std::unique_ptr<LimitOrderBook> orderBook;
     std::unique_ptr<STPPolicy> stpPolicy;
-    std::unique_ptr<TradeLogger> tradeLogger;
     std::unique_ptr<TradeIdGenerator> tradeIdGenerator;
+    std::unique_ptr<TradeLogger> tradeLogger;
     std::unique_ptr<MatchingEngine> matchingEngine;
 
     static std::unique_ptr<STPPolicy> makeSTPPolicy(
@@ -39,10 +43,17 @@ public:
     MatchingEngineFacade(
         const std::string& stpPolicyName,
         const std::string& tradeIdGeneratorName = "none",
+        TradeID tradeIdStart = 1,
         const std::string& tradeLoggerName = "none",
         const std::string& tradeLogFilePath = "trades.bin",
-        TradeID tradeIdStart = 1
+        double tickSize_ = DEFAULT_TICK_SIZE,
+        double lotSize_ = DEFAULT_LOT_SIZE,
+        double timeInterval_ = DEFAULT_TIME_INTERVAL
     );
+
+    double getTickSize()     const { return tickSize; }
+    double getLotSize()      const { return lotSize; }
+    double getTimeInterval() const { return timeInterval; }
 
     MatchingEngineFacade(const MatchingEngineFacade&) = delete;
     MatchingEngineFacade& operator=(const MatchingEngineFacade&) = delete;
