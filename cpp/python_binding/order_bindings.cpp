@@ -9,22 +9,19 @@ void bindOrderTypes(py::module_& module) {
     py::enum_<Side>(module, "Side")
         .value("BUY", Side::Buy)
         .value("SELL", Side::Sell)
-        .value("NONE", Side::None)
-        .export_values();
+        .value("NONE", Side::None);
 
     py::enum_<OrderType>(module, "OrderType")
         .value("LIMIT", OrderType::Limit)
         .value("MARKET", OrderType::Market)
-        .value("CANCEL", OrderType::Cancel)
-        .export_values();
+        .value("CANCEL", OrderType::Cancel);
 
     py::enum_<OrderStatus>(module, "OrderStatus")
         .value("PENDING", OrderStatus::Pending)
         .value("PARTIALLY_EXECUTED", OrderStatus::PartiallyExecuted)
         .value("EXECUTED", OrderStatus::Executed)
         .value("CANCELLED", OrderStatus::Cancelled)
-        .value("CANCELLED_AFTER_PARTIAL_EXECUTION", OrderStatus::CancelledAfterPartialExecution)
-        .export_values();
+        .value("CANCELLED_AFTER_PARTIAL_EXECUTION", OrderStatus::CancelledAfterPartialExecution);
 
     py::enum_<RejectionReason>(module, "RejectionReason")
         .value("NONE", RejectionReason::None)
@@ -35,8 +32,7 @@ void bindOrderTypes(py::module_& module) {
         .value("INVALID_CANCEL_ORDER", RejectionReason::InvalidCancelOrder)
         .value("ORDER_TO_BE_ADDED_ALREADY_EXISTS", RejectionReason::OrderToBeAddedAlreadyExists)
         .value("ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST", RejectionReason::OrderToBeCancelledDoesNotExist)
-        .value("ORDER_BOOK_INVARIANT_VIOLATION", RejectionReason::OrderBookInvariantViolation)
-        .export_values();
+        .value("ORDER_BOOK_INVARIANT_VIOLATION", RejectionReason::OrderBookInvariantViolation);
 
     py::class_<Order, std::shared_ptr<Order>>(module, "Order")
         .def(
