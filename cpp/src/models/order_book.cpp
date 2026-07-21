@@ -117,6 +117,49 @@ bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
     }
 }
 
+bool LimitOrderBook::isFOKFillable(const OrderPtr &order) const {
+    Quantity needed = order->getQty();
+    if (needed <= 0) {
+        return true;
+    }
+    OwnerID ownerID = order->getOwnerID();
+    bool isMarket = order->getType() == OrderType::Market;
+    Quantity available = 0;
+
+    if (order->getSide() == Side::Buy) {
+        for (const auto& [price, orders] : asks) {
+            if (!isMarket && price > order->getPriceTicks()) {
+                break;
+            }
+            for (const auto& resting : orders) {
+                if (resting->getOwnerID() == ownerID) {
+                    return false;
+                }
+                available += resting->getQty();
+                if (available >= needed) {
+                    return true;
+                }
+            }
+        }
+    } else {
+        for (const auto& [price, orders] : bids) {
+            if (!isMarket && price < order->getPriceTicks()) {
+                break;
+            }
+            for (const auto& resting : orders) {
+                if (resting->getOwnerID() == ownerID) {
+                    return false;
+                }
+                available += resting->getQty();
+                if (available >= needed) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 OrderPtr LimitOrderBook::getMatchedOrder(const Side incomingSide) const {
     if (incomingSide == Side::Buy) {
         if (asks.empty() || asks.begin()->second.empty()) return nullptr;

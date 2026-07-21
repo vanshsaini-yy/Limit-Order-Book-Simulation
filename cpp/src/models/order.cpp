@@ -8,7 +8,8 @@ Order::Order(
     Side side_,
     OrderType type_,
     Timestamp timestamp_,
-    OrderID linkedOrderID_
+    OrderID linkedOrderID_,
+    TimeInForce tif_
 )
 :   orderID(orderID_),
     ownerID(ownerID_),
@@ -18,7 +19,8 @@ Order::Order(
     type(type_),
     timestamp(timestamp_),
     status(OrderStatus::Pending),
-    linkedOrderID(linkedOrderID_) {}
+    linkedOrderID(linkedOrderID_),
+    tif(tif_) {}
 
 OrderID     Order::getOrderID()       const { return orderID; }
 OwnerID     Order::getOwnerID()       const { return ownerID; }
@@ -29,8 +31,10 @@ OrderType   Order::getType()          const { return type; }
 Timestamp   Order::getTimestamp()     const { return timestamp; }
 OrderStatus Order::getStatus()        const { return status; }
 OrderID     Order::getLinkedOrderID() const { return linkedOrderID; }
+TimeInForce Order::getTimeInForce()   const { return tif; }
 
 void Order::reduceQty(Quantity qtyFilled)    { qty -= qtyFilled; }
 void Order::setStatus(OrderStatus newStatus) { status = newStatus; }
+
 bool Order::isCancelled() const { return status == OrderStatus::Cancelled || status == OrderStatus::CancelledAfterPartialExecution; }
 bool Order::isExecuted()  const { return status == OrderStatus::Executed; }

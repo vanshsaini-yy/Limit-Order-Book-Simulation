@@ -14,10 +14,16 @@ enum class Side : uint8_t {
     None = 2 
 };
 
-enum class OrderType : uint8_t { 
-    Limit = 0, 
-    Market = 1, 
-    Cancel = 2 
+enum class OrderType : uint8_t {
+    Limit = 0,
+    Market = 1,
+    Cancel = 2
+};
+
+enum class TimeInForce : uint8_t {
+    GTC = 0,
+    IOC = 1,
+    FOK = 2
 };
 
 enum class OrderStatus : uint16_t { 
@@ -39,6 +45,7 @@ class Order {
         Timestamp timestamp;
         OrderStatus status;
         OrderID linkedOrderID;
+        TimeInForce tif;
 
     public:
         Order(
@@ -49,7 +56,8 @@ class Order {
             Side side_,
             OrderType type_,
             Timestamp timestamp_,
-            OrderID linkedOrderID_ = 0
+            OrderID linkedOrderID_ = 0,
+            TimeInForce tif_ = TimeInForce::GTC
         );
 
         OrderID     getOrderID()       const;
@@ -61,6 +69,7 @@ class Order {
         Timestamp   getTimestamp()     const;
         OrderStatus getStatus()        const;
         OrderID     getLinkedOrderID() const;
+        TimeInForce getTimeInForce()   const;
 
         void reduceQty(Quantity qtyFilled);
         void setStatus(OrderStatus newStatus);

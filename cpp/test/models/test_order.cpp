@@ -22,6 +22,7 @@ TEST_F(OrderTest, GettersReturnExpectedValues) {
     EXPECT_EQ(order1->getTimestamp(), 1622547800);
     EXPECT_EQ(order1->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(order1->getLinkedOrderID(), 0);
+    EXPECT_EQ(order1->getTimeInForce(), TimeInForce::GTC);
 
     EXPECT_EQ(order2->getOrderID(), 2);
     EXPECT_EQ(order2->getOwnerID(), 1);
@@ -32,6 +33,15 @@ TEST_F(OrderTest, GettersReturnExpectedValues) {
     EXPECT_EQ(order2->getTimestamp(), 1622547801);
     EXPECT_EQ(order2->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(order2->getLinkedOrderID(), 1);
+    EXPECT_EQ(order2->getTimeInForce(), TimeInForce::GTC);
+}
+
+TEST_F(OrderTest, TimeInForceCanBeSetExplicitly) {
+    OrderPtr iocOrder = std::make_shared<Order>(3, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547802, 0, TimeInForce::IOC);
+    OrderPtr fokOrder = std::make_shared<Order>(4, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547803, 0, TimeInForce::FOK);
+
+    EXPECT_EQ(iocOrder->getTimeInForce(), TimeInForce::IOC);
+    EXPECT_EQ(fokOrder->getTimeInForce(), TimeInForce::FOK);
 }
 
 TEST_F(OrderTest, ReduceQtyDecreasesQuantity) {

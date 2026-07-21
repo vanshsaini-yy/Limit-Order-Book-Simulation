@@ -41,6 +41,13 @@ import limit_order_book as lob
 - MARKET
 - CANCEL
 
+### TimeInForce
+- GTC (Good-Til-Cancelled) — default. Any unfilled remainder rests in the book.
+- IOC (Immediate-or-Cancel) — matches as much as immediately available; any
+  unfilled remainder is discarded instead of resting.
+- FOK (Fill-or-Kill) — all-or-nothing. If the full quantity cannot be matched
+  immediately, the order is cancelled with zero fills.
+
 ### OrderStatus
 - PENDING
 - PARTIALLY_EXECUTED
@@ -75,6 +82,7 @@ lob.Order(
     order_type: lob.OrderType,
     timestamp: int,
     linked_order_id: int = 0,
+    time_in_force: lob.TimeInForce = lob.TimeInForce.GTC,
 )
 ```
 
@@ -89,6 +97,7 @@ lob.Order(
 - `timestamp`
 - `status`
 - `linked_order_id`
+- `time_in_force`
 
 ### Methods
 
@@ -116,8 +125,29 @@ lob.Order(
   - `order_id != 0`
   - `linked_order_id != 0`
   - `linked_order_id != order_id`
+  - `time_in_force == TimeInForce.GTC` (a cancel is a control message, not a
+    matching order — it has no fill semantics for `time_in_force` to apply
+    to, so any non-default value is rejected)
 
 Invalid orders are rejected through `RejectionReason`.
+
+### Time-in-force semantics
+
+- `time_in_force` applies to LIMIT and MARKET orders. MARKET orders already
+  discard any unfilled remainder, so IOC has no additional effect on them
+  beyond FOK's all-or-nothing check. CANCEL orders must use the default
+  `GTC` — see the CANCEL validation rule above.
+- FOK is evaluated as a read-only pass over the book before any fills happen:
+  it walks the marketable price levels on the opposing side and sums
+  available quantity. If a same-owner (self-trade) resting order is
+  encountered anywhere in that marketable range, the FOK check aborts
+  immediately and treats the order as unfillable — it does not skip past
+  the same owner resting order and keep counting deeper levels.
+- If FOK determines the order is unfillable, the order is cancelled with
+  zero fills; the book is left completely unchanged. There is no dedicated
+  `RejectionReason` for this — the order simply ends up with
+  `status == CANCELLED`, the same as any other order that finds no
+  available liquidity.
 
 ---
 

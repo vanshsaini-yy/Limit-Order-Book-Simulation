@@ -39,6 +39,7 @@ class LimitOrderBook {
         RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID);
 
         bool     isOrderMarketable(const OrderPtr &order) const;
+        bool     isFOKFillable(const OrderPtr &order) const;
         OrderPtr getMatchedOrder(const Side incomingSide) const;
         void     popFront(const Side incomingSide);
 

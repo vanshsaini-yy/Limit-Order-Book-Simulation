@@ -31,7 +31,8 @@ RejectionReason OrderValidator::validateCancelOrder(const OrderPtr &order) {
         order->getStatus() == OrderStatus::Pending &&
         order->getOrderID() != 0 &&
         order->getLinkedOrderID() != 0 &&
-        order->getLinkedOrderID() != order->getOrderID()) {
+        order->getLinkedOrderID() != order->getOrderID() &&
+        order->getTimeInForce() == TimeInForce::GTC) {
         return RejectionReason::None;
     }
     return RejectionReason::InvalidCancelOrder;
