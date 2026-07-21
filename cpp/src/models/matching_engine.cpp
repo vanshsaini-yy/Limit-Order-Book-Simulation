@@ -39,6 +39,11 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return RejectionReason::OrderToBeAddedAlreadyExists;
     }
 
+    if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder)) {
+        incomingOrder->setStatus(OrderStatus::Cancelled);
+        return RejectionReason::None;
+    }
+
     Quantity incomingInitialQty = incomingOrder->getQty();
     Side incomingSide = incomingOrder->getSide();
 
@@ -79,7 +84,16 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
     OrderStatus finalStatus = OrderLifecycle::afterMatching(incomingInitialQty, incomingOrder->getQty(), incomingOrder->getType());
     incomingOrder->setStatus(finalStatus);
 
-    if (finalStatus == OrderStatus::Pending || finalStatus == OrderStatus::PartiallyExecuted) {
+    bool wouldRest = finalStatus == OrderStatus::Pending || finalStatus == OrderStatus::PartiallyExecuted;
+
+    if (wouldRest && incomingOrder->getTimeInForce() != TimeInForce::GTC) {
+        incomingOrder->setStatus(
+            OrderLifecycle::afterCancelIncoming(incomingInitialQty, incomingOrder->getQty())
+        );
+        return RejectionReason::None;
+    }
+
+    if (wouldRest) {
         RejectionReason addResult = orderBook->addOrder(incomingOrder);
         if (addResult != RejectionReason::None) {
             incomingOrder->setStatus(

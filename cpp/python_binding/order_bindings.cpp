@@ -16,6 +16,11 @@ void bindOrderTypes(py::module_& module) {
         .value("MARKET", OrderType::Market)
         .value("CANCEL", OrderType::Cancel);
 
+    py::enum_<TimeInForce>(module, "TimeInForce")
+        .value("GTC", TimeInForce::GTC)
+        .value("IOC", TimeInForce::IOC)
+        .value("FOK", TimeInForce::FOK);
+
     py::enum_<OrderStatus>(module, "OrderStatus")
         .value("PENDING", OrderStatus::Pending)
         .value("PARTIALLY_EXECUTED", OrderStatus::PartiallyExecuted)
@@ -36,7 +41,7 @@ void bindOrderTypes(py::module_& module) {
 
     py::class_<Order, std::shared_ptr<Order>>(module, "Order")
         .def(
-            py::init<OrderID, OwnerID, PriceTicks, Quantity, Side, OrderType, Timestamp, OrderID>(),
+            py::init<OrderID, OwnerID, PriceTicks, Quantity, Side, OrderType, Timestamp, OrderID, TimeInForce>(),
             py::arg("order_id"),
             py::arg("owner_id"),
             py::arg("price_ticks"),
@@ -44,7 +49,8 @@ void bindOrderTypes(py::module_& module) {
             py::arg("side"),
             py::arg("order_type"),
             py::arg("timestamp"),
-            py::arg("linked_order_id") = 0
+            py::arg("linked_order_id") = 0,
+            py::arg("time_in_force") = TimeInForce::GTC
         )
         .def_property_readonly("order_id", &Order::getOrderID)
         .def_property_readonly("owner_id", &Order::getOwnerID)
@@ -55,6 +61,7 @@ void bindOrderTypes(py::module_& module) {
         .def_property_readonly("timestamp", &Order::getTimestamp)
         .def_property_readonly("status", &Order::getStatus)
         .def_property_readonly("linked_order_id", &Order::getLinkedOrderID)
+        .def_property_readonly("time_in_force", &Order::getTimeInForce)
         .def("is_cancelled", &Order::isCancelled)
         .def("is_executed", &Order::isExecuted);
 }

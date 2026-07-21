@@ -83,6 +83,7 @@ TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_BadCancelOrders) {
     OrderPtr invalidCancelOrder6 = std::make_shared<Order>(0, 0, 0, 0, Side::None, OrderType::Cancel, 1622547804, 1);
     OrderPtr invalidCancelOrder7 = std::make_shared<Order>(5, 5, 0, 0, Side::None, OrderType::Cancel, 1622547805, 0);
     OrderPtr invalidCancelOrder8 = std::make_shared<Order>(6, 6, 0, 0, Side::None, OrderType::Cancel, 1622547806, 6);
+    OrderPtr invalidCancelOrder9 = std::make_shared<Order>(7, 7, 0, 0, Side::None, OrderType::Cancel, 1622547807, 1, TimeInForce::IOC);
 
     EXPECT_EQ(engine->matchOrder(invalidCancelOrder1), RejectionReason::NullOrder);
     EXPECT_EQ(engine->matchOrder(invalidCancelOrder2), RejectionReason::InvalidCancelOrder);
@@ -92,6 +93,7 @@ TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_BadCancelOrders) {
     EXPECT_EQ(engine->matchOrder(invalidCancelOrder6), RejectionReason::InvalidCancelOrder);
     EXPECT_EQ(engine->matchOrder(invalidCancelOrder7), RejectionReason::InvalidCancelOrder);
     EXPECT_EQ(engine->matchOrder(invalidCancelOrder8), RejectionReason::InvalidCancelOrder);
+    EXPECT_EQ(engine->matchOrder(invalidCancelOrder9), RejectionReason::InvalidCancelOrder);
 
     EXPECT_EQ(invalidCancelOrder2->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(invalidCancelOrder3->getStatus(), OrderStatus::Cancelled);
@@ -100,6 +102,7 @@ TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_BadCancelOrders) {
     EXPECT_EQ(invalidCancelOrder6->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(invalidCancelOrder7->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(invalidCancelOrder8->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(invalidCancelOrder9->getStatus(), OrderStatus::Cancelled);
 }
 
 TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_BadStatusOrders) {

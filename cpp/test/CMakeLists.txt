@@ -8,6 +8,7 @@ set(TEST_SOURCES
     models/test_matching_engine_match.cpp
     models/test_matching_engine_stp.cpp
     models/test_matching_engine_execution.cpp
+    models/test_matching_engine_tif.cpp
     infra/test_binary_trade_logger.cpp
     infra/test_trade_id_generator.cpp
 )
