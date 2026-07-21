@@ -46,6 +46,7 @@ class Order {
         OrderStatus status;
         OrderID linkedOrderID;
         TimeInForce tif;
+        bool postOnly;
 
     public:
         Order(
@@ -57,7 +58,8 @@ class Order {
             OrderType type_,
             Timestamp timestamp_,
             OrderID linkedOrderID_ = 0,
-            TimeInForce tif_ = TimeInForce::GTC
+            TimeInForce tif_ = TimeInForce::GTC,
+            bool postOnly_ = false
         );
 
         OrderID     getOrderID()       const;
@@ -70,11 +72,13 @@ class Order {
         OrderStatus getStatus()        const;
         OrderID     getLinkedOrderID() const;
         TimeInForce getTimeInForce()   const;
-
+        
         void reduceQty(Quantity qtyFilled);
         void setStatus(OrderStatus newStatus);
+        
         bool isCancelled() const;
         bool isExecuted()  const;
+        bool isPostOnly()  const;
 };
 
 using OrderPtr = std::shared_ptr<Order>;

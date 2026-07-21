@@ -65,6 +65,8 @@ import limit_order_book as lob
 - ORDER_TO_BE_ADDED_ALREADY_EXISTS
 - ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST
 - ORDER_BOOK_INVARIANT_VIOLATION
+- INVALID_POST_ONLY_ORDER
+- POST_ONLY_WOULD_CROSS
 
 ---
 
@@ -83,6 +85,7 @@ lob.Order(
     timestamp: int,
     linked_order_id: int = 0,
     time_in_force: lob.TimeInForce = lob.TimeInForce.GTC,
+    post_only: bool = False,
 )
 ```
 
@@ -98,6 +101,7 @@ lob.Order(
 - `status`
 - `linked_order_id`
 - `time_in_force`
+- `post_only`
 
 ### Methods
 
@@ -112,12 +116,16 @@ lob.Order(
   - `side` is BUY or SELL
   - `order_id != 0`
   - `linked_order_id == 0`
+  - if `post_only` is set, `time_in_force == TimeInForce.GTC` (post-only
+    guarantees maker status, which IOC/FOK's semantics contradict)
 - MARKET orders require:
   - `price_ticks == 0`
   - `qty > 0`
   - `side` is BUY or SELL
   - `order_id != 0`
   - `linked_order_id == 0`
+  - `post_only == False` (a market order is always marketable by
+    definition, so post-only on it is meaningless)
 - CANCEL orders require:
   - `price_ticks == 0`
   - `qty == 0`
@@ -148,6 +156,21 @@ Invalid orders are rejected through `RejectionReason`.
   `RejectionReason` for this — the order simply ends up with
   `status == CANCELLED`, the same as any other order that finds no
   available liquidity.
+
+### Post-only semantics
+
+- `post_only` only applies to LIMIT orders with `time_in_force == GTC` —
+  see the LIMIT/MARKET validation rules above.
+- The check happens before any matching is attempted: if the incoming order
+  would immediately cross the book (i.e. it is marketable), it is rejected
+  with `RejectionReason.POST_ONLY_WOULD_CROSS` and `status == CANCELLED`.
+  The book is left completely unchanged — no partial fills ever occur for a
+  post-only order.
+- The would-cross check runs before self-trade prevention, so a resting
+  order from the same owner at a crossable price still causes rejection
+  (it is never reached to be cancelled by STP).
+- If the order would not cross, it rests in the book exactly like a normal
+  GTC LIMIT order.
 
 ---
 

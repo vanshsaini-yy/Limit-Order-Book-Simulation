@@ -23,6 +23,7 @@ TEST_F(OrderTest, GettersReturnExpectedValues) {
     EXPECT_EQ(order1->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(order1->getLinkedOrderID(), 0);
     EXPECT_EQ(order1->getTimeInForce(), TimeInForce::GTC);
+    EXPECT_FALSE(order1->isPostOnly());
 
     EXPECT_EQ(order2->getOrderID(), 2);
     EXPECT_EQ(order2->getOwnerID(), 1);
@@ -42,6 +43,12 @@ TEST_F(OrderTest, TimeInForceCanBeSetExplicitly) {
 
     EXPECT_EQ(iocOrder->getTimeInForce(), TimeInForce::IOC);
     EXPECT_EQ(fokOrder->getTimeInForce(), TimeInForce::FOK);
+}
+
+TEST_F(OrderTest, PostOnlyCanBeSetExplicitly) {
+    OrderPtr postOnlyOrder = std::make_shared<Order>(5, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547804, 0, TimeInForce::GTC, true);
+
+    EXPECT_TRUE(postOnlyOrder->isPostOnly());
 }
 
 TEST_F(OrderTest, ReduceQtyDecreasesQuantity) {

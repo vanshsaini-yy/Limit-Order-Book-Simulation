@@ -9,7 +9,8 @@ Order::Order(
     OrderType type_,
     Timestamp timestamp_,
     OrderID linkedOrderID_,
-    TimeInForce tif_
+    TimeInForce tif_,
+    bool postOnly_
 )
 :   orderID(orderID_),
     ownerID(ownerID_),
@@ -20,7 +21,8 @@ Order::Order(
     timestamp(timestamp_),
     status(OrderStatus::Pending),
     linkedOrderID(linkedOrderID_),
-    tif(tif_) {}
+    tif(tif_),
+    postOnly(postOnly_) {}
 
 OrderID     Order::getOrderID()       const { return orderID; }
 OwnerID     Order::getOwnerID()       const { return ownerID; }
@@ -38,3 +40,4 @@ void Order::setStatus(OrderStatus newStatus) { status = newStatus; }
 
 bool Order::isCancelled() const { return status == OrderStatus::Cancelled || status == OrderStatus::CancelledAfterPartialExecution; }
 bool Order::isExecuted()  const { return status == OrderStatus::Executed; }
+bool Order::isPostOnly()  const { return postOnly; }

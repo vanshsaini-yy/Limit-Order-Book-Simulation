@@ -39,6 +39,11 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return RejectionReason::OrderToBeAddedAlreadyExists;
     }
 
+    if (incomingOrder->isPostOnly() && orderBook->isOrderMarketable(incomingOrder)) {
+        incomingOrder->setStatus(OrderStatus::Cancelled);
+        return RejectionReason::PostOnlyWouldCross;
+    }
+
     if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder)) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::None;
