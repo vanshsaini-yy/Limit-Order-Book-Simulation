@@ -65,6 +65,7 @@ import limit_order_book as lob
 - ORDER_TO_BE_ADDED_ALREADY_EXISTS
 - ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST
 - ORDER_BOOK_INVARIANT_VIOLATION
+- FOK_INSUFFICIENT_LIQUIDITY
 - INVALID_POST_ONLY_ORDER
 - POST_ONLY_WOULD_CROSS
 
@@ -152,10 +153,9 @@ Invalid orders are rejected through `RejectionReason`.
   immediately and treats the order as unfillable — it does not skip past
   the same owner resting order and keep counting deeper levels.
 - If FOK determines the order is unfillable, the order is cancelled with
-  zero fills; the book is left completely unchanged. There is no dedicated
-  `RejectionReason` for this — the order simply ends up with
-  `status == CANCELLED`, the same as any other order that finds no
-  available liquidity.
+  zero fills; the book is left completely unchanged. `match_order` returns
+  `RejectionReason.FOK_INSUFFICIENT_LIQUIDITY` in this case, and the order
+  ends up with `status == CANCELLED`.
 
 ### Post-only semantics
 

@@ -46,7 +46,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
 
     if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder)) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
-        return RejectionReason::None;
+        return RejectionReason::FOKInsufficientLiquidity;
     }
 
     Quantity incomingInitialQty = incomingOrder->getQty();

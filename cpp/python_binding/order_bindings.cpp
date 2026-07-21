@@ -38,6 +38,7 @@ void bindOrderTypes(py::module_& module) {
         .value("ORDER_TO_BE_ADDED_ALREADY_EXISTS", RejectionReason::OrderToBeAddedAlreadyExists)
         .value("ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST", RejectionReason::OrderToBeCancelledDoesNotExist)
         .value("ORDER_BOOK_INVARIANT_VIOLATION", RejectionReason::OrderBookInvariantViolation)
+        .value("FOK_INSUFFICIENT_LIQUIDITY", RejectionReason::FOKInsufficientLiquidity)
         .value("INVALID_POST_ONLY_ORDER", RejectionReason::InvalidPostOnlyOrder)
         .value("POST_ONLY_WOULD_CROSS", RejectionReason::PostOnlyWouldCross);
 
