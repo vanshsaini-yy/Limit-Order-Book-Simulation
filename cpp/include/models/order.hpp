@@ -34,6 +34,7 @@ enum class OrderStatus : uint16_t {
     CancelledAfterPartialExecution = 4 
 };
 
+// TODO 3: make post only something else instead of bool
 class Order {
     private:
         OrderID orderID;

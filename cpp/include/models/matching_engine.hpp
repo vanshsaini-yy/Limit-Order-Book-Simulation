@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "models/order_book.hpp"
 #include "models/execution_engine.hpp"
 #include "policy/self_trade_prevention.hpp"
@@ -13,15 +14,23 @@ class MatchingEngine {
         STPPolicy* stpPolicy;
         TradeLogger* tradeLogger;
         TradeIdGenerator* tradeIdGenerator;
+        std::optional<PriceTicks> maxDeviationTicks;
+        std::optional<PriceTicks> lastTradedPrice;
+
+        bool violatesPriceCollar(const OrderPtr &order) const;
 
     public:
         MatchingEngine(
             STPPolicy* policy,
             LimitOrderBook* book,
             TradeLogger* logger = nullptr,
-            TradeIdGenerator* idGenerator = nullptr
+            TradeIdGenerator* idGenerator = nullptr,
+            std::optional<PriceTicks> maxDeviationTicks = std::nullopt
         );
 
         void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
         RejectionReason matchOrder(const OrderPtr &incomingOrder);
+
+        std::optional<PriceTicks> getLastTradedPrice()   const;
+        std::optional<PriceTicks> getMaxDeviationTicks() const;
 };

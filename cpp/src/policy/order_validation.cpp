@@ -31,6 +31,7 @@ RejectionReason OrderValidator::validateMarketOrder(const OrderPtr &order) {
 }
 
 RejectionReason OrderValidator::validateCancelOrder(const OrderPtr &order) {
+    // TODO 2: Cancel order must not be post-only
     if (order->getPriceTicks() == 0 &&
         order->getQty() == 0 &&
         order->getSide() == Side::None &&

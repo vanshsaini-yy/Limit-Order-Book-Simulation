@@ -64,7 +64,8 @@ MatchingEngineFacade::MatchingEngineFacade(
     const std::string& tradeLogFilePath,
     double tickSize_,
     double lotSize_,
-    double timeInterval_
+    double timeInterval_,
+    std::optional<PriceTicks> deviationTicks
 )
     : tickSize(tickSize_),
       lotSize(lotSize_),
@@ -77,7 +78,8 @@ MatchingEngineFacade::MatchingEngineFacade(
           stpPolicy.get(),
           orderBook.get(),
           tradeLogger.get(),
-          tradeIdGenerator.get())) {
+          tradeIdGenerator.get(),
+          deviationTicks)) {
     if (tradeLogger != nullptr && tradeIdGenerator == nullptr) {
         throw std::invalid_argument("tradeLogger requires a tradeIdGenerator");
     }

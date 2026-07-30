@@ -4,12 +4,30 @@ MatchingEngine::MatchingEngine(
     STPPolicy* policy,
     LimitOrderBook* book,
     TradeLogger* logger,
-    TradeIdGenerator* idGenerator
+    TradeIdGenerator* idGenerator,
+    std::optional<PriceTicks> deviationTicks
 )
     : stpPolicy(policy),
       orderBook(book),
       tradeLogger(logger),
-      tradeIdGenerator(idGenerator) {}
+      tradeIdGenerator(idGenerator),
+      maxDeviationTicks(deviationTicks) {}
+
+std::optional<PriceTicks> MatchingEngine::getLastTradedPrice()   const { return lastTradedPrice; }
+std::optional<PriceTicks> MatchingEngine::getMaxDeviationTicks() const { return maxDeviationTicks; }
+
+bool MatchingEngine::violatesPriceCollar(const OrderPtr &order) const {
+    if (!maxDeviationTicks.has_value() || order->getType() != OrderType::Limit) {
+        return false;
+    }
+    std::optional<PriceTicks> reference = lastTradedPrice.has_value() ? lastTradedPrice : orderBook->getMidPrice();
+    if (!reference.has_value()) {
+        return false;
+    }
+    PriceTicks lowerBound = *reference - *maxDeviationTicks;
+    PriceTicks upperBound = *reference + *maxDeviationTicks;
+    return order->getPriceTicks() < lowerBound || order->getPriceTicks() > upperBound;
+}
 
 void MatchingEngine::applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty) {
     STPDecision decision = stpPolicy->getDecision();
@@ -35,6 +53,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return validationResult;
     }
 
+    // TODO 1: rename this to OrderToBeMatchedAlreadyExists
     if (orderBook->doesOrderExist(incomingOrder->getOrderID())) {
         return RejectionReason::OrderToBeAddedAlreadyExists;
     }
@@ -47,6 +66,11 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
     if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder)) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::FOKInsufficientLiquidity;
+    }
+
+    if (violatesPriceCollar(incomingOrder)) {
+        incomingOrder->setStatus(OrderStatus::Cancelled);
+        return RejectionReason::PriceCollarViolation;
     }
 
     Quantity incomingInitialQty = incomingOrder->getQty();
@@ -68,6 +92,9 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
 
         Quantity tradedQty = ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
         orderBook->recordExecution(tradedQty);
+        if (tradedQty > 0) {
+            lastTradedPrice = restingOrder->getPriceTicks();
+        }
 
         restingOrder->setStatus(
             OrderLifecycle::afterMatching(restingInitialQty, restingOrder->getQty(), OrderType::Limit)

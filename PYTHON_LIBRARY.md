@@ -68,6 +68,7 @@ import limit_order_book as lob
 - FOK_INSUFFICIENT_LIQUIDITY
 - INVALID_POST_ONLY_ORDER
 - POST_ONLY_WOULD_CROSS
+- PRICE_COLLAR_VIOLATION
 
 ---
 
@@ -172,6 +173,24 @@ Invalid orders are rejected through `RejectionReason`.
 - If the order would not cross, it rests in the book exactly like a normal
   GTC LIMIT order.
 
+### Price collar semantics
+
+- Enabled by passing `max_deviation_ticks` to the `MatchingEngine` constructor
+  (see below). It is `None` by default, which disables the check entirely.
+- Only applies to LIMIT orders — MARKET orders always bypass the collar, since
+  they have no limit price to validate against.
+- The reference price is the price of the most recent trade if any trade has
+  occurred; otherwise it falls back to the current book mid
+  (`(best_bid + best_ask) / 2`). If neither is available (e.g. an empty or
+  one-sided book with no trades yet), the check is skipped and the order is
+  accepted.
+- A LIMIT order priced outside `[reference - max_deviation_ticks, reference +
+  max_deviation_ticks]` is rejected with
+  `RejectionReason.PRICE_COLLAR_VIOLATION` and `status == CANCELLED`. Orders at
+  exactly the boundary are accepted.
+- This check runs after the Post-Only and FOK-insufficient-liquidity checks,
+  so those two rejections take precedence over a price collar violation.
+
 ---
 
 ## Class: MatchingEngine
@@ -188,8 +207,13 @@ lob.MatchingEngine(
     tick_size: float = 0.01,
     lot_size: float = 1.0,
     time_interval: float = 1.0,
+    max_deviation_ticks: Optional[int] = None,
 )
 ```
+
+`max_deviation_ticks` enables the price collar (see "Price collar semantics"
+above) when set; `None` (the default) disables it. It is in raw ticks, not
+scaled by `tick_size`.
 
 ### Constructor options
 

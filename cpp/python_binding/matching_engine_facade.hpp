@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "infra/binary_trade_logger.hpp"
@@ -48,7 +49,8 @@ public:
         const std::string& tradeLogFilePath = "trades.bin",
         double tickSize_ = DEFAULT_TICK_SIZE,
         double lotSize_ = DEFAULT_LOT_SIZE,
-        double timeInterval_ = DEFAULT_TIME_INTERVAL
+        double timeInterval_ = DEFAULT_TIME_INTERVAL,
+        std::optional<PriceTicks> deviationTicks = std::nullopt
     );
 
     double getTickSize()     const { return tickSize; }

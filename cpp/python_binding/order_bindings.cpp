@@ -40,7 +40,8 @@ void bindOrderTypes(py::module_& module) {
         .value("ORDER_BOOK_INVARIANT_VIOLATION", RejectionReason::OrderBookInvariantViolation)
         .value("FOK_INSUFFICIENT_LIQUIDITY", RejectionReason::FOKInsufficientLiquidity)
         .value("INVALID_POST_ONLY_ORDER", RejectionReason::InvalidPostOnlyOrder)
-        .value("POST_ONLY_WOULD_CROSS", RejectionReason::PostOnlyWouldCross);
+        .value("POST_ONLY_WOULD_CROSS", RejectionReason::PostOnlyWouldCross)
+        .value("PRICE_COLLAR_VIOLATION", RejectionReason::PriceCollarViolation);
 
     py::class_<Order, std::shared_ptr<Order>>(module, "Order")
         .def(

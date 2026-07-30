@@ -26,8 +26,12 @@ class LimitOrderBook {
         LimitOrderBook() = default;
 
         bool doesOrderExist(OrderID orderId) const;
-        std::optional<PriceTicks> getBestBid() const;
-        std::optional<PriceTicks> getBestAsk() const;
+
+        std::optional<PriceTicks> getBestBid()  const;
+        std::optional<PriceTicks> getBestAsk()  const;
+        std::optional<PriceTicks> getMidPrice() const;
+        std::optional<PriceTicks> getSpread()   const;
+        
         uint32_t getTradeExecutionCount()    const;
         uint32_t getOrderCancellationCount() const;
         uint64_t getTotalVolumeTraded()      const;
