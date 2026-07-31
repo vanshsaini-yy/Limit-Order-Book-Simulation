@@ -218,6 +218,46 @@ TEST_F(OrderBookTest, GetBestBidAsk) {
     EXPECT_EQ(book.getBestAsk(), std::nullopt);
 }
 
+TEST_F(OrderBookTest, GetMidPriceEmptyBookReturnsNullopt) {
+    EXPECT_EQ(book.getMidPrice(), std::nullopt);
+}
+
+TEST_F(OrderBookTest, GetMidPriceOneSidedBookReturnsNullopt) {
+    OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    book.addOrder(bid);
+
+    EXPECT_EQ(book.getMidPrice(), std::nullopt);
+}
+
+TEST_F(OrderBookTest, GetMidPriceBothSidesPresent) {
+    OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr ask = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
+    book.addOrder(bid);
+    book.addOrder(ask);
+
+    EXPECT_EQ(book.getMidPrice(), 105ull);
+}
+
+TEST_F(OrderBookTest, GetSpreadEmptyBookReturnsNullopt) {
+    EXPECT_EQ(book.getSpread(), std::nullopt);
+}
+
+TEST_F(OrderBookTest, GetSpreadOneSidedBookReturnsNullopt) {
+    OrderPtr ask = std::make_shared<Order>(1, 1, 110, 10, Side::Sell, OrderType::Limit, 1000);
+    book.addOrder(ask);
+
+    EXPECT_EQ(book.getSpread(), std::nullopt);
+}
+
+TEST_F(OrderBookTest, GetSpreadBothSidesPresent) {
+    OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr ask = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
+    book.addOrder(bid);
+    book.addOrder(ask);
+
+    EXPECT_EQ(book.getSpread(), 10ull);
+}
+
 TEST_F(OrderBookTest, LimitOrdersMarketableOnEmptyBook) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr sellOrder = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);

@@ -59,13 +59,15 @@ MatchingEngine
 
 ### Key Design Decisions
 
-**`LimitOrderBook`** stores bids as `std::map<PriceTicks, std::list<OrderPtr>, std::greater<>>` (best bid first) and asks as `std::map<PriceTicks, std::list<OrderPtr>>` (best ask first). Each price level is a FIFO `std::list`, giving price-time priority. An `std::unordered_map<OrderID, list::iterator>` enables O(1) order lookup and cancellation.
+**`LimitOrderBook`** stores bids as `std::map<PriceTicks, std::list<OrderPtr>, std::greater<>>` (best bid first) and asks as `std::map<PriceTicks, std::list<OrderPtr>>` (best ask first). Each price level is a FIFO `std::list`, giving price-time priority. An `std::unordered_map<OrderID, list::iterator>` enables O(1) order lookup and cancellation. `getMidPrice()` and `getSpread()` return `std::optional<PriceTicks>`, `std::nullopt` unless both a best bid and best ask exist.
 
-**`Order`** uses `shared_ptr` (`OrderPtr = std::shared_ptr<Order>`). Prices are integer ticks (`PriceTicks = int32_t`), not floats. All internal book logic operates in ticks; scaling to real-world units happens only at the Python API boundary.
+**`Order`** uses `shared_ptr` (`OrderPtr = std::shared_ptr<Order>`). Prices are integer ticks (`PriceTicks = int32_t`), not floats. All internal book logic operates in ticks; scaling to real-world units happens only at the Python API boundary. `TimeInForce` (`GTC`/`IOC`/`FOK`) and a `postOnly` bool are additional fields governing order-execution constraints.
 
 **`Trade`** captures a completed fill: `TradeID`, taker/maker `OrderID`, `PriceTicks`, `Quantity`, `Side`, and `Timestamp`. Created by `ExecutionEngine` and optionally persisted via `TradeLogger`.
 
-**`MatchingEngine::matchOrder`** drives the matching loop: while the incoming order is marketable, it checks for self-trades (same `ownerID`), applies the `STPPolicy` if needed, calls `ExecutionEngine::executeTrade`, assigns a `TradeID` via `TradeIdGenerator` (if set), logs via `TradeLogger` (if set), and finally either places the remainder in the book (Limit orders) or discards it (Market orders).
+**`MatchingEngine::matchOrder`** validates the incoming order, then runs a sequence of pre-loop rejection checks in order — duplicate order ID, Post-Only-would-cross, FOK-insufficient-liquidity, then price-collar violation (see below) — before entering the matching loop. While the incoming order is marketable, it checks for self-trades (same `ownerID`), applies the `STPPolicy` if needed, calls `ExecutionEngine::executeTrade`, assigns a `TradeID` via `TradeIdGenerator` (if set), logs via `TradeLogger` (if set), and finally either places the remainder in the book (Limit orders, subject to `TimeInForce`) or discards it (Market orders, or IOC/FOK remainders).
+
+**Price Collar** is an optional order-level circuit breaker: `MatchingEngine` holds `std::optional<PriceTicks> maxDeviationTicks` (constructor parameter, `std::nullopt` disables it) and `std::optional<PriceTicks> lastTradedPrice` (updated to the maker's price after every fill). A `Limit` order priced outside `[reference − maxDeviationTicks, reference + maxDeviationTicks]` is rejected with `RejectionReason::PriceCollarViolation`, where `reference` is `lastTradedPrice` if set, else `LimitOrderBook::getMidPrice()`, else the check is skipped. `Market` orders always bypass the collar.
 
 **`STPPolicy`** is a polymorphic interface with three concrete implementations: `CancelBothSTP`, `CancelIncomingSTP`, `CancelRestingSTP`. Injected into `MatchingEngine` at construction.
 

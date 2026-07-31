@@ -59,7 +59,7 @@ py::dict snapshotToDict(const MarketStructureSnapshot& snapshot, double tickSize
 void bindMatchingEngineFacade(py::module_& module) {
     py::class_<MatchingEngineFacade>(module, "MatchingEngine")
         .def(
-            py::init<const std::string&, const std::string&, TradeID, const std::string&, const std::string&, double, double, double>(),
+            py::init<const std::string&, const std::string&, TradeID, const std::string&, const std::string&, double, double, double, std::optional<PriceTicks>>(),
             py::arg("stp_policy"),
             py::arg("trade_id_generator") = "none",
             py::arg("trade_id_start") = 1,
@@ -67,7 +67,8 @@ void bindMatchingEngineFacade(py::module_& module) {
             py::arg("trade_log_file_path") = "trades.bin",
             py::arg("tick_size") = DEFAULT_TICK_SIZE,
             py::arg("lot_size") = DEFAULT_LOT_SIZE,
-            py::arg("time_interval") = DEFAULT_TIME_INTERVAL
+            py::arg("time_interval") = DEFAULT_TIME_INTERVAL,
+            py::arg("max_deviation_ticks") = std::nullopt
         )
         .def_property_readonly("tick_size",     &MatchingEngineFacade::getTickSize)
         .def_property_readonly("lot_size",      &MatchingEngineFacade::getLotSize)

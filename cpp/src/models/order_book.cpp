@@ -15,6 +15,20 @@ std::optional<PriceTicks> LimitOrderBook::getBestAsk() const {
     return asks.begin()->first;
 }
 
+std::optional<PriceTicks> LimitOrderBook::getMidPrice() const {
+    auto bestBid = getBestBid();
+    auto bestAsk = getBestAsk();
+    if (!bestBid.has_value() || !bestAsk.has_value()) return std::nullopt;
+    return (*bestBid + *bestAsk) / 2;
+}
+
+std::optional<PriceTicks> LimitOrderBook::getSpread() const {
+    auto bestBid = getBestBid();
+    auto bestAsk = getBestAsk();
+    if (!bestBid.has_value() || !bestAsk.has_value()) return std::nullopt;
+    return *bestAsk - *bestBid;
+}
+
 uint32_t LimitOrderBook::getTradeExecutionCount()    const { return tradeExecutionCount; }
 uint32_t LimitOrderBook::getOrderCancellationCount() const { return orderCancellationCount; }
 uint64_t LimitOrderBook::getTotalVolumeTraded()      const { return totalVolumeTraded; }
@@ -199,10 +213,8 @@ MarketStructureSnapshot LimitOrderBook::snapshot(Timestamp now, std::size_t dept
     snap.timestamp = now;
     snap.bestBid = getBestBid();
     snap.bestAsk = getBestAsk();
-    if (snap.bestBid.has_value() && snap.bestAsk.has_value()) {
-        snap.spread = snap.bestAsk.value() - snap.bestBid.value();
-        snap.mid = (snap.bestAsk.value() + snap.bestBid.value()) / 2;
-    }
+    snap.spread = getSpread();
+    snap.mid = getMidPrice();
 
     snap.bidSummary.totalQuantity = 0;
     snap.bidSummary.orderCount = 0;

@@ -7,6 +7,9 @@ RejectionReason OrderValidator::validateLimitOrder(const OrderPtr &order, bool a
         (order->getStatus() == OrderStatus::Pending || (allowPartialExecution && order->getStatus() == OrderStatus::PartiallyExecuted)) &&
         order->getOrderID() != 0 &&
         order->getLinkedOrderID() == 0) {
+        if (order->isPostOnly() && order->getTimeInForce() != TimeInForce::GTC) {
+            return RejectionReason::InvalidPostOnlyOrder;
+        }
         return RejectionReason::None;
     }
     return RejectionReason::InvalidLimitOrder;
@@ -19,12 +22,16 @@ RejectionReason OrderValidator::validateMarketOrder(const OrderPtr &order) {
         order->getStatus() == OrderStatus::Pending &&
         order->getOrderID() != 0 &&
         order->getLinkedOrderID() == 0) {
+        if (order->isPostOnly()) {
+            return RejectionReason::InvalidPostOnlyOrder;
+        }
         return RejectionReason::None;
     }
     return RejectionReason::InvalidMarketOrder;
 }
 
 RejectionReason OrderValidator::validateCancelOrder(const OrderPtr &order) {
+    // TODO 2: Cancel order must not be post-only
     if (order->getPriceTicks() == 0 &&
         order->getQty() == 0 &&
         order->getSide() == Side::None &&

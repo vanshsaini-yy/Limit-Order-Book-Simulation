@@ -65,6 +65,10 @@ import limit_order_book as lob
 - ORDER_TO_BE_ADDED_ALREADY_EXISTS
 - ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST
 - ORDER_BOOK_INVARIANT_VIOLATION
+- FOK_INSUFFICIENT_LIQUIDITY
+- INVALID_POST_ONLY_ORDER
+- POST_ONLY_WOULD_CROSS
+- PRICE_COLLAR_VIOLATION
 
 ---
 
@@ -83,6 +87,7 @@ lob.Order(
     timestamp: int,
     linked_order_id: int = 0,
     time_in_force: lob.TimeInForce = lob.TimeInForce.GTC,
+    post_only: bool = False,
 )
 ```
 
@@ -98,6 +103,7 @@ lob.Order(
 - `status`
 - `linked_order_id`
 - `time_in_force`
+- `post_only`
 
 ### Methods
 
@@ -112,12 +118,16 @@ lob.Order(
   - `side` is BUY or SELL
   - `order_id != 0`
   - `linked_order_id == 0`
+  - if `post_only` is set, `time_in_force == TimeInForce.GTC` (post-only
+    guarantees maker status, which IOC/FOK's semantics contradict)
 - MARKET orders require:
   - `price_ticks == 0`
   - `qty > 0`
   - `side` is BUY or SELL
   - `order_id != 0`
   - `linked_order_id == 0`
+  - `post_only == False` (a market order is always marketable by
+    definition, so post-only on it is meaningless)
 - CANCEL orders require:
   - `price_ticks == 0`
   - `qty == 0`
@@ -144,10 +154,42 @@ Invalid orders are rejected through `RejectionReason`.
   immediately and treats the order as unfillable — it does not skip past
   the same owner resting order and keep counting deeper levels.
 - If FOK determines the order is unfillable, the order is cancelled with
-  zero fills; the book is left completely unchanged. There is no dedicated
-  `RejectionReason` for this — the order simply ends up with
-  `status == CANCELLED`, the same as any other order that finds no
-  available liquidity.
+  zero fills; the book is left completely unchanged. `match_order` returns
+  `RejectionReason.FOK_INSUFFICIENT_LIQUIDITY` in this case, and the order
+  ends up with `status == CANCELLED`.
+
+### Post-only semantics
+
+- `post_only` only applies to LIMIT orders with `time_in_force == GTC` —
+  see the LIMIT/MARKET validation rules above.
+- The check happens before any matching is attempted: if the incoming order
+  would immediately cross the book (i.e. it is marketable), it is rejected
+  with `RejectionReason.POST_ONLY_WOULD_CROSS` and `status == CANCELLED`.
+  The book is left completely unchanged — no partial fills ever occur for a
+  post-only order.
+- The would-cross check runs before self-trade prevention, so a resting
+  order from the same owner at a crossable price still causes rejection
+  (it is never reached to be cancelled by STP).
+- If the order would not cross, it rests in the book exactly like a normal
+  GTC LIMIT order.
+
+### Price collar semantics
+
+- Enabled by passing `max_deviation_ticks` to the `MatchingEngine` constructor
+  (see below). It is `None` by default, which disables the check entirely.
+- Only applies to LIMIT orders — MARKET orders always bypass the collar, since
+  they have no limit price to validate against.
+- The reference price is the price of the most recent trade if any trade has
+  occurred; otherwise it falls back to the current book mid
+  (`(best_bid + best_ask) / 2`). If neither is available (e.g. an empty or
+  one-sided book with no trades yet), the check is skipped and the order is
+  accepted.
+- A LIMIT order priced outside `[reference - max_deviation_ticks, reference +
+  max_deviation_ticks]` is rejected with
+  `RejectionReason.PRICE_COLLAR_VIOLATION` and `status == CANCELLED`. Orders at
+  exactly the boundary are accepted.
+- This check runs after the Post-Only and FOK-insufficient-liquidity checks,
+  so those two rejections take precedence over a price collar violation.
 
 ---
 
@@ -165,8 +207,13 @@ lob.MatchingEngine(
     tick_size: float = 0.01,
     lot_size: float = 1.0,
     time_interval: float = 1.0,
+    max_deviation_ticks: Optional[int] = None,
 )
 ```
+
+`max_deviation_ticks` enables the price collar (see "Price collar semantics"
+above) when set; `None` (the default) disables it. It is in raw ticks, not
+scaled by `tick_size`.
 
 ### Constructor options
 
