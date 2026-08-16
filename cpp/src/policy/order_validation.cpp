@@ -31,7 +31,6 @@ RejectionReason OrderValidator::validateMarketOrder(const OrderPtr &order) {
 }
 
 RejectionReason OrderValidator::validateCancelOrder(const OrderPtr &order) {
-    // TODO 2: Cancel order must not be post-only
     if (order->getPriceTicks() == 0 &&
         order->getQty() == 0 &&
         order->getSide() == Side::None &&
@@ -39,7 +38,8 @@ RejectionReason OrderValidator::validateCancelOrder(const OrderPtr &order) {
         order->getOrderID() != 0 &&
         order->getLinkedOrderID() != 0 &&
         order->getLinkedOrderID() != order->getOrderID() &&
-        order->getTimeInForce() == TimeInForce::GTC) {
+        order->getTimeInForce() == TimeInForce::GTC &&
+        !order->isPostOnly()) {
         return RejectionReason::None;
     }
     return RejectionReason::InvalidCancelOrder;
