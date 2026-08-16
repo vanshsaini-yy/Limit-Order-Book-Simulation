@@ -12,7 +12,7 @@
 #include "models/matching_engine.hpp"
 #include "models/market_structure_snapshot.hpp"
 #include "models/limit_order_book.hpp"
-#include "policy/self_trade_prevention.hpp"
+#include "policy/stp_policy.hpp"
 #include "utils/constants.hpp"
 
 class MatchingEngineFacade {

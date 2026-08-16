@@ -2,7 +2,7 @@
 #include <optional>
 #include "models/limit_order_book.hpp"
 #include "models/execution_engine.hpp"
-#include "policy/self_trade_prevention.hpp"
+#include "policy/stp_policy.hpp"
 #include "utils/order_utils.hpp"
 
 class TradeLogger;
