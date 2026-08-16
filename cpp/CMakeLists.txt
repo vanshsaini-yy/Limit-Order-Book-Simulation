@@ -4,7 +4,7 @@ add_library(lob_core STATIC
     src/models/limit_order_book.cpp
     src/models/matching_engine.cpp
     src/models/execution_engine.cpp
-    src/policy/order_validation.cpp
+    src/policy/order_validator.cpp
     src/policy/order_lifecycle.cpp
     src/policy/self_trade_prevention.cpp
     src/infra/monotonic_trade_id_generator.cpp

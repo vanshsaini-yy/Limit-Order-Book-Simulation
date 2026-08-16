@@ -8,7 +8,7 @@
 #include <optional>
 #include "models/market_structure_snapshot.hpp"
 #include "models/rejection_reason.hpp"
-#include "policy/order_validation.hpp"
+#include "policy/order_validator.hpp"
 #include "policy/order_lifecycle.hpp"
 
 using BidStructure = std::map<PriceTicks, std::list<OrderPtr>, std::greater<PriceTicks>>;
