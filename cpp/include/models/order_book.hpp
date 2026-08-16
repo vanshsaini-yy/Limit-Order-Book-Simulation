@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <optional>
 #include "models/market_structure_snapshot.hpp"
+#include "models/rejection_reason.hpp"
 #include "policy/order_validation.hpp"
 #include "policy/order_lifecycle.hpp"
 

@@ -1,7 +1,7 @@
 #include "order_bindings.hpp"
 
 #include "models/order.hpp"
-#include "policy/order_validation.hpp"
+#include "models/rejection_reason.hpp"
 
 namespace py = pybind11;
 
