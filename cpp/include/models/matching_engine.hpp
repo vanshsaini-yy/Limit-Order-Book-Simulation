@@ -1,6 +1,6 @@
 #pragma once
 #include <optional>
-#include "models/order_book.hpp"
+#include "models/limit_order_book.hpp"
 #include "models/execution_engine.hpp"
 #include "policy/self_trade_prevention.hpp"
 #include "utils/order_utils.hpp"

@@ -11,7 +11,7 @@
 #include "infra/trade_logger.hpp"
 #include "models/matching_engine.hpp"
 #include "models/market_structure_snapshot.hpp"
-#include "models/order_book.hpp"
+#include "models/limit_order_book.hpp"
 #include "policy/self_trade_prevention.hpp"
 #include "utils/constants.hpp"
 

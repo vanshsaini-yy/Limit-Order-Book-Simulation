@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <memory>
-#include "models/order_book.hpp"
+#include "models/limit_order_book.hpp"
 
 class OrderBookTest : public ::testing::Test {
 protected:

@@ -1,7 +1,7 @@
 add_library(lob_core STATIC
     src/models/order.cpp
     src/models/trade.cpp
-    src/models/order_book.cpp
+    src/models/limit_order_book.cpp
     src/models/matching_engine.cpp
     src/models/execution_engine.cpp
     src/policy/order_validation.cpp
