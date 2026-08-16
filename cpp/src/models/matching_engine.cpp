@@ -77,6 +77,10 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
 
     while (orderBook->isOrderMarketable(incomingOrder)) {
         OrderPtr restingOrder = orderBook->getMatchedOrder(incomingSide);
+        if (!restingOrder) {
+            incomingOrder->setStatus(OrderStatus::Cancelled);
+            return RejectionReason::OrderBookInvariantViolation;
+        }
         Quantity restingInitialQty = restingOrder->getQty();
 
         if (isSelfTrade(restingOrder, incomingOrder)) {
