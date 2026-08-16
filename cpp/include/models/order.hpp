@@ -46,7 +46,7 @@ class Order {
         Timestamp timestamp;
         OrderStatus status;
         OrderID linkedOrderID;
-        TimeInForce tif;
+        TimeInForce timeInForce;
         bool postOnly;
 
     public:
@@ -59,7 +59,7 @@ class Order {
             OrderType type_,
             Timestamp timestamp_,
             OrderID linkedOrderID_ = 0,
-            TimeInForce tif_ = TimeInForce::GTC,
+            TimeInForce timeInForce_ = TimeInForce::GTC,
             bool postOnly_ = false
         );
 
