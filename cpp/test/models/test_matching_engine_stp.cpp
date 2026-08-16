@@ -16,13 +16,13 @@ protected:
         orderBook = new LimitOrderBook();
 
         cancelBothPolicy = new CancelBothSTP();
-        engineCancelBoth = new MatchingEngine(cancelBothPolicy, orderBook);
+        engineCancelBoth = new MatchingEngine(orderBook, cancelBothPolicy);
 
         cancelIncomingPolicy = new CancelIncomingSTP();
-        engineCancelIncoming = new MatchingEngine(cancelIncomingPolicy, orderBook);
+        engineCancelIncoming = new MatchingEngine(orderBook, cancelIncomingPolicy);
 
         cancelRestingPolicy = new CancelRestingSTP();
-        engineCancelResting = new MatchingEngine(cancelRestingPolicy, orderBook);
+        engineCancelResting = new MatchingEngine(orderBook, cancelRestingPolicy);
     }
 
     void TearDown() override {

@@ -21,8 +21,8 @@ class MatchingEngine {
 
     public:
         MatchingEngine(
-            STPPolicy* policy,
             LimitOrderBook* book,
+            STPPolicy* policy,
             TradeLogger* logger = nullptr,
             TradeIdGenerator* idGenerator = nullptr,
             std::optional<PriceTicks> maxDeviationTicks = std::nullopt

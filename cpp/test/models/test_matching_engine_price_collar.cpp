@@ -15,7 +15,7 @@ protected:
     }
 
     void makeEngine(std::optional<PriceTicks> deviation) {
-        engine = new MatchingEngine(stpPolicy, orderBook, nullptr, nullptr, deviation);
+        engine = new MatchingEngine(orderBook, stpPolicy, nullptr, nullptr, deviation);
     }
 
     void TearDown() override {

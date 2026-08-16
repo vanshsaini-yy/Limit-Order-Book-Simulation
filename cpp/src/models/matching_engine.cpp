@@ -1,14 +1,14 @@
 #include "models/matching_engine.hpp"
 
 MatchingEngine::MatchingEngine(
-    STPPolicy* policy,
     LimitOrderBook* book,
+    STPPolicy* policy,
     TradeLogger* logger,
     TradeIdGenerator* idGenerator,
     std::optional<PriceTicks> deviationTicks
 )
-    : stpPolicy(policy),
-      orderBook(book),
+    : orderBook(book),
+      stpPolicy(policy),
       tradeLogger(logger),
       tradeIdGenerator(idGenerator),
       maxDeviationTicks(deviationTicks) {}

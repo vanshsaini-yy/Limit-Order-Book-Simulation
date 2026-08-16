@@ -11,7 +11,7 @@ protected:
 	void SetUp() override {
 		stpPolicy = new CancelBothSTP();
 		orderBook = new LimitOrderBook();
-		engine = new MatchingEngine(stpPolicy, orderBook);
+		engine = new MatchingEngine(orderBook, stpPolicy);
 	}
 
 	void TearDown() override {

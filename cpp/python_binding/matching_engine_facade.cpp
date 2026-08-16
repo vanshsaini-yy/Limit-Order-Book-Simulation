@@ -75,8 +75,8 @@ MatchingEngineFacade::MatchingEngineFacade(
       tradeIdGenerator(makeTradeIdGenerator(tradeIdGeneratorName, tradeIdStart)),
       tradeLogger(makeTradeLogger(tradeLoggerName, tradeLogFilePath)),
       matchingEngine(std::make_unique<MatchingEngine>(
-          stpPolicy.get(),
           orderBook.get(),
+          stpPolicy.get(),
           tradeLogger.get(),
           tradeIdGenerator.get(),
           deviationTicks)) {
