@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <memory>
-#include "models/matching_engine.hpp"
+#include "engine/matching_engine.hpp"
 
 class MatchingEngineValidationTest : public ::testing::Test {
 protected:
