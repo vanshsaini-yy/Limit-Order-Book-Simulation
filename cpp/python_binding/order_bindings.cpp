@@ -35,7 +35,7 @@ void bindOrderTypes(py::module_& module) {
         .value("INVALID_LIMIT_ORDER", RejectionReason::InvalidLimitOrder)
         .value("INVALID_MARKET_ORDER", RejectionReason::InvalidMarketOrder)
         .value("INVALID_CANCEL_ORDER", RejectionReason::InvalidCancelOrder)
-        .value("ORDER_TO_BE_ADDED_ALREADY_EXISTS", RejectionReason::OrderToBeAddedAlreadyExists)
+        .value("DUPLICATE_ORDER_ID", RejectionReason::DuplicateOrderID)
         .value("ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST", RejectionReason::OrderToBeCancelledDoesNotExist)
         .value("ORDER_BOOK_INVARIANT_VIOLATION", RejectionReason::OrderBookInvariantViolation)
         .value("FOK_INSUFFICIENT_LIQUIDITY", RejectionReason::FOKInsufficientLiquidity)

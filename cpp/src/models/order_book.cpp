@@ -51,7 +51,7 @@ RejectionReason LimitOrderBook::addOrder(const OrderPtr &order) {
     }
     OrderID orderID = order->getOrderID();
     if (doesOrderExist(orderID)) {
-        return RejectionReason::OrderToBeAddedAlreadyExists;
+        return RejectionReason::DuplicateOrderID;
     }
     PriceTicks price = order->getPriceTicks();
     Side side = order->getSide();

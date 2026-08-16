@@ -53,9 +53,8 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return validationResult;
     }
 
-    // TODO 1: rename this to OrderToBeMatchedAlreadyExists
     if (orderBook->doesOrderExist(incomingOrder->getOrderID())) {
-        return RejectionReason::OrderToBeAddedAlreadyExists;
+        return RejectionReason::DuplicateOrderID;
     }
 
     if (incomingOrder->isPostOnly() && orderBook->isOrderMarketable(incomingOrder)) {

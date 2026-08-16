@@ -87,7 +87,7 @@ TEST_F(OrderBookTest, AddSameOrderTwiceFails) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
-    EXPECT_EQ(book.addOrder(order), RejectionReason::OrderToBeAddedAlreadyExists);
+    EXPECT_EQ(book.addOrder(order), RejectionReason::DuplicateOrderID);
 }
 
 TEST_F(OrderBookTest, AddDistinctOrderWithDuplicateIDFails) {
@@ -95,7 +95,7 @@ TEST_F(OrderBookTest, AddDistinctOrderWithDuplicateIDFails) {
     OrderPtr order2 = std::make_shared<Order>(1, 2, 105, 5, Side::Buy, OrderType::Limit, 1001);
     book.addOrder(order1);
 
-    EXPECT_EQ(book.addOrder(order2), RejectionReason::OrderToBeAddedAlreadyExists);
+    EXPECT_EQ(book.addOrder(order2), RejectionReason::DuplicateOrderID);
 }
 
 TEST_F(OrderBookTest, CancelOrderSuccess) {

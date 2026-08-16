@@ -134,7 +134,7 @@ TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_AddingDuplicateOrder
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
     engine->matchOrder(order);
 
-    EXPECT_EQ(engine->matchOrder(order), RejectionReason::OrderToBeAddedAlreadyExists);
+    EXPECT_EQ(engine->matchOrder(order), RejectionReason::DuplicateOrderID);
     EXPECT_EQ(order->getStatus(), OrderStatus::Pending);
 }
 
@@ -143,7 +143,7 @@ TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_AddingOrder_With_Sam
     OrderPtr order2 = std::make_shared<Order>(1, 2, 0, 20, Side::Sell, OrderType::Market, 1622547801);
     engine->matchOrder(order1);
 
-    EXPECT_EQ(engine->matchOrder(order2), RejectionReason::OrderToBeAddedAlreadyExists);
+    EXPECT_EQ(engine->matchOrder(order2), RejectionReason::DuplicateOrderID);
 }
 
 TEST_F(MatchingEngineValidationTest, MatchingEngine_Rejects_CancellingNonExistentOrder) {
