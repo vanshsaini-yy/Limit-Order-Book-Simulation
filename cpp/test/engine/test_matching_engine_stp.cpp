@@ -21,9 +21,9 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsIncoming_CancelsResting_OnSel
     engineCancelBoth.matchOrder(incomingOrder);
 
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(incomingOrder->getQty(), 10u);
+    EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder->getQty(), 10u);
+    EXPECT_EQ(restingOrder->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsBoth_ForMarketIncomingSelfTrade) {
@@ -34,9 +34,9 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsBoth_ForMarketIncomingSelfTra
     engineCancelBoth.matchOrder(incomingOrder);
 
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(incomingOrder->getQty(), 10u);
+    EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder->getQty(), 10u);
+    EXPECT_EQ(restingOrder->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsResting_CancelsIncomingAfterPartialFill) {
@@ -49,11 +49,11 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsResting_CancelsIncomingAfterP
     engineCancelBoth.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(restingOrder1->getQty(), 0u);
+    EXPECT_EQ(restingOrder1->getQty(), 0);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder2->getQty(), 10u);
+    EXPECT_EQ(restingOrder2->getQty(), 10);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(incomingOrder->getQty(), 5u);
+    EXPECT_EQ(incomingOrder->getQty(), 5);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelBothSTP_AllowsExecution_WhenNoSelfTrade) {
@@ -66,11 +66,11 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_AllowsExecution_WhenNoSelfTrade) {
     engineCancelBoth.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(restingOrder1->getQty(), 5u);
+    EXPECT_EQ(restingOrder1->getQty(), 5);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder2->getQty(), 10u);
+    EXPECT_EQ(restingOrder2->getQty(), 10);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder->getQty(), 0u);
+    EXPECT_EQ(incomingOrder->getQty(), 0);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelBothSTP_AllowsExecution_AgainstBestPrice) {
@@ -83,11 +83,11 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_AllowsExecution_AgainstBestPrice) {
     engineCancelBoth.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(restingOrder1->getQty(), 5u);
+    EXPECT_EQ(restingOrder1->getQty(), 5);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder2->getQty(), 10u);
+    EXPECT_EQ(restingOrder2->getQty(), 10);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder->getQty(), 0u);
+    EXPECT_EQ(incomingOrder->getQty(), 0);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelBothSTP_ComplexSimulation) {
@@ -102,13 +102,13 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_ComplexSimulation) {
     engineCancelBoth.matchOrder(incomingOrder2);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(restingOrder1->getQty(), 0u);
+    EXPECT_EQ(restingOrder1->getQty(), 0);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(restingOrder2->getQty(), 5u);
+    EXPECT_EQ(restingOrder2->getQty(), 5);
     EXPECT_EQ(incomingOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder1->getQty(), 0u);
+    EXPECT_EQ(incomingOrder1->getQty(), 0);
     EXPECT_EQ(incomingOrder2->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(incomingOrder2->getQty(), 10u);
+    EXPECT_EQ(incomingOrder2->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsIncoming_KeepsResting_OnSelfTrade) {
@@ -119,9 +119,9 @@ TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsIncoming_KeepsResting_OnS
     engineCancelIncoming.matchOrder(incomingOrder);
 
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(incomingOrder->getQty(), 10u);
+    EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder->getQty(), 10u);
+    EXPECT_EQ(restingOrder->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsIncomingAfterPartialFill) {
@@ -134,11 +134,11 @@ TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsIncomingAfterPartialFill)
     engineCancelIncoming.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(restingOrder1->getQty(), 0u);
+    EXPECT_EQ(restingOrder1->getQty(), 0);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder2->getQty(), 10u);
+    EXPECT_EQ(restingOrder2->getQty(), 10);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(incomingOrder->getQty(), 5u);
+    EXPECT_EQ(incomingOrder->getQty(), 5);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_AllowsExecution_WhenNoSelfTrade) {
@@ -151,11 +151,11 @@ TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_AllowsExecution_WhenNoSelfTrade)
     engineCancelIncoming.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(restingOrder1->getQty(), 5u);
+    EXPECT_EQ(restingOrder1->getQty(), 5);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder2->getQty(), 10u);
+    EXPECT_EQ(restingOrder2->getQty(), 10);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder->getQty(), 0u);
+    EXPECT_EQ(incomingOrder->getQty(), 0);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_AllowsExecution_AgainstBestPrice) {
@@ -168,11 +168,11 @@ TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_AllowsExecution_AgainstBestPrice
     engineCancelIncoming.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(restingOrder1->getQty(), 5u);
+    EXPECT_EQ(restingOrder1->getQty(), 5);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder2->getQty(), 10u);
+    EXPECT_EQ(restingOrder2->getQty(), 10);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder->getQty(), 0u);
+    EXPECT_EQ(incomingOrder->getQty(), 0);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsMarketIncoming_KeepsResting) {
@@ -183,9 +183,9 @@ TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsMarketIncoming_KeepsResti
     engineCancelIncoming.matchOrder(incomingOrder);
 
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(incomingOrder->getQty(), 10u);
+    EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingOrder->getQty(), 10u);
+    EXPECT_EQ(restingOrder->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsResting_KeepsIncoming_OnSelfTrade) {
@@ -196,9 +196,9 @@ TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsResting_KeepsIncoming_OnSe
     engineCancelResting.matchOrder(incomingOrder);
 
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(incomingOrder->getQty(), 10u);
+    EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder->getQty(), 10u);
+    EXPECT_EQ(restingOrder->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsBothForMarketIncoming) {
@@ -209,9 +209,9 @@ TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsBothForMarketIncoming) {
     engineCancelResting.matchOrder(incomingOrder);
 
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(incomingOrder->getQty(), 10u);
+    EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder->getQty(), 10u);
+    EXPECT_EQ(restingOrder->getQty(), 10);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsSelfResting_ThenContinuesMatching) {
@@ -224,11 +224,11 @@ TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsSelfResting_ThenContinuesM
     engineCancelResting.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder1->getQty(), 5u);
+    EXPECT_EQ(restingOrder1->getQty(), 5);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(restingOrder2->getQty(), 1u);
+    EXPECT_EQ(restingOrder2->getQty(), 1);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder->getQty(), 0u);
+    EXPECT_EQ(incomingOrder->getQty(), 0);
 }
 
 TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsResting_ThenAllowsExecution) {
@@ -241,9 +241,9 @@ TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsResting_ThenAllowsExecutio
     engineCancelResting.matchOrder(incomingOrder);
 
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(restingOrder1->getQty(), 10u);
+    EXPECT_EQ(restingOrder1->getQty(), 10);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(restingOrder2->getQty(), 0u);
+    EXPECT_EQ(restingOrder2->getQty(), 0);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(incomingOrder->getQty(), 0u);
+    EXPECT_EQ(incomingOrder->getQty(), 0);
 }

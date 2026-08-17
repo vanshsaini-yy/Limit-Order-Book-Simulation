@@ -202,14 +202,14 @@ TEST_F(OrderBookTest, GetBestBidAsk) {
     book.addOrder(sellOrder1);
     book.addOrder(sellOrder2);
 
-    EXPECT_EQ(book.getBestBid(), 105ull);
-    EXPECT_EQ(book.getBestAsk(), 110ull);
+    EXPECT_EQ(book.getBestBid(), std::optional<PriceTicks>{105});
+    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{110});
 
     book.cancelOrder(2, 2);
     book.cancelOrder(3, 3);
 
-    EXPECT_EQ(book.getBestBid(), 100ull);
-    EXPECT_EQ(book.getBestAsk(), 115ull);
+    EXPECT_EQ(book.getBestBid(), std::optional<PriceTicks>{100});
+    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{115});
 
     book.cancelOrder(1, 1);
     book.cancelOrder(4, 4);
@@ -389,12 +389,12 @@ TEST_F(OrderBookTest, PopFrontBuyRemovesFifoFromBestAsk) {
     EXPECT_FALSE(book.doesOrderExist(1));
     EXPECT_TRUE(book.doesOrderExist(2));
     EXPECT_TRUE(book.doesOrderExist(3));
-    EXPECT_EQ(book.getBestAsk(), 100ull);
+    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{100});
 
     book.popFront(Side::Buy); 
     EXPECT_FALSE(book.doesOrderExist(2)); 
     EXPECT_TRUE(book.doesOrderExist(3)); 
-    EXPECT_EQ(book.getBestAsk(), 105ull); 
+    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{105}); 
 }
 
 TEST_F(OrderBookTest, PopFrontBuyRemovesEmptyAskLevel) {
@@ -407,7 +407,7 @@ TEST_F(OrderBookTest, PopFrontBuyRemovesEmptyAskLevel) {
     book.popFront(Side::Buy);
     EXPECT_FALSE(book.doesOrderExist(1));
     EXPECT_TRUE(book.doesOrderExist(2));
-    EXPECT_EQ(book.getBestAsk(), 105ull);
+    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{105});
 
     book.popFront(Side::Buy);
     EXPECT_FALSE(book.doesOrderExist(2));
@@ -427,12 +427,12 @@ TEST_F(OrderBookTest, PopFrontSellRemovesFifoFromBestBid) {
     EXPECT_FALSE(book.doesOrderExist(1));
     EXPECT_TRUE(book.doesOrderExist(2));
     EXPECT_TRUE(book.doesOrderExist(3));
-    EXPECT_EQ(book.getBestBid(), 100ull);
+    EXPECT_EQ(book.getBestBid(), std::optional<PriceTicks>{100});
 
     book.popFront(Side::Sell);
     EXPECT_FALSE(book.doesOrderExist(2));
     EXPECT_TRUE(book.doesOrderExist(3));
-    EXPECT_EQ(book.getBestBid(), 95ull);
+    EXPECT_EQ(book.getBestBid(), std::optional<PriceTicks>{95});
 }
 
 TEST_F(OrderBookTest, PopFrontSellRemovesEmptyBidLevel) {
@@ -445,7 +445,7 @@ TEST_F(OrderBookTest, PopFrontSellRemovesEmptyBidLevel) {
     book.popFront(Side::Sell);
     EXPECT_FALSE(book.doesOrderExist(1));
     EXPECT_TRUE(book.doesOrderExist(2));
-    EXPECT_EQ(book.getBestBid(), 95ull);
+    EXPECT_EQ(book.getBestBid(), std::optional<PriceTicks>{95});
 
     book.popFront(Side::Sell);
     EXPECT_FALSE(book.doesOrderExist(2));

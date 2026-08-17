@@ -22,7 +22,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldCross_Rejected) {
 
     EXPECT_EQ(result, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -35,7 +35,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldCross_AboveBestAsk_Rej
 
     EXPECT_EQ(result, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -48,7 +48,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldNotCross_RestsNormally
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_TRUE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -59,7 +59,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_EmptyBook_RestsNormally) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_TRUE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -76,7 +76,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldCross_Rejected) {
 
     EXPECT_EQ(result, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -89,7 +89,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldCross_BelowBestBid_Re
 
     EXPECT_EQ(result, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -102,7 +102,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldNotCross_RestsNormall
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_TRUE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -113,7 +113,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_EmptyBook_RestsNormally) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_TRUE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 

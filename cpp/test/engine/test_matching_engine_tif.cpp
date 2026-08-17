@@ -22,7 +22,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitBuy_PartialFill_DiscardsRemainder) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -35,7 +35,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitBuy_FullFill_Executes) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -46,7 +46,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitBuy_NoLiquidity_CancelledEntirely) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -61,7 +61,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitBuy_SweepsMultipleLevels_DiscardsRemainde
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -76,7 +76,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitBuy_SweepsMultipleOrdersSameLevel_Discard
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -93,7 +93,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitSell_PartialFill_DiscardsRemainder) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -106,7 +106,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitSell_FullFill_Executes) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -117,7 +117,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitSell_NoLiquidity_CancelledEntirely) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -132,7 +132,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitSell_SweepsMultipleLevels_DiscardsRemaind
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -147,7 +147,7 @@ TEST_F(MatchingEngineTIFTest, IOC_LimitSell_SweepsMultipleOrdersSameLevel_Discar
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -164,7 +164,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketBuy_PartialFill_Discards) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -177,7 +177,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketBuy_FullFill_Executes) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -188,7 +188,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketBuy_NoLiquidity_Cancelled) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -203,7 +203,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketBuy_SweepsMultipleLevels_DiscardsRemaind
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -218,7 +218,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketBuy_SweepsMultipleOrdersSameLevel_Discar
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -235,7 +235,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketSell_PartialFill_Discards) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -248,7 +248,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketSell_FullFill_Executes) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -259,7 +259,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketSell_NoLiquidity_Cancelled) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -274,7 +274,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketSell_SweepsMultipleLevels_DiscardsRemain
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -289,7 +289,7 @@ TEST_F(MatchingEngineTIFTest, IOC_MarketSell_SweepsMultipleOrdersSameLevel_Disca
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -306,7 +306,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_SingleRestingOrder_FullyFillable_Exec
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -319,7 +319,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_InsufficientLiquidity_NoFills) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -330,7 +330,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_NoLiquidity_CancelledEntirely) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -345,7 +345,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_FullyFillable_MultipleLevels_Executes
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -360,7 +360,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_FullyFillable_MultipleOrdersSameLevel
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -375,7 +375,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_ExactBoundary_QuantityEqualsAvailable
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -390,7 +390,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitBuy_QuantityOneShortOfAvailable_Cancelled
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 11u);
+    EXPECT_EQ(buyOrder->getQty(), 11);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -407,7 +407,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_SingleRestingOrder_FullyFillable_Exe
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -420,7 +420,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_InsufficientLiquidity_NoFills) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -431,7 +431,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_NoLiquidity_CancelledEntirely) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -446,7 +446,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_FullyFillable_MultipleLevels_Execute
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -461,7 +461,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_FullyFillable_MultipleOrdersSameLeve
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -476,7 +476,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_ExactBoundary_QuantityEqualsAvailabl
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -491,7 +491,7 @@ TEST_F(MatchingEngineTIFTest, FOK_LimitSell_QuantityOneShortOfAvailable_Cancelle
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 11u);
+    EXPECT_EQ(sellOrder->getQty(), 11);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -508,7 +508,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_SingleRestingOrder_FullyFillable_Exe
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -521,7 +521,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_InsufficientLiquidity_CancelledEntir
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -532,7 +532,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_NoLiquidity_CancelledEntirely) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -547,7 +547,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_FullyFillable_MultipleLevels_Execute
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -562,7 +562,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_FullyFillable_MultipleOrdersSameLeve
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -577,7 +577,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_ExactBoundary_QuantityEqualsAvailabl
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -592,7 +592,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketBuy_QuantityOneShortOfAvailable_Cancelle
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 11u);
+    EXPECT_EQ(buyOrder->getQty(), 11);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -609,7 +609,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_SingleRestingOrder_FullyFillable_Ex
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -622,7 +622,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_InsufficientLiquidity_CancelledEnti
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -633,7 +633,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_NoLiquidity_CancelledEntirely) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -648,7 +648,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_FullyFillable_MultipleLevels_Execut
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -663,7 +663,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_FullyFillable_MultipleOrdersSameLev
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -678,7 +678,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_ExactBoundary_QuantityEqualsAvailab
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -693,7 +693,7 @@ TEST_F(MatchingEngineTIFTest, FOK_MarketSell_QuantityOneShortOfAvailable_Cancell
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 11u);
+    EXPECT_EQ(sellOrder->getQty(), 11);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -712,7 +712,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_LimitBuy_CancelsSelfTradeThenDiscard
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 7u);
+    EXPECT_EQ(buyOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -727,7 +727,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_LimitSell_CancelsSelfTradeThenDiscar
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 7u);
+    EXPECT_EQ(sellOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -742,7 +742,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_MarketBuy_CancelsSelfTradeThenDiscar
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 7u);
+    EXPECT_EQ(buyOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -757,7 +757,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_MarketSell_CancelsSelfTradeThenDisca
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 7u);
+    EXPECT_EQ(sellOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -776,7 +776,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_LimitBuy_AbortsAsUnfillable) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -791,7 +791,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_LimitBuy_EarlyExit_FillsWithoutTouch
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -806,7 +806,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_LimitSell_AbortsAsUnfillable) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -821,7 +821,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_LimitSell_EarlyExit_FillsWithoutTouc
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -836,7 +836,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_MarketBuy_AbortsAsUnfillable) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -851,7 +851,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_MarketBuy_EarlyExit_FillsWithoutTouc
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -866,7 +866,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_MarketSell_AbortsAsUnfillable) {
 
     EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -881,7 +881,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_MarketSell_EarlyExit_FillsWithoutTou
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
@@ -896,7 +896,7 @@ TEST_F(MatchingEngineTIFTest, GTC_LimitBuy_RestsNormally) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_TRUE(orderBook.doesOrderExist(buyOrder->getOrderID()));
 }
 
@@ -907,6 +907,6 @@ TEST_F(MatchingEngineTIFTest, GTC_LimitSell_RestsNormally) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_TRUE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }

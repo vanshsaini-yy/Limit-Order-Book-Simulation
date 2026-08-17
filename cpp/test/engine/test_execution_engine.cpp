@@ -45,8 +45,8 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithEqualQuantities) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, sellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
+    EXPECT_EQ(sellOrder->getQty(), 0);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
@@ -55,8 +55,8 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, largerSellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
-    EXPECT_EQ(largerSellOrder->getQty(), 50u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
+    EXPECT_EQ(largerSellOrder->getQty(), 50);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithMakerSmallerQuantity) {
@@ -65,8 +65,8 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithMakerSmallerQuantity) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(largerBuyOrder, sellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
-    EXPECT_EQ(largerBuyOrder->getQty(), 50u);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(largerBuyOrder->getQty(), 50);
+    EXPECT_EQ(sellOrder->getQty(), 0);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
@@ -76,8 +76,8 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(emptyBuyOrder, emptySellOrder);
     
     EXPECT_EQ(tradedQty, 0u);
-    EXPECT_EQ(emptyBuyOrder->getQty(), 0u);
-    EXPECT_EQ(emptySellOrder->getQty(), 0u);
+    EXPECT_EQ(emptyBuyOrder->getQty(), 0);
+    EXPECT_EQ(emptySellOrder->getQty(), 0);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithOneZeroQuantity) {
@@ -86,8 +86,8 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithOneZeroQuantity) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder);
     
     EXPECT_EQ(tradedQty, 0u);
-    EXPECT_EQ(buyOrder->getQty(), 100u);
-    EXPECT_EQ(emptySellOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 100);
+    EXPECT_EQ(emptySellOrder->getQty(), 0);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithLargeQuantities) {
@@ -97,8 +97,8 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithLargeQuantities) {
     uint32_t tradedQty = ExecutionEngine::executeTrade(largeBuyOrder, largeSellOrder);
     
     EXPECT_EQ(tradedQty, 1000000u);
-    EXPECT_EQ(largeBuyOrder->getQty(), 0u);
-    EXPECT_EQ(largeSellOrder->getQty(), 1000000u);
+    EXPECT_EQ(largeBuyOrder->getQty(), 0);
+    EXPECT_EQ(largeSellOrder->getQty(), 1000000);
 }
 
 TEST_F(ExecutionEngineTest, ExecuteTradeDoesNotAffectOtherOrderFields) {

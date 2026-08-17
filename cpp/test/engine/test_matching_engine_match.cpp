@@ -15,8 +15,8 @@ TEST_F(MatchingEngineMatchTest, MatchLimitBuyToEmptyBook) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -28,10 +28,10 @@ TEST_F(MatchingEngineMatchTest, MatchOrder_LimitBuy_On_BookContaining_OnlyLimitB
     engine.matchOrder(buyOrder2);
 
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder1->getQty(), 10u);
+    EXPECT_EQ(buyOrder1->getQty(), 10);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder2->getQty(), 5u);
-    EXPECT_EQ(orderBook.getBestBid(), 101u);
+    EXPECT_EQ(buyOrder2->getQty(), 5);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{101});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -43,11 +43,11 @@ TEST_F(MatchingEngineMatchTest, MatchOrder_LimitSell_On_BookContaining_OnlyLimit
     engine.matchOrder(sellOrder2);
 
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder1->getQty(), 10u);
+    EXPECT_EQ(sellOrder1->getQty(), 10);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder2->getQty(), 5u);
+    EXPECT_EQ(sellOrder2->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 99u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{99});
 }
 
 TEST_F(MatchingEngineMatchTest, MatchLimitSellToEmptyBook) {
@@ -56,8 +56,8 @@ TEST_F(MatchingEngineMatchTest, MatchLimitSellToEmptyBook) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
 }
 
@@ -69,9 +69,9 @@ TEST_F(MatchingEngineMatchTest, LimitBuyOrderExactMatch) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -84,9 +84,9 @@ TEST_F(MatchingEngineMatchTest, LimitSellOrderExactMatch) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -101,13 +101,13 @@ TEST_F(MatchingEngineMatchTest, LimitBuyOrderMatchesBestAsk) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder1->getQty(), 10u);
+    EXPECT_EQ(sellOrder1->getQty(), 10);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder2->getQty(), 0u);
+    EXPECT_EQ(sellOrder2->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 103u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{103});
 }
 
 TEST_F(MatchingEngineMatchTest, LimitSellOrderMatchesBestBid) {
@@ -120,12 +120,12 @@ TEST_F(MatchingEngineMatchTest, LimitSellOrderMatchesBestBid) {
     engine.matchOrder(sellOrder);
 
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder1->getQty(), 10u);
+    EXPECT_EQ(buyOrder1->getQty(), 10);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder2->getQty(), 0u);
-    EXPECT_EQ(orderBook.getBestBid(), 97u);
+    EXPECT_EQ(buyOrder2->getQty(), 0);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{97});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -137,10 +137,10 @@ TEST_F(MatchingEngineMatchTest, RestingBuyOrderPartialFill_IncomingLimitSell) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -152,11 +152,11 @@ TEST_F(MatchingEngineMatchTest, RestingSellOrderPartialFill_IncomingLimitBuy) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, IncomingLimitBuyOrderPartialFill) {
@@ -167,10 +167,10 @@ TEST_F(MatchingEngineMatchTest, IncomingLimitBuyOrderPartialFill) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -182,11 +182,11 @@ TEST_F(MatchingEngineMatchTest, IncomingLimitSellOrderPartialFill) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, LimitBuyOrderSweepsMultipleLevels) {
@@ -199,13 +199,13 @@ TEST_F(MatchingEngineMatchTest, LimitBuyOrderSweepsMultipleLevels) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder1->getQty(), 0u);
+    EXPECT_EQ(sellOrder1->getQty(), 0);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder2->getQty(), 5u);
+    EXPECT_EQ(sellOrder2->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 102u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{102});
 }
 
 TEST_F(MatchingEngineMatchTest, LimitSellOrderSweepsMultipleLevels) {
@@ -218,12 +218,12 @@ TEST_F(MatchingEngineMatchTest, LimitSellOrderSweepsMultipleLevels) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder1->getQty(), 0u);
+    EXPECT_EQ(buyOrder1->getQty(), 0);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder2->getQty(), 5u);
-    EXPECT_EQ(orderBook.getBestBid(), 98u);
+    EXPECT_EQ(buyOrder2->getQty(), 5);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{98});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -237,13 +237,13 @@ TEST_F(MatchingEngineMatchTest, LimitBuyOrderSweepsMultipleOrdersSameLevel) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder1->getQty(), 0u);
+    EXPECT_EQ(sellOrder1->getQty(), 0);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder2->getQty(), 5u);
+    EXPECT_EQ(sellOrder2->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, LimitSellOrderSweepsMultipleOrdersSameLevel) {
@@ -256,12 +256,12 @@ TEST_F(MatchingEngineMatchTest, LimitSellOrderSweepsMultipleOrdersSameLevel) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder1->getQty(), 0u);
+    EXPECT_EQ(buyOrder1->getQty(), 0);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder2->getQty(), 5u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(buyOrder2->getQty(), 5);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -277,15 +277,15 @@ TEST_F(MatchingEngineMatchTest, LimitBuyOrderDoesNotMatch) {
     engine.matchOrder(buyOrder2);
     
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder1->getQty(), 10u);
+    EXPECT_EQ(buyOrder1->getQty(), 10);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder2->getQty(), 10u);
+    EXPECT_EQ(buyOrder2->getQty(), 10);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder1->getQty(), 10u);
+    EXPECT_EQ(sellOrder1->getQty(), 10);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder2->getQty(), 10u);
-    EXPECT_EQ(orderBook.getBestBid(), 99u);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(sellOrder2->getQty(), 10);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{99});
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, LimitSellOrderDoesNotMatch) {
@@ -300,15 +300,15 @@ TEST_F(MatchingEngineMatchTest, LimitSellOrderDoesNotMatch) {
     engine.matchOrder(sellOrder2);
     
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder1->getQty(), 10u);
+    EXPECT_EQ(buyOrder1->getQty(), 10);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder2->getQty(), 10u);
+    EXPECT_EQ(buyOrder2->getQty(), 10);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder1->getQty(), 10u);
+    EXPECT_EQ(sellOrder1->getQty(), 10);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder2->getQty(), 10u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
-    EXPECT_EQ(orderBook.getBestAsk(), 101u);
+    EXPECT_EQ(sellOrder2->getQty(), 10);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{101});
 }
 
 TEST_F(MatchingEngineMatchTest, MatchMarketBuyOnEmptyBook) {
@@ -317,7 +317,7 @@ TEST_F(MatchingEngineMatchTest, MatchMarketBuyOnEmptyBook) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder->getQty(), 10u);
+    EXPECT_EQ(buyOrder->getQty(), 10);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -328,7 +328,7 @@ TEST_F(MatchingEngineMatchTest, MatchMarketSellOnEmptyBook) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder->getQty(), 10u);
+    EXPECT_EQ(sellOrder->getQty(), 10);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
 }
@@ -341,10 +341,10 @@ TEST_F(MatchingEngineMatchTest, MatchOrder_MarketBuy_On_BookContainingOnlyLimitB
     engine.matchOrder(marketBuyOrder);
 
     EXPECT_EQ(marketBuyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(marketBuyOrder->getQty(), 10u);
+    EXPECT_EQ(marketBuyOrder->getQty(), 10);
     EXPECT_EQ(limitBuyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(limitBuyOrder->getQty(), 10u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(limitBuyOrder->getQty(), 10);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -356,10 +356,10 @@ TEST_F(MatchingEngineMatchTest, MatchOrder_MarketSell_On_BookContainingOnlyLimit
     engine.matchOrder(marketSellOrder);
 
     EXPECT_EQ(marketSellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(marketSellOrder->getQty(), 10u);
+    EXPECT_EQ(marketSellOrder->getQty(), 10);
     EXPECT_EQ(limitSellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(limitSellOrder->getQty(), 10u);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(limitSellOrder->getQty(), 10);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
 }
 
@@ -371,9 +371,9 @@ TEST_F(MatchingEngineMatchTest, MarketBuyOrderExactMatch) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -386,9 +386,9 @@ TEST_F(MatchingEngineMatchTest, MarketSellOrderExactMatch) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -403,13 +403,13 @@ TEST_F(MatchingEngineMatchTest, MarketBuyOrderMatchesBestAsk) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(sellOrder1->getQty(), 10u);
+    EXPECT_EQ(sellOrder1->getQty(), 10);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder2->getQty(), 0u);
+    EXPECT_EQ(sellOrder2->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 103u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{103});
 }
 
 TEST_F(MatchingEngineMatchTest, MarketSellOrderMatchesBestAsk) {
@@ -422,12 +422,12 @@ TEST_F(MatchingEngineMatchTest, MarketSellOrderMatchesBestAsk) {
     engine.matchOrder(sellOrder);
 
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(buyOrder1->getQty(), 10u);
+    EXPECT_EQ(buyOrder1->getQty(), 10);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder2->getQty(), 0u);
-    EXPECT_EQ(orderBook.getBestBid(), 97u);
+    EXPECT_EQ(buyOrder2->getQty(), 0);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{97});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -439,10 +439,10 @@ TEST_F(MatchingEngineMatchTest, RestingBuyOrderPartialFill_IncomingMarketSell) {
     engine.matchOrder(sellOrder);
 
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -454,11 +454,11 @@ TEST_F(MatchingEngineMatchTest, RestingSellOrderPartialFill_IncomingMarketBuy) {
     engine.matchOrder(buyOrder);
 
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, IncomingMarketBuyOrderPartialFill) {
@@ -469,9 +469,9 @@ TEST_F(MatchingEngineMatchTest, IncomingMarketBuyOrderPartialFill) {
     engine.matchOrder(buyOrder);
 
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(buyOrder->getQty(), 5u);
+    EXPECT_EQ(buyOrder->getQty(), 5);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -484,9 +484,9 @@ TEST_F(MatchingEngineMatchTest, IncomingMarketSellOrderPartialFill) {
     engine.matchOrder(sellOrder);
 
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_EQ(sellOrder->getQty(), 5u);
+    EXPECT_EQ(sellOrder->getQty(), 5);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -501,13 +501,13 @@ TEST_F(MatchingEngineMatchTest, MarketBuyOrderSweepsMultipleLevels) {
     engine.matchOrder(buyOrder);
     
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder1->getQty(), 0u);
+    EXPECT_EQ(sellOrder1->getQty(), 0);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder2->getQty(), 5u);
+    EXPECT_EQ(sellOrder2->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 102u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{102});
 }
 
 TEST_F(MatchingEngineMatchTest, MarketSellOrderSweepsMultipleLevels) {
@@ -520,12 +520,12 @@ TEST_F(MatchingEngineMatchTest, MarketSellOrderSweepsMultipleLevels) {
     engine.matchOrder(sellOrder);
     
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder1->getQty(), 0u);
+    EXPECT_EQ(buyOrder1->getQty(), 0);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder2->getQty(), 5u);
-    EXPECT_EQ(orderBook.getBestBid(), 98u);
+    EXPECT_EQ(buyOrder2->getQty(), 5);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{98});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -539,13 +539,13 @@ TEST_F(MatchingEngineMatchTest, MarketBuyOrderSweepsMultipleOrdersSameLevel) {
     engine.matchOrder(buyOrder);
 
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder->getQty(), 0u);
+    EXPECT_EQ(buyOrder->getQty(), 0);
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder1->getQty(), 0u);
+    EXPECT_EQ(sellOrder1->getQty(), 0);
     EXPECT_EQ(sellOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(sellOrder2->getQty(), 5u);
+    EXPECT_EQ(sellOrder2->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
-    EXPECT_EQ(orderBook.getBestAsk(), 100u);
+    EXPECT_EQ(orderBook.getBestAsk(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, MarketSellOrderSweepsMultipleOrdersSameLevel) {
@@ -558,12 +558,12 @@ TEST_F(MatchingEngineMatchTest, MarketSellOrderSweepsMultipleOrdersSameLevel) {
     engine.matchOrder(sellOrder);
 
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(sellOrder->getQty(), 0u);
+    EXPECT_EQ(sellOrder->getQty(), 0);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(buyOrder1->getQty(), 0u);
+    EXPECT_EQ(buyOrder1->getQty(), 0);
     EXPECT_EQ(buyOrder2->getStatus(), OrderStatus::PartiallyExecuted);
-    EXPECT_EQ(buyOrder2->getQty(), 5u);
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(buyOrder2->getQty(), 5);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
 
@@ -575,9 +575,9 @@ TEST_F(MatchingEngineMatchTest, MultipleMarketOrders) {
     engine.matchOrder(buyOrder1);
 
     EXPECT_EQ(sellOrder1->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(sellOrder1->getQty(), 10u);
+    EXPECT_EQ(sellOrder1->getQty(), 10);
     EXPECT_EQ(buyOrder1->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(buyOrder1->getQty(), 10u);
+    EXPECT_EQ(buyOrder1->getQty(), 10);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -591,7 +591,7 @@ TEST_F(MatchingEngineMatchTest, CancelOrder_Cancels_Pending_RestingOrder) {
     EXPECT_EQ(cancelOrder->getStatus(), OrderStatus::Executed);
     EXPECT_EQ(order->getStatus(), OrderStatus::Cancelled);
     EXPECT_FALSE(orderBook.doesOrderExist(order->getOrderID()));
-    EXPECT_EQ(order->getQty(), 10u);
+    EXPECT_EQ(order->getQty(), 10);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
@@ -605,7 +605,7 @@ TEST_F(MatchingEngineMatchTest, CancelOrder_DoesNotCancel_OrderOwnedByAnotherUse
     EXPECT_EQ(cancelOrder->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(order->getStatus(), OrderStatus::Pending);
     EXPECT_TRUE(orderBook.doesOrderExist(order->getOrderID()));
-    EXPECT_EQ(orderBook.getBestBid(), 100u);
+    EXPECT_EQ(orderBook.getBestBid(), std::optional<PriceTicks>{100});
 }
 
 TEST_F(MatchingEngineMatchTest, CancelOrder_Cancels_PartiallyExecuted_RestingOrder) {
@@ -620,7 +620,7 @@ TEST_F(MatchingEngineMatchTest, CancelOrder_Cancels_PartiallyExecuted_RestingOrd
     EXPECT_EQ(cancelOrder->getStatus(), OrderStatus::Executed);
     EXPECT_EQ(order1->getStatus(), OrderStatus::CancelledAfterPartialExecution);
     EXPECT_FALSE(orderBook.doesOrderExist(order1->getOrderID()));
-    EXPECT_EQ(order1->getQty(), 5u);
+    EXPECT_EQ(order1->getQty(), 5);
     EXPECT_EQ(orderBook.getBestBid(), std::nullopt);
     EXPECT_EQ(orderBook.getBestAsk(), std::nullopt);
 }
