@@ -4,24 +4,12 @@
 
 class MatchingEnginePriceCollarTest : public ::testing::Test {
 protected:
-    LimitOrderBook* orderBook;
-    STPPolicy* stpPolicy;
-    MatchingEngine* engine;
-
-    void SetUp() override {
-        stpPolicy = new CancelBothSTP();
-        orderBook = new LimitOrderBook();
-        engine = nullptr;
-    }
+    CancelBothSTP stpPolicy;
+    LimitOrderBook orderBook;
+    std::optional<MatchingEngine> engine;
 
     void makeEngine(std::optional<PriceTicks> deviation) {
-        engine = new MatchingEngine(orderBook, stpPolicy, nullptr, nullptr, deviation);
-    }
-
-    void TearDown() override {
-        delete engine;
-        delete orderBook;
-        delete stpPolicy;
+        engine.emplace(&orderBook, &stpPolicy, nullptr, nullptr, deviation);
     }
 };
 
@@ -53,7 +41,7 @@ TEST_F(MatchingEnginePriceCollarTest, Disabled_BuyLimitOrderAtAnyPrice_RestsNorm
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(1));
+    EXPECT_TRUE(orderBook.doesOrderExist(1));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Disabled_SellLimitOrderAtAnyPrice_RestsNormally) {
@@ -64,7 +52,7 @@ TEST_F(MatchingEnginePriceCollarTest, Disabled_SellLimitOrderAtAnyPrice_RestsNor
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(1));
+    EXPECT_TRUE(orderBook.doesOrderExist(1));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Disabled_BuyLimitOrderCrossesAtWildPrice_Executes) {
@@ -77,7 +65,7 @@ TEST_F(MatchingEnginePriceCollarTest, Disabled_BuyLimitOrderCrossesAtWildPrice_E
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Disabled_SellLimitOrderCrossesAtWildPrice_Executes) {
@@ -90,7 +78,7 @@ TEST_F(MatchingEnginePriceCollarTest, Disabled_SellLimitOrderCrossesAtWildPrice_
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
 // =====================================================================
@@ -105,7 +93,7 @@ TEST_F(MatchingEnginePriceCollarTest, NoReference_EmptyBook_BuyAtAnyPriceAccepte
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(1));
+    EXPECT_TRUE(orderBook.doesOrderExist(1));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, NoReference_EmptyBook_SellAtAnyPriceAccepted) {
@@ -116,7 +104,7 @@ TEST_F(MatchingEnginePriceCollarTest, NoReference_EmptyBook_SellAtAnyPriceAccept
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(1));
+    EXPECT_TRUE(orderBook.doesOrderExist(1));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedBidOnlyBook_BuyAtAnyPriceAccepted) {
@@ -129,7 +117,7 @@ TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedBidOnlyBook_BuyAtAnyPr
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(farBuy->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(2));
+    EXPECT_TRUE(orderBook.doesOrderExist(2));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedAskOnlyBook_SellAtAnyPriceAccepted) {
@@ -142,7 +130,7 @@ TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedAskOnlyBook_SellAtAnyP
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(farSell->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(2));
+    EXPECT_TRUE(orderBook.doesOrderExist(2));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedAskOnlyBook_MarketableBuyAtWildPriceExecutes) {
@@ -155,7 +143,7 @@ TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedAskOnlyBook_Marketable
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(crossingBuy->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedBidOnlyBook_MarketableSellAtWildPriceExecutes) {
@@ -168,7 +156,7 @@ TEST_F(MatchingEnginePriceCollarTest, NoReference_OneSidedBidOnlyBook_Marketable
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(crossingSell->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
 // =====================================================================
@@ -185,7 +173,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_PriceWithinBand_BuyRestsNormally) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_PriceWithinBand_SellRestsNormally) {
@@ -198,7 +186,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_PriceWithinBand_SellRestsNormally) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_PriceAboveBand_BuyRejected) {
@@ -211,7 +199,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_PriceAboveBand_BuyRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_PriceAboveBand_SellRejected) {
@@ -224,7 +212,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_PriceAboveBand_SellRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_PriceBelowBand_BuyRejected) {
@@ -237,7 +225,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_PriceBelowBand_BuyRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_PriceBelowBand_SellRejected) {
@@ -250,7 +238,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_PriceBelowBand_SellRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_ExactLowerBoundary_BuyAccepted) {
@@ -263,7 +251,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_ExactLowerBoundary_BuyAccepted) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_ExactLowerBoundary_SellAcceptedAndCrossesBid) {
@@ -276,7 +264,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_ExactLowerBoundary_SellAcceptedAndCros
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_ExactUpperBoundary_SellAccepted) {
@@ -289,7 +277,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_ExactUpperBoundary_SellAccepted) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_ExactUpperBoundary_BuyAcceptedAndCrossesAsk) {
@@ -302,7 +290,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_ExactUpperBoundary_BuyAcceptedAndCross
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_JustBelowLowerBoundary_BuyRejected) {
@@ -315,7 +303,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_JustBelowLowerBoundary_BuyRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_JustBelowLowerBoundary_SellRejected) {
@@ -328,7 +316,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_JustBelowLowerBoundary_SellRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_JustAboveUpperBoundary_BuyRejected) {
@@ -341,7 +329,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_JustAboveUpperBoundary_BuyRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, Mid_JustAboveUpperBoundary_SellRejected) {
@@ -354,7 +342,7 @@ TEST_F(MatchingEnginePriceCollarTest, Mid_JustAboveUpperBoundary_SellRejected) {
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 // =====================================================================
@@ -371,7 +359,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceWithinBand_BuyRestsNo
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceWithinBand_SellRestsNormally) {
@@ -384,7 +372,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceWithinBand_SellRestsN
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceAboveBand_BuyRejected) {
@@ -397,7 +385,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceAboveBand_BuyRejected
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceAboveBand_SellRejected) {
@@ -410,7 +398,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceAboveBand_SellRejecte
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceBelowBand_BuyRejected) {
@@ -423,7 +411,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceBelowBand_BuyRejected
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceBelowBand_SellRejected) {
@@ -436,7 +424,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_PriceBelowBand_SellRejecte
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactLowerBoundary_BuyAccepted) {
@@ -449,7 +437,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactLowerBoundary_BuyAcce
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactLowerBoundary_SellAccepted) {
@@ -462,7 +450,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactLowerBoundary_SellAcc
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactUpperBoundary_BuyAccepted) {
@@ -475,7 +463,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactUpperBoundary_BuyAcce
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactUpperBoundary_SellAccepted) {
@@ -488,7 +476,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactUpperBoundary_SellAcc
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustBelowLowerBoundary_BuyRejected) {
@@ -501,7 +489,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustBelowLowerBoundary_Buy
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustBelowLowerBoundary_SellRejected) {
@@ -514,7 +502,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustBelowLowerBoundary_Sel
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustAboveUpperBoundary_BuyRejected) {
@@ -527,7 +515,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustAboveUpperBoundary_Buy
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustAboveUpperBoundary_SellRejected) {
@@ -540,7 +528,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_JustAboveUpperBoundary_Sel
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactLowerBoundary_SellAcceptedAndCrossesBid) {
@@ -555,7 +543,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactLowerBoundary_SellAcc
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(4));
+    EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactUpperBoundary_BuyAcceptedAndCrossesAsk) {
@@ -570,7 +558,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ExactUpperBoundary_BuyAcce
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(4));
+    EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
 
 // =====================================================================
@@ -592,7 +580,7 @@ TEST_F(MatchingEnginePriceCollarTest, LastTradedPrice_ReferenceMoves_PriceValidU
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(5));
+    EXPECT_FALSE(orderBook.doesOrderExist(5));
 }
 
 // =====================================================================
@@ -609,7 +597,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceEqualsReference_Buy
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceEqualsReference_SellAccepted) {
@@ -622,7 +610,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceEqualsReference_Sel
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceAboveReference_BuyRejected) {
@@ -635,7 +623,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceAboveReference_BuyR
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceAboveReference_SellRejected) {
@@ -648,7 +636,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceAboveReference_Sell
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceBelowReference_BuyRejected) {
@@ -661,7 +649,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceBelowReference_BuyR
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceBelowReference_SellRejected) {
@@ -674,7 +662,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_Mid_PriceBelowReference_Sell
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 // =====================================================================
@@ -691,7 +679,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceEqualsR
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceEqualsReference_SellAccepted) {
@@ -704,7 +692,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceEqualsR
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_TRUE(orderBook->doesOrderExist(3));
+    EXPECT_TRUE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceAboveReference_BuyRejected) {
@@ -717,7 +705,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceAboveRe
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceAboveReference_SellRejected) {
@@ -730,7 +718,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceAboveRe
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceBelowReference_BuyRejected) {
@@ -743,7 +731,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceBelowRe
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceBelowReference_SellRejected) {
@@ -756,7 +744,7 @@ TEST_F(MatchingEnginePriceCollarTest, ZeroDeviation_LastTradedPrice_PriceBelowRe
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 // =====================================================================
@@ -773,7 +761,7 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_NoLiquidity_BuyCancelled) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(marketBuy->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, MarketOrder_NoLiquidity_SellCancelled) {
@@ -786,7 +774,7 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_NoLiquidity_SellCancelled) {
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(marketSell->getStatus(), OrderStatus::Cancelled);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, MarketOrder_PartialLiquidity_BuyPartiallyExecuted) {
@@ -801,7 +789,7 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_PartialLiquidity_BuyPartiallyE
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(marketBuy->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_FALSE(orderBook->doesOrderExist(4));
+    EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, MarketOrder_PartialLiquidity_SellPartiallyExecuted) {
@@ -816,7 +804,7 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_PartialLiquidity_SellPartially
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(marketSell->getStatus(), OrderStatus::CancelledAfterPartialExecution);
-    EXPECT_FALSE(orderBook->doesOrderExist(4));
+    EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, MarketOrder_FullLiquidity_BuyFullyExecuted) {
@@ -831,7 +819,7 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_FullLiquidity_BuyFullyExecuted
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(marketBuy->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(4));
+    EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
 
 TEST_F(MatchingEnginePriceCollarTest, MarketOrder_FullLiquidity_SellFullyExecuted) {
@@ -846,7 +834,7 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_FullLiquidity_SellFullyExecute
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(marketSell->getStatus(), OrderStatus::Executed);
-    EXPECT_FALSE(orderBook->doesOrderExist(4));
+    EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
 
 // =====================================================================
@@ -862,8 +850,8 @@ TEST_F(MatchingEnginePriceCollarTest, CancelOrder_BypassesCollar_WhenNoReference
     RejectionReason result = engine->matchOrder(cancelOrder);
 
     EXPECT_EQ(result, RejectionReason::None);
-    EXPECT_FALSE(orderBook->doesOrderExist(1));
-    EXPECT_EQ(orderBook->getOrderCancellationCount(), 1);
+    EXPECT_FALSE(orderBook.doesOrderExist(1));
+    EXPECT_EQ(orderBook.getOrderCancellationCount(), 1);
 }
 
 TEST_F(MatchingEnginePriceCollarTest, CancelOrder_BypassesCollar_WhenReferenceEstablished) {
@@ -877,6 +865,6 @@ TEST_F(MatchingEnginePriceCollarTest, CancelOrder_BypassesCollar_WhenReferenceEs
     RejectionReason result = engine->matchOrder(cancelOrder);
 
     EXPECT_EQ(result, RejectionReason::None);
-    EXPECT_FALSE(orderBook->doesOrderExist(3));
-    EXPECT_EQ(orderBook->getOrderCancellationCount(), 1);
+    EXPECT_FALSE(orderBook.doesOrderExist(3));
+    EXPECT_EQ(orderBook.getOrderCancellationCount(), 1);
 }
