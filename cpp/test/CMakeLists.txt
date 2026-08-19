@@ -10,6 +10,7 @@ set(TEST_SOURCES
     engine/test_matching_engine_tif.cpp
     engine/test_matching_engine_post_only.cpp
     engine/test_matching_engine_price_collar.cpp
+    policy/test_order_lifecycle.cpp
     utils/test_order_utils.cpp
     infra/test_binary_trade_logger.cpp
     infra/test_trade_id_generator.cpp
