@@ -8,22 +8,22 @@ struct STPDecision {
 };
 
 class STPPolicy {
-    public:
-        virtual ~STPPolicy() = default;
-        virtual STPDecision getDecision() const = 0;
+public:
+    virtual ~STPPolicy() = default;
+    virtual STPDecision getDecision() const = 0;
 };
 
 class CancelBothSTP final : public STPPolicy {
-    public:
-        STPDecision getDecision() const override;
+public:
+    STPDecision getDecision() const override;
 };
 
 class CancelIncomingSTP final : public STPPolicy {
-    public:
-        STPDecision getDecision() const override;
+public:
+    STPDecision getDecision() const override;
 };
 
 class CancelRestingSTP final : public STPPolicy {
-    public:
-        STPDecision getDecision() const override;
+public:
+    STPDecision getDecision() const override;
 };

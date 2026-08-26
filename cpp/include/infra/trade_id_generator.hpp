@@ -2,7 +2,7 @@
 #include "models/trade.hpp"
 
 class TradeIdGenerator {
-    public:
-        virtual ~TradeIdGenerator() = default;
-        virtual TradeID nextId() = 0;
+public:
+    virtual ~TradeIdGenerator() = default;
+    virtual TradeID nextId() = 0;
 };

@@ -17,16 +17,16 @@ struct TradeLogRecord {
 };
 
 class BinaryTradeLogger : public TradeLogger {
-    private:
-        std::ofstream out;
+private:
+    std::ofstream out;
 
-        static TradeLogRecord toRecord(const Trade& trade);
+    static TradeLogRecord toRecord(const Trade& trade);
 
-    public:
-        explicit BinaryTradeLogger(const std::string& filePath);
-        ~BinaryTradeLogger() override;
+public:
+    explicit BinaryTradeLogger(const std::string& filePath);
+    ~BinaryTradeLogger() override;
 
-        void log(const Trade& trade) override;
-        void flush() override;
-        void close() override;
+    void log(const Trade& trade) override;
+    void flush() override;
+    void close() override;
 };

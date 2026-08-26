@@ -15,38 +15,38 @@ using BidStructure = std::map<PriceTicks, std::list<OrderPtr>, std::greater<Pric
 using AskStructure = std::map<PriceTicks, std::list<OrderPtr>>;
 
 class LimitOrderBook {
-    private:
-        BidStructure bids;
-        AskStructure asks;
-        std::unordered_map<OrderID, std::list<OrderPtr>::iterator> orderIDMap;
-        uint32_t tradeExecutionCount = 0;
-        uint32_t orderCancellationCount = 0;
-        uint64_t totalVolumeTraded = 0;
+private:
+    BidStructure bids;
+    AskStructure asks;
+    std::unordered_map<OrderID, std::list<OrderPtr>::iterator> orderIDMap;
+    uint32_t tradeExecutionCount = 0;
+    uint32_t orderCancellationCount = 0;
+    uint64_t totalVolumeTraded = 0;
 
-    public:
-        LimitOrderBook() = default;
+public:
+    LimitOrderBook() = default;
 
-        bool doesOrderExist(OrderID orderId) const;
+    bool doesOrderExist(OrderID orderId) const;
 
-        std::optional<PriceTicks> getBestBid()  const;
-        std::optional<PriceTicks> getBestAsk()  const;
-        std::optional<PriceTicks> getMidPrice() const;
-        std::optional<PriceTicks> getSpread()   const;
-        
-        uint32_t getTradeExecutionCount()    const;
-        uint32_t getOrderCancellationCount() const;
-        uint64_t getTotalVolumeTraded()      const;
+    std::optional<PriceTicks> getBestBid()  const;
+    std::optional<PriceTicks> getBestAsk()  const;
+    std::optional<PriceTicks> getMidPrice() const;
+    std::optional<PriceTicks> getSpread()   const;
 
-        void recordExecution(Quantity tradedQty);
-        void recordCancellation();
+    uint32_t getTradeExecutionCount()    const;
+    uint32_t getOrderCancellationCount() const;
+    uint64_t getTotalVolumeTraded()      const;
 
-        RejectionReason addOrder(const OrderPtr &order);
-        RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID);
+    void recordExecution(Quantity tradedQty);
+    void recordCancellation();
 
-        bool     isOrderMarketable(const OrderPtr &order) const;
-        bool     isFOKFillable(const OrderPtr &order) const;
-        OrderPtr getMatchedOrder(const Side incomingSide) const;
-        void     popFront(const Side incomingSide);
+    RejectionReason addOrder(const OrderPtr &order);
+    RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID);
 
-        MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const;
+    bool     isOrderMarketable(const OrderPtr &order) const;
+    bool     isFOKFillable(const OrderPtr &order) const;
+    OrderPtr getMatchedOrder(const Side incomingSide) const;
+    void     popFront(const Side incomingSide);
+
+    MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const;
 };

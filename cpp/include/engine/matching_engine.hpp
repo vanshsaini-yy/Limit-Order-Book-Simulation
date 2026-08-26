@@ -9,28 +9,28 @@ class TradeLogger;
 class TradeIdGenerator;
 
 class MatchingEngine {
-    private:
-        LimitOrderBook* orderBook;
-        STPPolicy* stpPolicy;
-        TradeLogger* tradeLogger;
-        TradeIdGenerator* tradeIdGenerator;
-        std::optional<PriceTicks> maxDeviationTicks;
-        std::optional<PriceTicks> lastTradedPrice;
+private:
+    LimitOrderBook* orderBook;
+    STPPolicy* stpPolicy;
+    TradeLogger* tradeLogger;
+    TradeIdGenerator* tradeIdGenerator;
+    std::optional<PriceTicks> maxDeviationTicks;
+    std::optional<PriceTicks> lastTradedPrice;
 
-        bool violatesPriceCollar(const OrderPtr &order) const;
+    bool violatesPriceCollar(const OrderPtr &order) const;
 
-    public:
-        MatchingEngine(
-            LimitOrderBook* book,
-            STPPolicy* policy,
-            TradeLogger* logger = nullptr,
-            TradeIdGenerator* idGenerator = nullptr,
-            std::optional<PriceTicks> maxDeviationTicks = std::nullopt
-        );
+public:
+    MatchingEngine(
+        LimitOrderBook* book,
+        STPPolicy* policy,
+        TradeLogger* logger = nullptr,
+        TradeIdGenerator* idGenerator = nullptr,
+        std::optional<PriceTicks> maxDeviationTicks = std::nullopt
+    );
 
-        void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
-        RejectionReason matchOrder(const OrderPtr &incomingOrder);
+    void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
+    RejectionReason matchOrder(const OrderPtr &incomingOrder);
 
-        std::optional<PriceTicks> getLastTradedPrice()   const;
-        std::optional<PriceTicks> getMaxDeviationTicks() const;
+    std::optional<PriceTicks> getLastTradedPrice()   const;
+    std::optional<PriceTicks> getMaxDeviationTicks() const;
 };
