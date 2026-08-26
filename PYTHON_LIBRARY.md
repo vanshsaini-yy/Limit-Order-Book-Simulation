@@ -127,7 +127,9 @@ lob.Order(
   - `order_id != 0`
   - `linked_order_id == 0`
   - `post_only == False` (a market order is always marketable by
-    definition, so post-only on it is meaningless)
+    definition, so post-only on it is meaningless; violating this rule is
+    reported as `RejectionReason.INVALID_MARKET_ORDER`, not
+    `INVALID_POST_ONLY_ORDER`)
 - CANCEL orders require:
   - `price_ticks == 0`
   - `qty == 0`
@@ -161,7 +163,10 @@ Invalid orders are rejected through `RejectionReason`.
 ### Post-only semantics
 
 - `post_only` only applies to LIMIT orders with `time_in_force == GTC` —
-  see the LIMIT/MARKET validation rules above.
+  see the LIMIT/MARKET validation rules above. `RejectionReason.INVALID_POST_ONLY_ORDER`
+  is only returned for a LIMIT order combining `post_only` with a non-GTC
+  `time_in_force`; a `post_only` MARKET order is rejected as
+  `INVALID_MARKET_ORDER` instead.
 - The check happens before any matching is attempted: if the incoming order
   would immediately cross the book (i.e. it is marketable), it is rejected
   with `RejectionReason.POST_ONLY_WOULD_CROSS` and `status == CANCELLED`.

@@ -12,7 +12,7 @@ enum class RejectionReason : uint8_t {
     OrderToBeCancelledDoesNotExist,     // trying to cancel an order that doesn't exist or trying to cancel an order that wasn't placed by the same owner
     OrderBookInvariantViolation,        // order book invariant violation
     FOKInsufficientLiquidity,           // FOK order could not be filled in full against the resting book
-    InvalidPostOnlyOrder,               // post-only flag set on a non-GTC-limit order (e.g. Market, or combined with IOC/FOK)
+    InvalidPostOnlyOrder,               // post-only flag set on a limit order with a non-GTC time in force (e.g. combined with IOC/FOK)
     PostOnlyWouldCross,                 // post-only order would have matched immediately against the resting book
     PriceCollarViolation,               // limit order priced outside the allowed deviation from the reference price
 };

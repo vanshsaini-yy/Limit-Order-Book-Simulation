@@ -146,7 +146,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_OnMarketOrder_Rejected) {
 
     RejectionReason result = engine.matchOrder(order);
 
-    EXPECT_EQ(result, RejectionReason::InvalidPostOnlyOrder);
+    EXPECT_EQ(result, RejectionReason::InvalidMarketOrder);
     EXPECT_EQ(order->getStatus(), OrderStatus::Cancelled);
     EXPECT_FALSE(orderBook.doesOrderExist(order->getOrderID()));
 }

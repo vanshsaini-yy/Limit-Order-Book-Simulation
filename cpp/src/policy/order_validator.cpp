@@ -1,10 +1,12 @@
 #include "policy/order_validator.hpp"
 
 RejectionReason OrderValidator::validateLimitOrder(const OrderPtr &order, bool allowPartialExecution) {
+    bool statusOk = order->getStatus() == OrderStatus::Pending || 
+                    (allowPartialExecution && order->getStatus() == OrderStatus::PartiallyExecuted);
     if (order->getPriceTicks() > 0 &&
         order->getQty() > 0 &&
         order->getSide() != Side::None &&
-        (order->getStatus() == OrderStatus::Pending || (allowPartialExecution && order->getStatus() == OrderStatus::PartiallyExecuted)) &&
+        statusOk &&
         order->getOrderID() != 0 &&
         order->getLinkedOrderID() == 0) {
         if (order->isPostOnly() && order->getTimeInForce() != TimeInForce::GTC) {
@@ -21,10 +23,8 @@ RejectionReason OrderValidator::validateMarketOrder(const OrderPtr &order) {
         order->getSide() != Side::None &&
         order->getStatus() == OrderStatus::Pending &&
         order->getOrderID() != 0 &&
-        order->getLinkedOrderID() == 0) {
-        if (order->isPostOnly()) {
-            return RejectionReason::InvalidPostOnlyOrder;
-        }
+        order->getLinkedOrderID() == 0 &&
+        !order->isPostOnly()) {
         return RejectionReason::None;
     }
     return RejectionReason::InvalidMarketOrder;
