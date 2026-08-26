@@ -7,7 +7,11 @@ protected:
     LimitOrderBook book;
 };
 
-TEST_F(OrderBookTest, AddOrderSuccess) {
+// =====================================================================
+// addOrder
+// =====================================================================
+
+TEST_F(OrderBookTest, AddOrder_WellFormedBuyAndSell_Succeeds) {
     OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -17,13 +21,13 @@ TEST_F(OrderBookTest, AddOrderSuccess) {
     EXPECT_TRUE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, NullOrderAdditionViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_NullOrder_ViolatesInvariant) {
     OrderPtr nullOrder = nullptr;
 
     EXPECT_EQ(book.addOrder(nullOrder), RejectionReason::OrderBookInvariantViolation);
 }
 
-TEST_F(OrderBookTest, AddInvalidQtyOrderViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_NonPositiveQty_ViolatesInvariant) {
     OrderPtr zeroQtyLimitOrder = std::make_shared<Order>(1, 1, 100, 0, Side::Buy, OrderType::Limit, 1000);
     OrderPtr negativeQtyLimitOrder = std::make_shared<Order>(2, 2, 100, -10, Side::Buy, OrderType::Limit, 1001);
 
@@ -33,7 +37,7 @@ TEST_F(OrderBookTest, AddInvalidQtyOrderViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, AddMarketOrderViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_MarketOrder_ViolatesInvariant) {
     OrderPtr marketOrder1 = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Market, 1000);
     OrderPtr marketOrder2 = std::make_shared<Order>(2, 2, 0, 10, Side::Sell, OrderType::Market, 1001);
 
@@ -43,7 +47,7 @@ TEST_F(OrderBookTest, AddMarketOrderViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, AddCancelOrderViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_CancelType_ViolatesInvariant) {
     OrderPtr cancelOrder1 = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Cancel, 1000);
     OrderPtr cancelOrder2 = std::make_shared<Order>(2, 2, 0, 10, Side::Sell, OrderType::Cancel, 1001);
 
@@ -53,7 +57,7 @@ TEST_F(OrderBookTest, AddCancelOrderViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, AddLimitOrderWithInvalidPriceViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_InvalidLimitPrice_ViolatesInvariant) {
     OrderPtr invalidPriceOrder1 = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr invalidPriceOrder2 = std::make_shared<Order>(2, 2, -10, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -63,7 +67,7 @@ TEST_F(OrderBookTest, AddLimitOrderWithInvalidPriceViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, AddCancelledOrderViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_AlreadyCancelledStatus_ViolatesInvariant) {
     OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     order1->setStatus(OrderStatus::Cancelled);
@@ -75,7 +79,7 @@ TEST_F(OrderBookTest, AddCancelledOrderViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, AddExecutedOrderViolatesInvariant) {
+TEST_F(OrderBookTest, AddOrder_AlreadyExecutedStatus_ViolatesInvariant) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     order->setStatus(OrderStatus::Executed);
 
@@ -83,14 +87,14 @@ TEST_F(OrderBookTest, AddExecutedOrderViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(1));
 }
 
-TEST_F(OrderBookTest, AddSameOrderTwiceFails) {
+TEST_F(OrderBookTest, AddOrder_SameOrderTwice_SecondCallFails) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
     EXPECT_EQ(book.addOrder(order), RejectionReason::DuplicateOrderID);
 }
 
-TEST_F(OrderBookTest, AddDistinctOrderWithDuplicateIDFails) {
+TEST_F(OrderBookTest, AddOrder_DistinctOrderWithDuplicateID_Fails) {
     OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = std::make_shared<Order>(1, 2, 105, 5, Side::Buy, OrderType::Limit, 1001);
     book.addOrder(order1);
@@ -98,7 +102,11 @@ TEST_F(OrderBookTest, AddDistinctOrderWithDuplicateIDFails) {
     EXPECT_EQ(book.addOrder(order2), RejectionReason::DuplicateOrderID);
 }
 
-TEST_F(OrderBookTest, CancelOrderSuccess) {
+// =====================================================================
+// cancelOrder
+// =====================================================================
+
+TEST_F(OrderBookTest, CancelOrder_WellFormedBuyAndSell_Succeeds) {
     OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(order1);
@@ -114,14 +122,14 @@ TEST_F(OrderBookTest, CancelOrderSuccess) {
     EXPECT_EQ(order2->getStatus(), OrderStatus::CancelledAfterPartialExecution);
 }
 
-TEST_F(OrderBookTest, CancelNonExistingOrderFails) {
+TEST_F(OrderBookTest, CancelOrder_NonExisting_Fails) {
     EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_FALSE(book.doesOrderExist(1));
     EXPECT_EQ(book.cancelOrder(2, 2), RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, CancelCancelledOrderFails) {
+TEST_F(OrderBookTest, CancelOrder_AlreadyCancelledStatus_ViolatesInvariant) {
     OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr order2 = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(order1);
@@ -133,7 +141,7 @@ TEST_F(OrderBookTest, CancelCancelledOrderFails) {
     EXPECT_EQ(book.cancelOrder(2, 2), RejectionReason::OrderBookInvariantViolation);
 }
 
-TEST_F(OrderBookTest, CancelExecutedOrderFails) {
+TEST_F(OrderBookTest, CancelOrder_AlreadyExecutedStatus_ViolatesInvariant) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
     order->setStatus(OrderStatus::Executed);
@@ -141,7 +149,7 @@ TEST_F(OrderBookTest, CancelExecutedOrderFails) {
     EXPECT_EQ(book.cancelOrder(1, 1), RejectionReason::OrderBookInvariantViolation);
 }
 
-TEST_F(OrderBookTest, DoubleCancelFails) {
+TEST_F(OrderBookTest, CancelOrder_CalledTwice_SecondCallFails) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
@@ -151,7 +159,7 @@ TEST_F(OrderBookTest, DoubleCancelFails) {
     EXPECT_FALSE(book.doesOrderExist(1));
 }
 
-TEST_F(OrderBookTest, CancelOrderWithMatchingOwnerIDSucceeds) {
+TEST_F(OrderBookTest, CancelOrder_MatchingOwnerID_Succeeds) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
@@ -160,14 +168,14 @@ TEST_F(OrderBookTest, CancelOrderWithMatchingOwnerIDSucceeds) {
     EXPECT_EQ(order->getStatus(), OrderStatus::Cancelled);
 }
 
-TEST_F(OrderBookTest, CancelOrderWithMismatchedOwnerIDFails) {
+TEST_F(OrderBookTest, CancelOrder_MismatchedOwnerID_Fails) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
     EXPECT_EQ(book.cancelOrder(1, 2), RejectionReason::OrderToBeCancelledDoesNotExist);
 }
 
-TEST_F(OrderBookTest, CancelOrderWithMismatchedOwnerIDDoesNotModifyOrder) {
+TEST_F(OrderBookTest, CancelOrder_MismatchedOwnerID_DoesNotModifyOrder) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(order);
 
@@ -177,11 +185,11 @@ TEST_F(OrderBookTest, CancelOrderWithMismatchedOwnerIDDoesNotModifyOrder) {
     EXPECT_TRUE(book.doesOrderExist(1));
 }
 
-TEST_F(OrderBookTest, CancelNonExistingOrderWithOwnerIDFails) {
+TEST_F(OrderBookTest, CancelOrder_NonExistingOrderIDWithOwnerID_Fails) {
     EXPECT_EQ(book.cancelOrder(999, 1), RejectionReason::OrderToBeCancelledDoesNotExist);
 }
 
-TEST_F(OrderBookTest, CancelPartiallyExecutedOrderWithMatchingOwnerIDSucceeds) {
+TEST_F(OrderBookTest, CancelOrder_PartiallyExecutedWithMatchingOwnerID_Succeeds) {
     OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     book.addOrder(order);
     order->setStatus(OrderStatus::PartiallyExecuted);
@@ -191,7 +199,11 @@ TEST_F(OrderBookTest, CancelPartiallyExecutedOrderWithMatchingOwnerIDSucceeds) {
     EXPECT_EQ(order->getStatus(), OrderStatus::CancelledAfterPartialExecution);
 }
 
-TEST_F(OrderBookTest, GetBestBidAsk) {
+// =====================================================================
+// getBestBid / getBestAsk
+// =====================================================================
+
+TEST_F(OrderBookTest, GetBestBidAndGetBestAsk_AsOrdersAreCancelled_TrackTheRemainingBook) {
     OrderPtr buyOrder1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr buyOrder2 = std::make_shared<Order>(2, 2, 105, 10, Side::Buy, OrderType::Limit, 1001);
     OrderPtr sellOrder1 = std::make_shared<Order>(3, 3, 110, 10, Side::Sell, OrderType::Limit, 1002);
@@ -218,18 +230,22 @@ TEST_F(OrderBookTest, GetBestBidAsk) {
     EXPECT_EQ(book.getBestAsk(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, GetMidPriceEmptyBookReturnsNullopt) {
+// =====================================================================
+// getMidPrice
+// =====================================================================
+
+TEST_F(OrderBookTest, GetMidPrice_EmptyBook_ReturnsNullopt) {
     EXPECT_EQ(book.getMidPrice(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, GetMidPriceOneSidedBookReturnsNullopt) {
+TEST_F(OrderBookTest, GetMidPrice_OneSidedBook_ReturnsNullopt) {
     OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(bid);
 
     EXPECT_EQ(book.getMidPrice(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, GetMidPriceBothSidesPresent) {
+TEST_F(OrderBookTest, GetMidPrice_BothSidesPresent_ReturnsAverageOfBestBidAndAsk) {
     OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr ask = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(bid);
@@ -238,18 +254,22 @@ TEST_F(OrderBookTest, GetMidPriceBothSidesPresent) {
     EXPECT_EQ(book.getMidPrice(), 105ull);
 }
 
-TEST_F(OrderBookTest, GetSpreadEmptyBookReturnsNullopt) {
+// =====================================================================
+// getSpread
+// =====================================================================
+
+TEST_F(OrderBookTest, GetSpread_EmptyBook_ReturnsNullopt) {
     EXPECT_EQ(book.getSpread(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, GetSpreadOneSidedBookReturnsNullopt) {
+TEST_F(OrderBookTest, GetSpread_OneSidedBook_ReturnsNullopt) {
     OrderPtr ask = std::make_shared<Order>(1, 1, 110, 10, Side::Sell, OrderType::Limit, 1000);
     book.addOrder(ask);
 
     EXPECT_EQ(book.getSpread(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, GetSpreadBothSidesPresent) {
+TEST_F(OrderBookTest, GetSpread_BothSidesPresent_ReturnsBestAskMinusBestBid) {
     OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr ask = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(bid);
@@ -258,7 +278,11 @@ TEST_F(OrderBookTest, GetSpreadBothSidesPresent) {
     EXPECT_EQ(book.getSpread(), 10ull);
 }
 
-TEST_F(OrderBookTest, LimitOrdersMarketableOnEmptyBook) {
+// =====================================================================
+// isOrderMarketable
+// =====================================================================
+
+TEST_F(OrderBookTest, IsOrderMarketable_LimitOrderOnEmptyBook_ReturnsFalse) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr sellOrder = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -266,7 +290,7 @@ TEST_F(OrderBookTest, LimitOrdersMarketableOnEmptyBook) {
     EXPECT_FALSE(book.isOrderMarketable(sellOrder));
 }
 
-TEST_F(OrderBookTest, LimitOrdersMarketableWithExistingBidsAsks) {
+TEST_F(OrderBookTest, IsOrderMarketable_LimitOrder_DependsOnWhetherPriceCrosses) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr sellOrder = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -284,7 +308,7 @@ TEST_F(OrderBookTest, LimitOrdersMarketableWithExistingBidsAsks) {
     EXPECT_FALSE(book.isOrderMarketable(nonMarketableSell));
 }
 
-TEST_F(OrderBookTest, MarketOrdersNotMarketableOnEmptyBook) {
+TEST_F(OrderBookTest, IsOrderMarketable_MarketOrderOnEmptyBook_ReturnsFalse) {
     OrderPtr marketBuyOrder = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Market, 1000);
     OrderPtr marketSellOrder = std::make_shared<Order>(2, 2, 0, 10, Side::Sell, OrderType::Market, 1001);
 
@@ -292,7 +316,7 @@ TEST_F(OrderBookTest, MarketOrdersNotMarketableOnEmptyBook) {
     EXPECT_FALSE(book.isOrderMarketable(marketSellOrder));
 }
 
-TEST_F(OrderBookTest, MarketOrdersMarketableWithExistingBidsAsks) {
+TEST_F(OrderBookTest, IsOrderMarketable_MarketOrderWithExistingBidsAsks_ReturnsTrue) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr sellOrder = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -306,7 +330,7 @@ TEST_F(OrderBookTest, MarketOrdersMarketableWithExistingBidsAsks) {
     EXPECT_TRUE(book.isOrderMarketable(marketSellOrder));
 }
 
-TEST_F(OrderBookTest, ZeroQtyOrderNotMarketable) {
+TEST_F(OrderBookTest, IsOrderMarketable_ZeroQty_ReturnsFalse) {
     OrderPtr zeroQtyLimitOrder = std::make_shared<Order>(1, 1, 100, 0, Side::Buy, OrderType::Limit, 1000);
     OrderPtr zeroQtyMarketOrder = std::make_shared<Order>(2, 2, 0, 0, Side::Sell, OrderType::Market, 1001);
 
@@ -314,7 +338,7 @@ TEST_F(OrderBookTest, ZeroQtyOrderNotMarketable) {
     EXPECT_FALSE(book.isOrderMarketable(zeroQtyMarketOrder));
 }
 
-TEST_F(OrderBookTest, CancelTypeOrderNotMarketable) {
+TEST_F(OrderBookTest, IsOrderMarketable_CancelType_ReturnsFalse) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr sellOrder = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(buyOrder);
@@ -324,12 +348,16 @@ TEST_F(OrderBookTest, CancelTypeOrderNotMarketable) {
     EXPECT_FALSE(book.isOrderMarketable(cancelOrder));
 }
 
-TEST_F(OrderBookTest, GetMatchedOrderEmptyBookReturnsNull) {
+// =====================================================================
+// getMatchedOrder
+// =====================================================================
+
+TEST_F(OrderBookTest, GetMatchedOrder_EmptyBook_ReturnsNull) {
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), nullptr);
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), nullptr);
 }
 
-TEST_F(OrderBookTest, GetMatchedOrderBuyReturnsBestAskAndFifo) {
+TEST_F(OrderBookTest, GetMatchedOrder_BuySide_ReturnsBestAskInFifoOrder) {
     OrderPtr ask1 = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     OrderPtr ask2 = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     OrderPtr ask3 = std::make_shared<Order>(3, 3, 105, 10, Side::Sell, OrderType::Limit, 1002);
@@ -349,7 +377,7 @@ TEST_F(OrderBookTest, GetMatchedOrderBuyReturnsBestAskAndFifo) {
     EXPECT_EQ(book.getMatchedOrder(Side::Buy), nullptr);
 }
 
-TEST_F(OrderBookTest, GetMatchedOrderSellReturnsBestBidAndFifo) {
+TEST_F(OrderBookTest, GetMatchedOrder_SellSide_ReturnsBestBidInFifoOrder) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
     OrderPtr bid3 = std::make_shared<Order>(3, 3, 95, 10, Side::Buy, OrderType::Limit, 1002);
@@ -369,14 +397,18 @@ TEST_F(OrderBookTest, GetMatchedOrderSellReturnsBestBidAndFifo) {
     EXPECT_EQ(book.getMatchedOrder(Side::Sell), nullptr);
 }
 
-TEST_F(OrderBookTest, PopFrontEmptyBookNoOp) {
+// =====================================================================
+// popFront
+// =====================================================================
+
+TEST_F(OrderBookTest, PopFront_EmptyBook_IsNoOp) {
     EXPECT_NO_THROW(book.popFront(Side::Buy));
     EXPECT_NO_THROW(book.popFront(Side::Sell));
     EXPECT_FALSE(book.getBestBid().has_value());
     EXPECT_FALSE(book.getBestAsk().has_value());
 }
 
-TEST_F(OrderBookTest, PopFrontBuyRemovesFifoFromBestAsk) {
+TEST_F(OrderBookTest, PopFront_BuySide_RemovesFifoHeadFromBestAskLevel) {
     OrderPtr ask1 = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     OrderPtr ask2 = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
     OrderPtr ask3 = std::make_shared<Order>(3, 3, 105, 10, Side::Sell, OrderType::Limit, 1002);
@@ -391,13 +423,13 @@ TEST_F(OrderBookTest, PopFrontBuyRemovesFifoFromBestAsk) {
     EXPECT_TRUE(book.doesOrderExist(3));
     EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{100});
 
-    book.popFront(Side::Buy); 
-    EXPECT_FALSE(book.doesOrderExist(2)); 
-    EXPECT_TRUE(book.doesOrderExist(3)); 
-    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{105}); 
+    book.popFront(Side::Buy);
+    EXPECT_FALSE(book.doesOrderExist(2));
+    EXPECT_TRUE(book.doesOrderExist(3));
+    EXPECT_EQ(book.getBestAsk(), std::optional<PriceTicks>{105});
 }
 
-TEST_F(OrderBookTest, PopFrontBuyRemovesEmptyAskLevel) {
+TEST_F(OrderBookTest, PopFront_BuySide_RemovesAskLevelOnceEmptied) {
     OrderPtr ask1 = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     OrderPtr ask2 = std::make_shared<Order>(2, 2, 105, 10, Side::Sell, OrderType::Limit, 1001);
 
@@ -414,7 +446,7 @@ TEST_F(OrderBookTest, PopFrontBuyRemovesEmptyAskLevel) {
     EXPECT_EQ(book.getBestAsk(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, PopFrontSellRemovesFifoFromBestBid) {
+TEST_F(OrderBookTest, PopFront_SellSide_RemovesFifoHeadFromBestBidLevel) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
     OrderPtr bid3 = std::make_shared<Order>(3, 3, 95, 10, Side::Buy, OrderType::Limit, 1002);
@@ -435,7 +467,7 @@ TEST_F(OrderBookTest, PopFrontSellRemovesFifoFromBestBid) {
     EXPECT_EQ(book.getBestBid(), std::optional<PriceTicks>{95});
 }
 
-TEST_F(OrderBookTest, PopFrontSellRemovesEmptyBidLevel) {
+TEST_F(OrderBookTest, PopFront_SellSide_RemovesBidLevelOnceEmptied) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 95, 10, Side::Buy, OrderType::Limit, 1001);
 
@@ -452,15 +484,19 @@ TEST_F(OrderBookTest, PopFrontSellRemovesEmptyBidLevel) {
     EXPECT_EQ(book.getBestBid(), std::nullopt);
 }
 
-TEST_F(OrderBookTest, TradeExecutionCountInitiallyZero) {
+// =====================================================================
+// getTradeExecutionCount / getTotalVolumeTraded / recordExecution
+// =====================================================================
+
+TEST_F(OrderBookTest, GetTradeExecutionCount_Initially_IsZero) {
     EXPECT_EQ(book.getTradeExecutionCount(), 0u);
 }
 
-TEST_F(OrderBookTest, TotalVolumeTradedInitiallyZero) {
+TEST_F(OrderBookTest, GetTotalVolumeTraded_Initially_IsZero) {
     EXPECT_EQ(book.getTotalVolumeTraded(), 0u);
 }
 
-TEST_F(OrderBookTest, RecordExecutionIgnoresNonPositiveQty) {
+TEST_F(OrderBookTest, RecordExecution_NonPositiveQty_IsIgnored) {
     book.recordExecution(-5);
     book.recordExecution(0);
 
@@ -468,7 +504,7 @@ TEST_F(OrderBookTest, RecordExecutionIgnoresNonPositiveQty) {
     EXPECT_EQ(book.getTotalVolumeTraded(), 0u);
 }
 
-TEST_F(OrderBookTest, RecordExecutionIncrementsCountsAndVolume) {
+TEST_F(OrderBookTest, RecordExecution_PositiveQty_IncrementsCountAndVolume) {
     book.recordExecution(10);
     EXPECT_EQ(book.getTradeExecutionCount(), 1u);
     EXPECT_EQ(book.getTotalVolumeTraded(), 10u);
@@ -478,11 +514,15 @@ TEST_F(OrderBookTest, RecordExecutionIncrementsCountsAndVolume) {
     EXPECT_EQ(book.getTotalVolumeTraded(), 35u);
 }
 
-TEST_F(OrderBookTest, OrderCancellationCountInitiallyZero) {
+// =====================================================================
+// getOrderCancellationCount / recordCancellation
+// =====================================================================
+
+TEST_F(OrderBookTest, GetOrderCancellationCount_Initially_IsZero) {
     EXPECT_EQ(book.getOrderCancellationCount(), 0u);
 }
 
-TEST_F(OrderBookTest, RecordCancellationIncrementsCount) {
+TEST_F(OrderBookTest, RecordCancellation_CalledRepeatedly_IncrementsCount) {
     book.recordCancellation();
     EXPECT_EQ(book.getOrderCancellationCount(), 1u);
 
@@ -490,7 +530,11 @@ TEST_F(OrderBookTest, RecordCancellationIncrementsCount) {
     EXPECT_EQ(book.getOrderCancellationCount(), 2u);
 }
 
-TEST_F(OrderBookTest, SnapshotEmptyBook) {
+// =====================================================================
+// snapshot
+// =====================================================================
+
+TEST_F(OrderBookTest, Snapshot_EmptyBook_AllFieldsAreZeroOrNullopt) {
     auto snap = book.snapshot(1234);
 
     EXPECT_EQ(snap.timestamp, 1234u);
@@ -515,7 +559,7 @@ TEST_F(OrderBookTest, SnapshotEmptyBook) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotSingleBidLevelSingleBidOrder) {
+TEST_F(OrderBookTest, Snapshot_SingleBidOrder_PopulatesBidSideOnly) {
     OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     book.addOrder(bid);
 
@@ -546,7 +590,7 @@ TEST_F(OrderBookTest, SnapshotSingleBidLevelSingleBidOrder) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotSingleAskLevelSingleAskOrder) {
+TEST_F(OrderBookTest, Snapshot_SingleAskOrder_PopulatesAskSideOnly) {
     OrderPtr ask = std::make_shared<Order>(1, 1, 110, 7, Side::Sell, OrderType::Limit, 1000);
     book.addOrder(ask);
 
@@ -577,7 +621,7 @@ TEST_F(OrderBookTest, SnapshotSingleAskLevelSingleAskOrder) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotSingleBidOrderSingleAskOrder) {
+TEST_F(OrderBookTest, Snapshot_OneBidAndOneAskOrder_PopulatesBothSides) {
     OrderPtr bid = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr ask = std::make_shared<Order>(2, 2, 110, 5, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(bid);
@@ -614,7 +658,7 @@ TEST_F(OrderBookTest, SnapshotSingleBidOrderSingleAskOrder) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotSingleBidLevelMultipleBidOrders) {
+TEST_F(OrderBookTest, Snapshot_MultipleBidOrdersSameLevel_AggregatesIntoOneLevel) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 3, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 7, Side::Buy, OrderType::Limit, 1001);
     book.addOrder(bid1);
@@ -647,7 +691,7 @@ TEST_F(OrderBookTest, SnapshotSingleBidLevelMultipleBidOrders) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotSingleAskLevelMultipleAskOrders) {
+TEST_F(OrderBookTest, Snapshot_MultipleAskOrdersSameLevel_AggregatesIntoOneLevel) {
     OrderPtr ask1 = std::make_shared<Order>(1, 1, 110, 4, Side::Sell, OrderType::Limit, 1000);
     OrderPtr ask2 = std::make_shared<Order>(2, 2, 110, 6, Side::Sell, OrderType::Limit, 1001);
     book.addOrder(ask1);
@@ -680,7 +724,7 @@ TEST_F(OrderBookTest, SnapshotSingleAskLevelMultipleAskOrders) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotMultipleBidAskLevels) {
+TEST_F(OrderBookTest, Snapshot_MultipleLevelsBothSides_DepthsAreOrderedBestFirst) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 105, 8, Side::Buy, OrderType::Limit, 1001);
     OrderPtr ask1 = std::make_shared<Order>(3, 3, 110, 4, Side::Sell, OrderType::Limit, 1002);
@@ -719,7 +763,7 @@ TEST_F(OrderBookTest, SnapshotMultipleBidAskLevels) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 0u);
 }
 
-TEST_F(OrderBookTest, SnapshotTempoPropagation) {
+TEST_F(OrderBookTest, Snapshot_TempoCounters_ArePropagatedFromTheBook) {
     book.recordExecution(10);
     book.recordExecution(5);
     book.recordCancellation();
@@ -732,7 +776,7 @@ TEST_F(OrderBookTest, SnapshotTempoPropagation) {
     EXPECT_EQ(snap.tempo.totalVolumeTraded, 15u);
 }
 
-TEST_F(OrderBookTest, SnapshotDepthLimitZeroReturnsEmptyDepthsButFullSummary) {
+TEST_F(OrderBookTest, Snapshot_DepthLimitZero_ReturnsEmptyDepthsButFullSummary) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 105, 8, Side::Buy, OrderType::Limit, 1001);
     OrderPtr ask1 = std::make_shared<Order>(3, 3, 110, 4, Side::Sell, OrderType::Limit, 1002);
@@ -750,7 +794,7 @@ TEST_F(OrderBookTest, SnapshotDepthLimitZeroReturnsEmptyDepthsButFullSummary) {
     EXPECT_EQ(snap.askSummary.orderCount, 1u);
 }
 
-TEST_F(OrderBookTest, SnapshotDepthLimitLargerThanLevelsReturnsAll) {
+TEST_F(OrderBookTest, Snapshot_DepthLimitLargerThanLevels_ReturnsAllLevels) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 105, 8, Side::Buy, OrderType::Limit, 1001);
     OrderPtr ask1 = std::make_shared<Order>(3, 3, 110, 4, Side::Sell, OrderType::Limit, 1002);
@@ -764,7 +808,31 @@ TEST_F(OrderBookTest, SnapshotDepthLimitLargerThanLevelsReturnsAll) {
     EXPECT_EQ(snap.askDepths.size(), 1u);
 }
 
-TEST_F(OrderBookTest, IsFOKFillableAcrossMultipleAskLevels) {
+TEST_F(OrderBookTest, Snapshot_DepthLimitTwo_TruncatesToTwoLevelsPerSide) {
+    OrderPtr bid1 = std::make_shared<Order>(1, 1, 95,  3, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr bid3 = std::make_shared<Order>(3, 3, 105, 8, Side::Buy, OrderType::Limit, 1002);
+    OrderPtr ask1 = std::make_shared<Order>(4, 4, 110, 4, Side::Sell, OrderType::Limit, 1003);
+    OrderPtr ask2 = std::make_shared<Order>(5, 5, 115, 6, Side::Sell, OrderType::Limit, 1004);
+    OrderPtr ask3 = std::make_shared<Order>(6, 6, 120, 2, Side::Sell, OrderType::Limit, 1005);
+    book.addOrder(bid1);
+    book.addOrder(bid2);
+    book.addOrder(bid3);
+    book.addOrder(ask1);
+    book.addOrder(ask2);
+    book.addOrder(ask3);
+
+    auto snap = book.snapshot(1234, 2);
+
+    ASSERT_EQ(snap.bidDepths.size(), 2u);
+    ASSERT_EQ(snap.askDepths.size(), 2u);
+}
+
+// =====================================================================
+// isFOKFillable
+// =====================================================================
+
+TEST_F(OrderBookTest, IsFOKFillable_AcrossMultipleAskLevels_MatchesExpectedOutcomes) {
     book.addOrder(std::make_shared<Order>(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000));
     book.addOrder(std::make_shared<Order>(2, 2, 101, 5, Side::Sell, OrderType::Limit, 1001));
     book.addOrder(std::make_shared<Order>(3, 3, 102, 5, Side::Sell, OrderType::Limit, 1002));
@@ -784,24 +852,4 @@ TEST_F(OrderBookTest, IsFOKFillableAcrossMultipleAskLevels) {
     OrderPtr marketBuySweepsEverything =
         std::make_shared<Order>(7, 7, 0, 15, Side::Buy, OrderType::Market, 1006, 0, TimeInForce::FOK);
     EXPECT_TRUE(book.isFOKFillable(marketBuySweepsEverything));
-}
-
-TEST_F(OrderBookTest, SnapshotDepthLimitTwoReturnsTwoLevels) {
-    OrderPtr bid1 = std::make_shared<Order>(1, 1, 95,  3, Side::Buy, OrderType::Limit, 1000);
-    OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
-    OrderPtr bid3 = std::make_shared<Order>(3, 3, 105, 8, Side::Buy, OrderType::Limit, 1002);
-    OrderPtr ask1 = std::make_shared<Order>(4, 4, 110, 4, Side::Sell, OrderType::Limit, 1003);
-    OrderPtr ask2 = std::make_shared<Order>(5, 5, 115, 6, Side::Sell, OrderType::Limit, 1004);
-    OrderPtr ask3 = std::make_shared<Order>(6, 6, 120, 2, Side::Sell, OrderType::Limit, 1005);
-    book.addOrder(bid1);
-    book.addOrder(bid2);
-    book.addOrder(bid3);
-    book.addOrder(ask1);
-    book.addOrder(ask2);
-    book.addOrder(ask3);
-
-    auto snap = book.snapshot(1234, 2);
-
-    ASSERT_EQ(snap.bidDepths.size(), 2u);
-    ASSERT_EQ(snap.askDepths.size(), 2u);
 }
