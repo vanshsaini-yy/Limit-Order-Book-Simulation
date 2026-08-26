@@ -764,6 +764,28 @@ TEST_F(OrderBookTest, SnapshotDepthLimitLargerThanLevelsReturnsAll) {
     EXPECT_EQ(snap.askDepths.size(), 1u);
 }
 
+TEST_F(OrderBookTest, IsFOKFillableAcrossMultipleAskLevels) {
+    book.addOrder(std::make_shared<Order>(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000));
+    book.addOrder(std::make_shared<Order>(2, 2, 101, 5, Side::Sell, OrderType::Limit, 1001));
+    book.addOrder(std::make_shared<Order>(3, 3, 102, 5, Side::Sell, OrderType::Limit, 1002));
+
+    OrderPtr limitBuySpanningAllLevels =
+        std::make_shared<Order>(4, 4, 102, 15, Side::Buy, OrderType::Limit, 1003, 0, TimeInForce::FOK);
+    EXPECT_TRUE(book.isFOKFillable(limitBuySpanningAllLevels));
+
+    OrderPtr marketBuyMoreThanBookHolds =
+        std::make_shared<Order>(5, 5, 0, 20, Side::Buy, OrderType::Market, 1004, 0, TimeInForce::FOK);
+    EXPECT_FALSE(book.isFOKFillable(marketBuyMoreThanBookHolds));
+
+    OrderPtr limitBuyOneLevelShort =
+        std::make_shared<Order>(6, 6, 101, 15, Side::Buy, OrderType::Limit, 1005, 0, TimeInForce::FOK);
+    EXPECT_FALSE(book.isFOKFillable(limitBuyOneLevelShort));
+
+    OrderPtr marketBuySweepsEverything =
+        std::make_shared<Order>(7, 7, 0, 15, Side::Buy, OrderType::Market, 1006, 0, TimeInForce::FOK);
+    EXPECT_TRUE(book.isFOKFillable(marketBuySweepsEverything));
+}
+
 TEST_F(OrderBookTest, SnapshotDepthLimitTwoReturnsTwoLevels) {
     OrderPtr bid1 = std::make_shared<Order>(1, 1, 95,  3, Side::Buy, OrderType::Limit, 1000);
     OrderPtr bid2 = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
