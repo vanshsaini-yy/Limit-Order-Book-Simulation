@@ -45,7 +45,7 @@ void LimitOrderBook::recordCancellation() {
 }
 
 RejectionReason LimitOrderBook::addOrder(const OrderPtr &order) {
-    RejectionReason validationResult = OrderValidator::validateBeforeAdding(order);
+    RejectionReason validationResult = OrderValidator::validateBeforeAddingOrRemoving(order);
     if (validationResult != RejectionReason::None) {
         return validationResult;
     }
@@ -77,7 +77,7 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
     if (order->getOwnerID() != requesterOwnerID) {
         return RejectionReason::OrderToBeCancelledDoesNotExist;
     }
-    RejectionReason validationResult = OrderValidator::validateBeforeCancelling(order);
+    RejectionReason validationResult = OrderValidator::validateBeforeAddingOrRemoving(order);
     if (validationResult != RejectionReason::None) {
         return validationResult;
     }

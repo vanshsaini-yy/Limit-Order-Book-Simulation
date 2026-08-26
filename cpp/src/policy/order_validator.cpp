@@ -45,14 +45,7 @@ RejectionReason OrderValidator::validateCancelOrder(const OrderPtr &order) {
     return RejectionReason::InvalidCancelOrder;
 }
 
-RejectionReason OrderValidator::validateBeforeAdding(const OrderPtr &order) {
-    if (order && validateLimitOrder(order, true) == RejectionReason::None) {
-        return RejectionReason::None;
-    }
-    return RejectionReason::OrderBookInvariantViolation;
-}
-
-RejectionReason OrderValidator::validateBeforeCancelling(const OrderPtr &order) {
+RejectionReason OrderValidator::validateBeforeAddingOrRemoving(const OrderPtr &order) {
     if (order && validateLimitOrder(order, true) == RejectionReason::None) {
         return RejectionReason::None;
     }

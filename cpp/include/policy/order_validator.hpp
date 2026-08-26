@@ -7,7 +7,6 @@ class OrderValidator {
         static RejectionReason validateLimitOrder(const OrderPtr &order, bool allowPartialExecution = false);
         static RejectionReason validateMarketOrder(const OrderPtr &order);
         static RejectionReason validateCancelOrder(const OrderPtr &order);
-        static RejectionReason validateBeforeAdding(const OrderPtr &order);
-        static RejectionReason validateBeforeCancelling(const OrderPtr &order);
+        static RejectionReason validateBeforeAddingOrRemoving(const OrderPtr &order);
         static RejectionReason validateBeforeMatching(const OrderPtr &order);
 };
