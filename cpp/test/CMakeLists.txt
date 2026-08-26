@@ -12,6 +12,7 @@ set(TEST_SOURCES
     engine/test_matching_engine_price_collar.cpp
     policy/test_order_lifecycle.cpp
     policy/test_order_validator.cpp
+    policy/test_stp_policy.cpp
     utils/test_order_utils.cpp
     infra/test_binary_trade_logger.cpp
     infra/test_trade_id_generator.cpp
