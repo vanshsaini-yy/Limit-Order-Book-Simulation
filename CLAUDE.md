@@ -61,7 +61,7 @@ MatchingEngine
 
 **`LimitOrderBook`** stores bids as `std::map<PriceTicks, std::list<OrderPtr>, std::greater<>>` (best bid first) and asks as `std::map<PriceTicks, std::list<OrderPtr>>` (best ask first). Each price level is a FIFO `std::list`, giving price-time priority. An `std::unordered_map<OrderID, list::iterator>` enables O(1) order lookup and cancellation. `getMidPrice()` and `getSpread()` return `std::optional<PriceTicks>`, `std::nullopt` unless both a best bid and best ask exist.
 
-**`Order`** uses `shared_ptr` (`OrderPtr = std::shared_ptr<Order>`). Prices are integer ticks (`PriceTicks = int32_t`), not floats. All internal book logic operates in ticks; scaling to real-world units happens only at the Python API boundary. `TimeInForce` (`GTC`/`IOC`/`FOK`) and a `postOnly` bool are additional fields governing order-execution constraints.
+**`Order`** uses `shared_ptr` (`OrderPtr = std::shared_ptr<Order>`). Prices are integer ticks (`PriceTicks = int32_t`), not floats. `PriceTicks` and `Quantity` are signed on purpose — making them unsigned would wrap a negative input to a large positive value that passes `OrderValidator`'s `> 0` checks. All internal book logic operates in ticks; scaling to real-world units happens only at the Python API boundary. `TimeInForce` (`GTC`/`IOC`/`FOK`) and a `postOnly` bool are additional fields governing order-execution constraints.
 
 **`Trade`** captures a completed fill: `TradeID`, taker/maker `OrderID`, `PriceTicks`, `Quantity`, `Side`, and `Timestamp`. Created by `ExecutionEngine` and optionally persisted via `TradeLogger`.
 

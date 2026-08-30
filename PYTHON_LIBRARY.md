@@ -141,7 +141,10 @@ lob.Order(
     matching order — it has no fill semantics for `time_in_force` to apply
     to, so any non-default value is rejected)
 
-Invalid orders are rejected through `RejectionReason`.
+Invalid orders are rejected through `RejectionReason`. `price_ticks` and `qty`
+map to signed 32-bit C++ integers, so a negative value stays negative across the
+binding and is rejected by the rules above rather than wrapping to a large
+positive number.
 
 ### Time-in-force semantics
 
