@@ -96,7 +96,7 @@ All three are constructor parameters on `MatchingEngineFacade` (defaults in `cpp
 ```
 cpp/
 ├── include/
-│   ├── models/         # Order, Trade, MarketStructureSnapshot, RejectionReason
+│   ├── models/         # Order, Trade, MarketStructureSnapshot, RejectionReason, enums (Side, OrderType, TimeInForce, OrderStatus)
 │   ├── engine/         # LimitOrderBook, MatchingEngine, ExecutionEngine, book_side_ops
 │   ├── policy/         # OrderValidator, OrderLifecycle, STPPolicy
 │   ├── infra/          # TradeLogger, TradeIdGenerator (interfaces + concrete impls)

@@ -1,6 +1,10 @@
 #pragma once
 #include <cstdint>
 #include <memory>
+#include "models/side.hpp"
+#include "models/order_type.hpp"
+#include "models/time_in_force.hpp"
+#include "models/order_status.hpp"
 
 using PriceTicks = int32_t;
 using Timestamp = uint64_t;
@@ -8,33 +12,6 @@ using OrderID = uint32_t;
 using OwnerID = uint32_t;
 using Quantity = int32_t;
 
-enum class Side : uint8_t { 
-    Buy = 0, 
-    Sell = 1, 
-    None = 2 
-};
-
-enum class OrderType : uint8_t {
-    Limit = 0,
-    Market = 1,
-    Cancel = 2
-};
-
-enum class TimeInForce : uint8_t {
-    GTC = 0,
-    IOC = 1,
-    FOK = 2
-};
-
-enum class OrderStatus : uint16_t { 
-    Pending = 0, 
-    PartiallyExecuted = 1, 
-    Executed = 2, 
-    Cancelled = 3, 
-    CancelledAfterPartialExecution = 4 
-};
-
-// TODO 3: make post only something else instead of bool
 class Order {
 private:
     OrderID orderID;
