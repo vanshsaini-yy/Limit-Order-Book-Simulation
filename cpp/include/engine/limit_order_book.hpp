@@ -14,8 +14,8 @@ private:
     BidStructure bids;
     AskStructure asks;
     OrderIDMap orderIDMap;
-    uint32_t tradeExecutionCount = 0;
-    uint32_t orderCancellationCount = 0;
+    Count tradeExecutionCount = 0;
+    Count orderCancellationCount = 0;
     uint64_t totalVolumeTraded = 0;
 
 public:
@@ -28,8 +28,8 @@ public:
     std::optional<PriceTicks> getMidPrice() const;
     std::optional<PriceTicks> getSpread()   const;
 
-    uint32_t getTradeExecutionCount()    const;
-    uint32_t getOrderCancellationCount() const;
+    Count getTradeExecutionCount()       const;
+    Count getOrderCancellationCount()    const;
     uint64_t getTotalVolumeTraded()      const;
 
     void recordExecution(Quantity tradedQty);

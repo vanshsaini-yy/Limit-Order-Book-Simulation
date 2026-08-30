@@ -28,8 +28,8 @@ std::optional<PriceTicks> LimitOrderBook::getSpread() const {
     return *bestAsk - *bestBid;
 }
 
-uint32_t LimitOrderBook::getTradeExecutionCount()    const { return tradeExecutionCount; }
-uint32_t LimitOrderBook::getOrderCancellationCount() const { return orderCancellationCount; }
+Count LimitOrderBook::getTradeExecutionCount()       const { return tradeExecutionCount; }
+Count LimitOrderBook::getOrderCancellationCount()    const { return orderCancellationCount; }
 uint64_t LimitOrderBook::getTotalVolumeTraded()      const { return totalVolumeTraded; }
 
 void LimitOrderBook::recordExecution(Quantity tradedQty) {

@@ -73,10 +73,10 @@ void summariseSide(
             levelQty += order->getQty();
         }
         summary.totalQuantity += levelQty;
-        summary.totalOrderCount += static_cast<uint32_t>(ordersAtLevel.size());
+        summary.totalOrderCount += static_cast<Count>(ordersAtLevel.size());
         summary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
         if (levelsAdded < depthLimit) {
-            depths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(ordersAtLevel.size())});
+            depths.push_back(LevelInfo{price, levelQty, static_cast<Count>(ordersAtLevel.size())});
             ++levelsAdded;
         }
     }
