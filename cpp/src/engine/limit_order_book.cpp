@@ -1,5 +1,4 @@
 #include "engine/limit_order_book.hpp"
-#include <iterator>
 
 bool LimitOrderBook::doesOrderExist(OrderID orderId) const {
     return orderIDMap.contains(orderId);
@@ -49,24 +48,15 @@ RejectionReason LimitOrderBook::addOrder(const OrderPtr &order) {
     if (validationResult != RejectionReason::None) {
         return validationResult;
     }
-    OrderID orderID = order->getOrderID();
-    if (doesOrderExist(orderID)) {
+    if (doesOrderExist(order->getOrderID())) {
         return RejectionReason::DuplicateOrderID;
     }
-    PriceTicks price = order->getPriceTicks();
-    Side side = order->getSide();
-    if (side == Side::Buy) {
-        bids[price].push_back(order);
-        auto it = std::prev(bids[price].end());
-        orderIDMap.emplace(orderID, it);
-    } else if (side == Side::Sell) {
-        asks[price].push_back(order);
-        auto it = std::prev(asks[price].end());
-        orderIDMap.emplace(orderID, it);
-    } else {
-        return RejectionReason::OrderBookInvariantViolation;
+    if (order->getSide() == Side::Buy) {
+        return book_side_ops::addToSide(bids, orderIDMap, order);
+    } else if (order->getSide() == Side::Sell) {
+        return book_side_ops::addToSide(asks, orderIDMap, order);
     }
-    return RejectionReason::None;
+    return RejectionReason::OrderBookInvariantViolation;
 }
 
 RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOwnerID) {
@@ -132,79 +122,29 @@ bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
 }
 
 bool LimitOrderBook::isFOKFillable(const OrderPtr &order) const {
-    Quantity needed = order->getQty();
-    if (needed <= 0) {
+    if (order->getQty() <= 0) {
         return true;
     }
-    OwnerID ownerID = order->getOwnerID();
-    bool isMarket = order->getType() == OrderType::Market;
-    Quantity available = 0;
-
     if (order->getSide() == Side::Buy) {
-        for (const auto& [price, orders] : asks) {
-            if (!isMarket && price > order->getPriceTicks()) {
-                break;
-            }
-            for (const auto& resting : orders) {
-                if (resting->getOwnerID() == ownerID) {
-                    return false;
-                }
-                available += resting->getQty();
-                if (available >= needed) {
-                    return true;
-                }
-            }
-        }
+        return book_side_ops::isFOKFillableOnSide(asks, order);
     } else {
-        for (const auto& [price, orders] : bids) {
-            if (!isMarket && price < order->getPriceTicks()) {
-                break;
-            }
-            for (const auto& resting : orders) {
-                if (resting->getOwnerID() == ownerID) {
-                    return false;
-                }
-                available += resting->getQty();
-                if (available >= needed) {
-                    return true;
-                }
-            }
-        }
+        return book_side_ops::isFOKFillableOnSide(bids, order);
     }
-    return false;
 }
 
 OrderPtr LimitOrderBook::getMatchedOrder(const Side incomingSide) const {
     if (incomingSide == Side::Buy) {
-        if (asks.empty() || asks.begin()->second.empty()) return nullptr;
-        return asks.begin()->second.front();
+        return book_side_ops::frontOfSide(asks);
     } else {
-        if (bids.empty() || bids.begin()->second.empty()) return nullptr;
-        return bids.begin()->second.front();
+        return book_side_ops::frontOfSide(bids);
     }
 }
 
 void LimitOrderBook::popFront(const Side incomingSide) {
     if (incomingSide == Side::Buy) {
-        if (!asks.empty()) {
-            auto& askList = asks.begin()->second;
-            auto bestAskOrder = askList.front();
-            orderIDMap.erase(bestAskOrder->getOrderID());
-            askList.pop_front();
-            if (askList.empty()) {
-                asks.erase(asks.begin());
-            }
-        }
+        book_side_ops::popFrontOfSide(asks, orderIDMap);
     } else {
-        if (!bids.empty()) {
-            auto& bidList = bids.begin()->second;
-            auto bestBidOrder = bidList.front();
-            orderIDMap.erase(bestBidOrder->getOrderID());
-            bidList.pop_front();
-            if (bidList.empty()) {
-                bids.erase(bids.begin());
-            }
-        }
+        book_side_ops::popFrontOfSide(bids, orderIDMap);
     }
 }
 
@@ -216,46 +156,8 @@ MarketStructureSnapshot LimitOrderBook::snapshot(Timestamp now, std::size_t dept
     snap.spread = getSpread();
     snap.mid = getMidPrice();
 
-    snap.bidSummary.totalQuantity = 0;
-    snap.bidSummary.orderCount = 0;
-    snap.bidSummary.totalNotionalValue = 0;
-
-    snap.askSummary.totalQuantity = 0;
-    snap.askSummary.orderCount = 0;
-    snap.askSummary.totalNotionalValue = 0;
-
-    snap.bidDepths.clear();
-    snap.askDepths.clear();
-
-    std::size_t bidLevels = 0;
-    for (const auto& [price, orders] : bids) {
-        Quantity levelQty = 0;
-        for (const auto& order : orders) {
-            levelQty += order->getQty();
-        }
-        snap.bidSummary.totalQuantity += levelQty;
-        snap.bidSummary.orderCount += static_cast<uint32_t>(orders.size());
-        snap.bidSummary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
-        if (bidLevels < depthLimit) {
-            snap.bidDepths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(orders.size())});
-            ++bidLevels;
-        }
-    }
-
-    std::size_t askLevels = 0;
-    for (const auto& [price, orders] : asks) {
-        Quantity levelQty = 0;
-        for (const auto& order : orders) {
-            levelQty += order->getQty();
-        }
-        snap.askSummary.totalQuantity += levelQty;
-        snap.askSummary.orderCount += static_cast<uint32_t>(orders.size());
-        snap.askSummary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
-        if (askLevels < depthLimit) {
-            snap.askDepths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(orders.size())});
-            ++askLevels;
-        }
-    }
+    book_side_ops::summariseSide(bids, depthLimit, snap.bidSummary, snap.bidDepths);
+    book_side_ops::summariseSide(asks, depthLimit, snap.askSummary, snap.askDepths);
 
     snap.tempo.tradeExecutionCount = tradeExecutionCount;
     snap.tempo.orderCancellationCount = orderCancellationCount;

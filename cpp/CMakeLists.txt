@@ -2,6 +2,7 @@ add_library(lob_core STATIC
     src/models/order.cpp
     src/models/trade.cpp
     src/engine/limit_order_book.cpp
+    src/engine/book_side_ops.cpp
     src/engine/matching_engine.cpp
     src/engine/execution_engine.cpp
     src/policy/order_validator.cpp

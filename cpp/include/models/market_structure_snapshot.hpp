@@ -5,12 +5,14 @@
 #include <optional>
 #include "models/order.hpp"
 
+// TODO: use better datatypes for aggregates
 struct LevelInfo {
     PriceTicks price;
     Quantity totalQuantity;
     uint32_t orderCount;
 };
 
+// TODO: rename to SideSummary, orderCount to totalOrderCount
 struct SideSummaries {
     Quantity totalQuantity;
     uint32_t orderCount;
