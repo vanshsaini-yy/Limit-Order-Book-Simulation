@@ -2,6 +2,8 @@
 #include <memory>
 #include "engine/matching_engine.hpp"
 
+// TODO: refactor tests according to existing conventions
+
 class MatchingEngineSTPTest : public ::testing::Test {
 protected:
     LimitOrderBook orderBook;

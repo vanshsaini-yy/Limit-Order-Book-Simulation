@@ -6,6 +6,7 @@
 #include "models/order.hpp"
 #include "models/trade.hpp"
 
+// TODO: refactor tests according to existing conventions
 class MockTradeLogger : public TradeLogger {
 public:
     std::vector<Trade> trades;

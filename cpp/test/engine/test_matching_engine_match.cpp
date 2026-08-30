@@ -2,6 +2,8 @@
 #include <memory>
 #include "engine/matching_engine.hpp"
 
+// TODO: refactor tests according to existing conventions
+
 class MatchingEngineMatchTest : public ::testing::Test {
 protected:
     CancelBothSTP stpPolicy;

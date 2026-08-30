@@ -61,4 +61,5 @@ public:
     bool isPostOnly()  const;
 };
 
+// TODO: think and make the right decision for this type here and across call sites
 using OrderPtr = std::shared_ptr<Order>;

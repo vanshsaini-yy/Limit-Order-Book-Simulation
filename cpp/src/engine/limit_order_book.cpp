@@ -71,6 +71,7 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
     if (validationResult != RejectionReason::None) {
         return validationResult;
     }
+    // TODO: add a book_side_ops free fn for this part
     if (order->getSide() == Side::Buy) {
         auto bookIt = bids.find(order->getPriceTicks());
         if (bookIt != bids.end()) {

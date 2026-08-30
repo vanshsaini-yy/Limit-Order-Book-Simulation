@@ -28,6 +28,7 @@ public:
         std::optional<PriceTicks> maxDeviationTicks = std::nullopt
     );
 
+    // TODO: make applySTPPolicy private
     void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
     RejectionReason matchOrder(const OrderPtr &incomingOrder);
 

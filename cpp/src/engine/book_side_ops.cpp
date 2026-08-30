@@ -33,6 +33,7 @@ void popFrontOfSide(BookSide& side, OrderIDMap& orderIDMap) {
     }
 }
 
+// TODO: need to be adjusted for STPPolicy::CancelResting
 template <typename BookSide>
 bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order) {
     Quantity neededQty = order->getQty();

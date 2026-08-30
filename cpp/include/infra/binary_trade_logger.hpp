@@ -5,6 +5,7 @@
 #include <string>
 #include "infra/trade_logger.hpp"
 
+// TODO: make priceTicks int32_t
 struct TradeLogRecord {
     uint64_t tradeID;
     uint64_t timestamp;

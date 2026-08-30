@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+// TODO: add a rejection reason for STP cancellation and propagate down
 enum class RejectionReason : uint8_t {
     None,                               // No rejection, order is valid
     NullOrder,                          // nullptr passed
