@@ -68,13 +68,13 @@ void summariseSide(
 
     std::size_t levelsAdded = 0;
     for (const auto& [price, ordersAtLevel] : side) {
-        Quantity levelQty = 0;
+        AggregateQuantity levelQty = 0;
         for (const auto& order : ordersAtLevel) {
-            levelQty += order->getQty();
+            levelQty += static_cast<AggregateQuantity>(order->getQty());
         }
         summary.totalQuantity += levelQty;
         summary.totalOrderCount += static_cast<Count>(ordersAtLevel.size());
-        summary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
+        summary.totalNotionalValue += static_cast<AggregateValue>(price) * levelQty;
         if (levelsAdded < depthLimit) {
             depths.push_back(LevelInfo{price, levelQty, static_cast<Count>(ordersAtLevel.size())});
             ++levelsAdded;

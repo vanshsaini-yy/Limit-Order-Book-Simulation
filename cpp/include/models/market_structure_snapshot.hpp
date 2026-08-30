@@ -6,24 +6,25 @@
 #include "models/order.hpp"
 
 using Count = uint32_t;
+using AggregateQuantity = uint64_t;
+using AggregateValue = uint64_t;
 
-// TODO: use better datatypes for aggregates
 struct LevelInfo {
     PriceTicks price;
-    Quantity totalQuantity;
+    AggregateQuantity totalQuantity;
     Count orderCount;
 };
 
 struct SideSummary {
-    Quantity totalQuantity;
+    AggregateQuantity totalQuantity;
     Count totalOrderCount;
-    uint64_t totalNotionalValue;
+    AggregateValue totalNotionalValue;
 };
 
 struct TempoMetrics {
     Count tradeExecutionCount;
     Count orderCancellationCount;
-    uint64_t totalVolumeTraded;
+    AggregateQuantity totalVolumeTraded;
 };
 
 struct MarketStructureSnapshot {

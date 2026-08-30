@@ -28,14 +28,14 @@ std::optional<PriceTicks> LimitOrderBook::getSpread() const {
     return *bestAsk - *bestBid;
 }
 
-Count LimitOrderBook::getTradeExecutionCount()       const { return tradeExecutionCount; }
-Count LimitOrderBook::getOrderCancellationCount()    const { return orderCancellationCount; }
-uint64_t LimitOrderBook::getTotalVolumeTraded()      const { return totalVolumeTraded; }
+Count LimitOrderBook::getTradeExecutionCount()           const { return tradeExecutionCount; }
+Count LimitOrderBook::getOrderCancellationCount()        const { return orderCancellationCount; }
+AggregateQuantity LimitOrderBook::getTotalVolumeTraded() const { return totalVolumeTraded; }
 
 void LimitOrderBook::recordExecution(Quantity tradedQty) {
     if (tradedQty > 0) {
         ++tradeExecutionCount;
-        totalVolumeTraded += tradedQty;
+        totalVolumeTraded += static_cast<AggregateQuantity>(tradedQty);
     }
 }
 

@@ -16,7 +16,7 @@ private:
     OrderIDMap orderIDMap;
     Count tradeExecutionCount = 0;
     Count orderCancellationCount = 0;
-    uint64_t totalVolumeTraded = 0;
+    AggregateQuantity totalVolumeTraded = 0;
 
 public:
     LimitOrderBook() = default;
@@ -28,9 +28,9 @@ public:
     std::optional<PriceTicks> getMidPrice() const;
     std::optional<PriceTicks> getSpread()   const;
 
-    Count getTradeExecutionCount()       const;
-    Count getOrderCancellationCount()    const;
-    uint64_t getTotalVolumeTraded()      const;
+    Count getTradeExecutionCount()           const;
+    Count getOrderCancellationCount()        const;
+    AggregateQuantity getTotalVolumeTraded() const;
 
     void recordExecution(Quantity tradedQty);
     void recordCancellation();
@@ -38,11 +38,11 @@ public:
     RejectionReason addOrder(const OrderPtr &order);
     RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID);
 
-    bool     isOrderMarketable(const OrderPtr &order) const;
-    bool     isFOKFillable(const OrderPtr &order)     const;
+    bool isOrderMarketable(const OrderPtr &order)     const;
+    bool isFOKFillable(const OrderPtr &order)         const;
     OrderPtr getMatchedOrder(const Side incomingSide) const;
     
-    void     popFront(const Side incomingSide);
+    void popFront(const Side incomingSide);
 
     MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const;
 };
