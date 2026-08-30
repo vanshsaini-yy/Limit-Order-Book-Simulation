@@ -544,11 +544,11 @@ TEST_F(OrderBookTest, Snapshot_EmptyBook_AllFieldsAreZeroOrNullopt) {
     EXPECT_EQ(snap.mid, std::nullopt);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 0);
-    EXPECT_EQ(snap.bidSummary.orderCount, 0u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 0u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 0u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 0);
-    EXPECT_EQ(snap.askSummary.orderCount, 0u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 0u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 0u);
 
     EXPECT_TRUE(snap.bidDepths.empty());
@@ -572,11 +572,11 @@ TEST_F(OrderBookTest, Snapshot_SingleBidOrder_PopulatesBidSideOnly) {
     EXPECT_EQ(snap.mid, std::nullopt);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 10);
-    EXPECT_EQ(snap.bidSummary.orderCount, 1u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 1u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1000u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 0);
-    EXPECT_EQ(snap.askSummary.orderCount, 0u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 0u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 0u);
 
     ASSERT_EQ(snap.bidDepths.size(), 1u);
@@ -603,11 +603,11 @@ TEST_F(OrderBookTest, Snapshot_SingleAskOrder_PopulatesAskSideOnly) {
     EXPECT_EQ(snap.mid, std::nullopt);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 0);
-    EXPECT_EQ(snap.bidSummary.orderCount, 0u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 0u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 0u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 7);
-    EXPECT_EQ(snap.askSummary.orderCount, 1u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 1u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 770u);
 
     EXPECT_TRUE(snap.bidDepths.empty());
@@ -636,11 +636,11 @@ TEST_F(OrderBookTest, Snapshot_OneBidAndOneAskOrder_PopulatesBothSides) {
     EXPECT_EQ(snap.mid, 105ull);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 10);
-    EXPECT_EQ(snap.bidSummary.orderCount, 1u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 1u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1000u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 5);
-    EXPECT_EQ(snap.askSummary.orderCount, 1u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 1u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 550u);
 
     ASSERT_EQ(snap.bidDepths.size(), 1u);
@@ -673,11 +673,11 @@ TEST_F(OrderBookTest, Snapshot_MultipleBidOrdersSameLevel_AggregatesIntoOneLevel
     EXPECT_EQ(snap.mid, std::nullopt);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 10);
-    EXPECT_EQ(snap.bidSummary.orderCount, 2u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 2u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1000u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 0);
-    EXPECT_EQ(snap.askSummary.orderCount, 0u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 0u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 0u);
 
     ASSERT_EQ(snap.bidDepths.size(), 1u);
@@ -706,11 +706,11 @@ TEST_F(OrderBookTest, Snapshot_MultipleAskOrdersSameLevel_AggregatesIntoOneLevel
     EXPECT_EQ(snap.mid, std::nullopt);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 0);
-    EXPECT_EQ(snap.bidSummary.orderCount, 0u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 0u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 0u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 10);
-    EXPECT_EQ(snap.askSummary.orderCount, 2u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 2u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 1100u);
 
     EXPECT_TRUE(snap.bidDepths.empty());
@@ -743,11 +743,11 @@ TEST_F(OrderBookTest, Snapshot_MultipleLevelsBothSides_DepthsAreOrderedBestFirst
     EXPECT_EQ(snap.mid, 106ull);
 
     EXPECT_EQ(snap.bidSummary.totalQuantity, 13);
-    EXPECT_EQ(snap.bidSummary.orderCount, 2u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 2u);
     EXPECT_EQ(snap.bidSummary.totalNotionalValue, 1340u);
 
     EXPECT_EQ(snap.askSummary.totalQuantity, 10);
-    EXPECT_EQ(snap.askSummary.orderCount, 2u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 2u);
     EXPECT_EQ(snap.askSummary.totalNotionalValue, 1088u);
 
     ASSERT_EQ(snap.bidDepths.size(), 2u);
@@ -789,9 +789,9 @@ TEST_F(OrderBookTest, Snapshot_DepthLimitZero_ReturnsEmptyDepthsButFullSummary) 
     EXPECT_TRUE(snap.bidDepths.empty());
     EXPECT_TRUE(snap.askDepths.empty());
     EXPECT_EQ(snap.bidSummary.totalQuantity, 13);
-    EXPECT_EQ(snap.bidSummary.orderCount, 2u);
+    EXPECT_EQ(snap.bidSummary.totalOrderCount, 2u);
     EXPECT_EQ(snap.askSummary.totalQuantity, 4);
-    EXPECT_EQ(snap.askSummary.orderCount, 1u);
+    EXPECT_EQ(snap.askSummary.totalOrderCount, 1u);
 }
 
 TEST_F(OrderBookTest, Snapshot_DepthLimitLargerThanLevels_ReturnsAllLevels) {

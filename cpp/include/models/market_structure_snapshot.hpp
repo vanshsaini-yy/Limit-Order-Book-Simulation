@@ -12,10 +12,9 @@ struct LevelInfo {
     uint32_t orderCount;
 };
 
-// TODO: rename to SideSummary, orderCount to totalOrderCount
-struct SideSummaries {
+struct SideSummary {
     Quantity totalQuantity;
-    uint32_t orderCount;
+    uint32_t totalOrderCount;
     uint64_t totalNotionalValue;
 };
 
@@ -31,8 +30,8 @@ struct MarketStructureSnapshot {
     std::optional<PriceTicks> bestAsk;
     std::optional<PriceTicks> spread;
     std::optional<PriceTicks> mid;
-    SideSummaries bidSummary;
-    SideSummaries askSummary;
+    SideSummary bidSummary;
+    SideSummary askSummary;
     std::vector<LevelInfo> bidDepths;
     std::vector<LevelInfo> askDepths;
     TempoMetrics tempo;

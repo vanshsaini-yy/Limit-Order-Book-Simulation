@@ -33,12 +33,12 @@ py::dict snapshotToDict(const MarketStructureSnapshot& snapshot, double tickSize
 
     py::dict bidSummary;
     bidSummary["total_quantity"] = snapshot.bidSummary.totalQuantity * lotSize;
-    bidSummary["order_count"] = snapshot.bidSummary.orderCount;
+    bidSummary["total_order_count"] = snapshot.bidSummary.totalOrderCount;
     bidSummary["total_notional_value"] = snapshot.bidSummary.totalNotionalValue * tickSize * lotSize;
 
     py::dict askSummary;
     askSummary["total_quantity"] = snapshot.askSummary.totalQuantity * lotSize;
-    askSummary["order_count"] = snapshot.askSummary.orderCount;
+    askSummary["total_order_count"] = snapshot.askSummary.totalOrderCount;
     askSummary["total_notional_value"] = snapshot.askSummary.totalNotionalValue * tickSize * lotSize;
 
     py::dict tempo;

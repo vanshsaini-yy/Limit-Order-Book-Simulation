@@ -29,7 +29,7 @@ bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order);
 
 template <typename BookSide>
 void summariseSide(
-    const BookSide& side, std::size_t depthLimit, SideSummaries& summary, std::vector<LevelInfo>& depths
+    const BookSide& side, std::size_t depthLimit, SideSummary& summary, std::vector<LevelInfo>& depths
 );
 
 }  // namespace book_side_ops

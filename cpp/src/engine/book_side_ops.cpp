@@ -59,10 +59,10 @@ bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order) {
 
 template <typename BookSide>
 void summariseSide(
-    const BookSide& side, std::size_t depthLimit, SideSummaries& summary, std::vector<LevelInfo>& depths
+    const BookSide& side, std::size_t depthLimit, SideSummary& summary, std::vector<LevelInfo>& depths
 ) {
     summary.totalQuantity = 0;
-    summary.orderCount = 0;
+    summary.totalOrderCount = 0;
     summary.totalNotionalValue = 0;
     depths.clear();
 
@@ -73,7 +73,7 @@ void summariseSide(
             levelQty += order->getQty();
         }
         summary.totalQuantity += levelQty;
-        summary.orderCount += static_cast<uint32_t>(ordersAtLevel.size());
+        summary.totalOrderCount += static_cast<uint32_t>(ordersAtLevel.size());
         summary.totalNotionalValue += static_cast<uint64_t>(price) * static_cast<uint64_t>(levelQty);
         if (levelsAdded < depthLimit) {
             depths.push_back(LevelInfo{price, levelQty, static_cast<uint32_t>(ordersAtLevel.size())});
@@ -95,10 +95,10 @@ template bool isFOKFillableOnSide<BidStructure>(const BidStructure&, const Order
 template bool isFOKFillableOnSide<AskStructure>(const AskStructure&, const OrderPtr&);
 
 template void summariseSide<BidStructure>(
-    const BidStructure&, std::size_t, SideSummaries&, std::vector<LevelInfo>&
+    const BidStructure&, std::size_t, SideSummary&, std::vector<LevelInfo>&
 );
 template void summariseSide<AskStructure>(
-    const AskStructure&, std::size_t, SideSummaries&, std::vector<LevelInfo>&
+    const AskStructure&, std::size_t, SideSummary&, std::vector<LevelInfo>&
 );
 
 }  // namespace book_side_ops

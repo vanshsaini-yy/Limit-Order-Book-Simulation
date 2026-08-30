@@ -36,7 +36,7 @@ cd build && ctest --output-on-failure
 **Python simulation** (requires Python bindings compiled into `build/cpp/`):
 ```bash
 source .venv/bin/activate
-python test_bindings.py
+python simulate_noisy_traders.py
 ```
 
 ## Architecture
@@ -73,7 +73,7 @@ MatchingEngine
 
 **`TradeLogger`** / **`TradeIdGenerator`** are optional polymorphic interfaces injected into `MatchingEngine`. Concrete implementations: `BinaryTradeLogger` (writes fixed-width `TradeLogRecord` structs to a binary file) and `MonotonicTradeIdGenerator` (atomic counter). Pass `nullptr` to disable.
 
-**`MarketStructureSnapshot`** is returned by `LimitOrderBook::snapshot()` and contains `bestBid`, `bestAsk`, `spread`, `mid` (all in `PriceTicks`), per-side `SideSummaries` (quantity, order count, notional), per-level `bidDepths`/`askDepths` (`LevelInfo`), and `TempoMetrics` (trade count, cancel count, volume).
+**`MarketStructureSnapshot`** is returned by `LimitOrderBook::snapshot()` and contains `bestBid`, `bestAsk`, `spread`, `mid` (all in `PriceTicks`), per-side `SideSummary` (quantity, order count, notional), per-level `bidDepths`/`askDepths` (`LevelInfo`), and `TempoMetrics` (trade count, cancel count, volume).
 
 **`MatchingEngineFacade`** (Python-only) owns a `LimitOrderBook`, `MatchingEngine`, and all three infrastructure objects above. Constructed via string factory args (`"cancel_both"`, `"monotonic"`, `"binary"`, etc.) plus the three market-convention scalars. It is the single entry point for Python callers.
 
@@ -96,7 +96,8 @@ All three are constructor parameters on `MatchingEngineFacade` (defaults in `cpp
 ```
 cpp/
 ├── include/
-│   ├── models/         # Order, Trade, LimitOrderBook, MatchingEngine, ExecutionEngine, MarketStructureSnapshot
+│   ├── models/         # Order, Trade, MarketStructureSnapshot, RejectionReason
+│   ├── engine/         # LimitOrderBook, MatchingEngine, ExecutionEngine, book_side_ops
 │   ├── policy/         # OrderValidator, OrderLifecycle, STPPolicy
 │   ├── infra/          # TradeLogger, TradeIdGenerator (interfaces + concrete impls)
 │   └── utils/          # order_utils.hpp (isSelfTrade helper), constants.hpp (tick/lot/time defaults)

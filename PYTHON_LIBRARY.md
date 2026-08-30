@@ -286,12 +286,12 @@ Returns a dictionary describing market structure:
   "mid": Optional[float],
   "bid_summary": {
     "total_quantity": float,
-    "order_count": int,
+    "total_order_count": int,
     "total_notional_value": float,
   },
   "ask_summary": {
     "total_quantity": float,
-    "order_count": int,
+    "total_order_count": int,
     "total_notional_value": float,
   },
   "bid_depths": [
