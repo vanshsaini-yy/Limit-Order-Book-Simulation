@@ -18,6 +18,7 @@ private:
     std::optional<PriceTicks> lastTradedPrice;
 
     bool violatesPriceCollar(const OrderPtr &order) const;
+    void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
 
 public:
     MatchingEngine(
@@ -28,8 +29,6 @@ public:
         std::optional<PriceTicks> maxDeviationTicks = std::nullopt
     );
 
-    // TODO: make applySTPPolicy private
-    void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
     RejectionReason matchOrder(const OrderPtr &incomingOrder);
 
     std::optional<PriceTicks> getLastTradedPrice()   const;
