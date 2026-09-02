@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-// TODO: add a rejection reason for STP cancellation and propagate down
 enum class RejectionReason : uint8_t {
     None,                               // No rejection, order is valid
     NullOrder,                          // nullptr passed
@@ -12,6 +11,7 @@ enum class RejectionReason : uint8_t {
     DuplicateOrderID,                   // trying to add or match an order whose ID already exists in the book
     OrderToBeCancelledDoesNotExist,     // trying to cancel an order that doesn't exist or trying to cancel an order that wasn't placed by the same owner
     OrderBookInvariantViolation,        // order book invariant violation
+    SelfTradePrevention,                // incoming order was cancelled (fully or after a partial fill) by the STP policy
     FOKInsufficientLiquidity,           // FOK order could not be filled in full against the resting book
     InvalidPostOnlyOrder,               // post-only flag set on a limit order with a non-GTC time in force (e.g. combined with IOC/FOK)
     PostOnlyWouldCross,                 // post-only order would have matched immediately against the resting book

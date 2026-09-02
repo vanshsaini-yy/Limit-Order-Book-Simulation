@@ -86,7 +86,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         if (isSelfTrade(restingOrder, incomingOrder)) {
             applySTPPolicy(restingOrder, incomingOrder, incomingInitialQty);
             if (incomingOrder->isCancelled()) {
-                return RejectionReason::None;
+                return RejectionReason::SelfTradePrevention;
             }
             if (restingOrder->isCancelled()) {
                 continue;

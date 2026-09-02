@@ -20,8 +20,9 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsIncoming_CancelsResting_OnSel
     OrderPtr incomingOrder = std::make_shared<Order>(2, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
 
     engineCancelBoth.matchOrder(restingOrder);
-    engineCancelBoth.matchOrder(incomingOrder);
+    RejectionReason result = engineCancelBoth.matchOrder(incomingOrder);
 
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Cancelled);
@@ -48,8 +49,9 @@ TEST_F(MatchingEngineSTPTest, CancelBothSTP_CancelsResting_CancelsIncomingAfterP
 
     engineCancelBoth.matchOrder(restingOrder1);
     engineCancelBoth.matchOrder(restingOrder2);
-    engineCancelBoth.matchOrder(incomingOrder);
+    RejectionReason result = engineCancelBoth.matchOrder(incomingOrder);
 
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Executed);
     EXPECT_EQ(restingOrder1->getQty(), 0);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::Cancelled);
@@ -118,8 +120,9 @@ TEST_F(MatchingEngineSTPTest, CancelIncomingSTP_CancelsIncoming_KeepsResting_OnS
     OrderPtr incomingOrder = std::make_shared<Order>(2, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
 
     engineCancelIncoming.matchOrder(restingOrder);
-    engineCancelIncoming.matchOrder(incomingOrder);
+    RejectionReason result = engineCancelIncoming.matchOrder(incomingOrder);
 
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(incomingOrder->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(incomingOrder->getQty(), 10);
     EXPECT_EQ(restingOrder->getStatus(), OrderStatus::Pending);
@@ -223,8 +226,9 @@ TEST_F(MatchingEngineSTPTest, CancelRestingSTP_CancelsSelfResting_ThenContinuesM
 
     engineCancelResting.matchOrder(restingOrder1);
     engineCancelResting.matchOrder(restingOrder2);
-    engineCancelResting.matchOrder(incomingOrder);
+    RejectionReason result = engineCancelResting.matchOrder(incomingOrder);
 
+    EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(restingOrder1->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(restingOrder1->getQty(), 5);
     EXPECT_EQ(restingOrder2->getStatus(), OrderStatus::PartiallyExecuted);

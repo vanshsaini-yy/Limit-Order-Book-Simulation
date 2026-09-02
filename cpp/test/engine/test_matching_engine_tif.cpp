@@ -710,7 +710,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_LimitBuy_CancelsSelfTradeThenDiscard
     engine.matchOrder(selfSellOrder);
     RejectionReason result = engine.matchOrder(buyOrder);
 
-    EXPECT_EQ(result, RejectionReason::None);
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
     EXPECT_EQ(buyOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
@@ -725,7 +725,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_LimitSell_CancelsSelfTradeThenDiscar
     engine.matchOrder(selfBuyOrder);
     RejectionReason result = engine.matchOrder(sellOrder);
 
-    EXPECT_EQ(result, RejectionReason::None);
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
     EXPECT_EQ(sellOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
@@ -740,7 +740,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_MarketBuy_CancelsSelfTradeThenDiscar
     engine.matchOrder(selfSellOrder);
     RejectionReason result = engine.matchOrder(buyOrder);
 
-    EXPECT_EQ(result, RejectionReason::None);
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(buyOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
     EXPECT_EQ(buyOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(buyOrder->getOrderID()));
@@ -755,7 +755,7 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_IOC_MarketSell_CancelsSelfTradeThenDisca
     engine.matchOrder(selfBuyOrder);
     RejectionReason result = engine.matchOrder(sellOrder);
 
-    EXPECT_EQ(result, RejectionReason::None);
+    EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_EQ(sellOrder->getStatus(), OrderStatus::CancelledAfterPartialExecution);
     EXPECT_EQ(sellOrder->getQty(), 7);
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));

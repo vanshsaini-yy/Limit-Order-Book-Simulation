@@ -69,7 +69,7 @@ MatchingEngine
 
 **Price Collar** is an optional order-level circuit breaker: `MatchingEngine` holds `std::optional<PriceTicks> maxDeviationTicks` (constructor parameter, `std::nullopt` disables it) and `std::optional<PriceTicks> lastTradedPrice` (updated to the maker's price after every fill). A `Limit` order priced outside `[reference − maxDeviationTicks, reference + maxDeviationTicks]` is rejected with `RejectionReason::PriceCollarViolation`, where `reference` is `lastTradedPrice` if set, else `LimitOrderBook::getMidPrice()`, else the check is skipped. `Market` orders always bypass the collar.
 
-**`STPPolicy`** is a polymorphic interface with three concrete implementations: `CancelBothSTP`, `CancelIncomingSTP`, `CancelRestingSTP`. Injected into `MatchingEngine` at construction.
+**`STPPolicy`** is a polymorphic interface with three concrete implementations: `CancelBothSTP`, `CancelIncomingSTP`, `CancelRestingSTP`. Injected into `MatchingEngine` at construction. If applying the policy ends the incoming order's life (fully cancelled, or `CancelledAfterPartialExecution`), `matchOrder` returns `RejectionReason::SelfTradePrevention` instead of `None`. `CancelRestingSTP`, which only cancels the resting order and lets the incoming order continue matching or rest, still returns `None`.
 
 **`TradeLogger`** / **`TradeIdGenerator`** are optional polymorphic interfaces injected into `MatchingEngine`. Concrete implementations: `BinaryTradeLogger` (writes fixed-width `TradeLogRecord` structs to a binary file) and `MonotonicTradeIdGenerator` (atomic counter). Pass `nullptr` to disable.
 
