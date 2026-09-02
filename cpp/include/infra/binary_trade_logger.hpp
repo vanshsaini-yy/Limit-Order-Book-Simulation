@@ -5,11 +5,10 @@
 #include <string>
 #include "infra/trade_logger.hpp"
 
-// TODO: make priceTicks int32_t
 struct TradeLogRecord {
     uint64_t tradeID;
     uint64_t timestamp;
-    int64_t priceTicks;
+    int32_t priceTicks;
     uint32_t takerOrderID;
     uint32_t makerOrderID;
     int32_t qty;
