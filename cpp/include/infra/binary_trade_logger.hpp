@@ -6,8 +6,8 @@
 #include "infra/trade_logger.hpp"
 
 struct TradeLogRecord {
-    uint32_t tradeID;
     uint64_t timestamp;
+    uint32_t tradeID;
     int32_t priceTicks;
     uint32_t takerOrderID;
     uint32_t makerOrderID;
