@@ -19,6 +19,11 @@ template <typename BookSide>
 RejectionReason addToSide(BookSide& side, OrderIDMap& orderIDMap, const OrderPtr& order);
 
 template <typename BookSide>
+RejectionReason removeFromSide(
+    BookSide& side, OrderIDMap& orderIDMap, const OrderPtr& order, OrderIDMap::iterator orderIt
+);
+
+template <typename BookSide>
 OrderPtr frontOfSide(const BookSide& side);
 
 template <typename BookSide>

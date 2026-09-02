@@ -12,6 +12,22 @@ RejectionReason addToSide(BookSide& side, OrderIDMap& orderIDMap, const OrderPtr
 }
 
 template <typename BookSide>
+RejectionReason removeFromSide(
+    BookSide& side, OrderIDMap& orderIDMap, const OrderPtr& order, OrderIDMap::iterator orderIt
+) {
+    auto bookIt = side.find(order->getPriceTicks());
+    if (bookIt == side.end()) {
+        return RejectionReason::OrderBookInvariantViolation;
+    }
+    bookIt->second.erase(orderIt->second);
+    if (bookIt->second.empty()) {
+        side.erase(bookIt);
+    }
+    orderIDMap.erase(orderIt);
+    return RejectionReason::None;
+}
+
+template <typename BookSide>
 OrderPtr frontOfSide(const BookSide& side) {
     if (side.empty() || side.begin()->second.empty()) {
         return nullptr;
@@ -85,6 +101,13 @@ void summariseSide(
 
 template RejectionReason addToSide<BidStructure>(BidStructure&, OrderIDMap&, const OrderPtr&);
 template RejectionReason addToSide<AskStructure>(AskStructure&, OrderIDMap&, const OrderPtr&);
+
+template RejectionReason removeFromSide<BidStructure>(
+    BidStructure&, OrderIDMap&, const OrderPtr&, OrderIDMap::iterator
+);
+template RejectionReason removeFromSide<AskStructure>(
+    AskStructure&, OrderIDMap&, const OrderPtr&, OrderIDMap::iterator
+);
 
 template OrderPtr frontOfSide<BidStructure>(const BidStructure&);
 template OrderPtr frontOfSide<AskStructure>(const AskStructure&);

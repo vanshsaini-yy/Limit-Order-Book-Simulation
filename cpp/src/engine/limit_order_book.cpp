@@ -71,28 +71,16 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
     if (validationResult != RejectionReason::None) {
         return validationResult;
     }
-    // TODO: add a book_side_ops free fn for this part
+    RejectionReason removeResult = RejectionReason::OrderBookInvariantViolation;
     if (order->getSide() == Side::Buy) {
-        auto bookIt = bids.find(order->getPriceTicks());
-        if (bookIt != bids.end()) {
-            bookIt->second.erase(it->second);
-            if (bookIt->second.empty())
-                bids.erase(bookIt);
-        } else {
-            return RejectionReason::OrderBookInvariantViolation;
-        }
-    } else {
-        auto bookIt = asks.find(order->getPriceTicks());
-        if (bookIt != asks.end()) {
-            bookIt->second.erase(it->second);
-            if (bookIt->second.empty())
-                asks.erase(bookIt);
-        } else {
-            return RejectionReason::OrderBookInvariantViolation;
-        }
+        removeResult = book_side_ops::removeFromSide(bids, orderIDMap, order, it);
+    } else if (order->getSide() == Side::Sell) {
+        removeResult = book_side_ops::removeFromSide(asks, orderIDMap, order, it);
+    }
+    if (removeResult != RejectionReason::None) {
+        return removeResult;
     }
     order->setStatus(OrderLifecycle::afterCancelResting(order->getStatus()));
-    orderIDMap.erase(it);
     return RejectionReason::None;
 }
 
