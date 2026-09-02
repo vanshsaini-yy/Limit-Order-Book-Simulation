@@ -2,8 +2,7 @@
 #include <cstdint>
 #include "models/order.hpp"
 
-// TODO: make TradeID uint32_t
-using TradeID = uint64_t;
+using TradeID = uint32_t;
 
 class Trade {
 private:
