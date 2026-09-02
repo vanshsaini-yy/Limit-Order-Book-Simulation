@@ -837,19 +837,21 @@ TEST_F(OrderBookTest, IsFOKFillable_AcrossMultipleAskLevels_MatchesExpectedOutco
     book.addOrder(std::make_shared<Order>(2, 2, 101, 5, Side::Sell, OrderType::Limit, 1001));
     book.addOrder(std::make_shared<Order>(3, 3, 102, 5, Side::Sell, OrderType::Limit, 1002));
 
+    STPDecision stpDecision{true, true};
+
     OrderPtr limitBuySpanningAllLevels =
         std::make_shared<Order>(4, 4, 102, 15, Side::Buy, OrderType::Limit, 1003, 0, TimeInForce::FOK);
-    EXPECT_TRUE(book.isFOKFillable(limitBuySpanningAllLevels));
+    EXPECT_TRUE(book.isFOKFillable(limitBuySpanningAllLevels, stpDecision));
 
     OrderPtr marketBuyMoreThanBookHolds =
         std::make_shared<Order>(5, 5, 0, 20, Side::Buy, OrderType::Market, 1004, 0, TimeInForce::FOK);
-    EXPECT_FALSE(book.isFOKFillable(marketBuyMoreThanBookHolds));
+    EXPECT_FALSE(book.isFOKFillable(marketBuyMoreThanBookHolds, stpDecision));
 
     OrderPtr limitBuyOneLevelShort =
         std::make_shared<Order>(6, 6, 101, 15, Side::Buy, OrderType::Limit, 1005, 0, TimeInForce::FOK);
-    EXPECT_FALSE(book.isFOKFillable(limitBuyOneLevelShort));
+    EXPECT_FALSE(book.isFOKFillable(limitBuyOneLevelShort, stpDecision));
 
     OrderPtr marketBuySweepsEverything =
         std::make_shared<Order>(7, 7, 0, 15, Side::Buy, OrderType::Market, 1006, 0, TimeInForce::FOK);
-    EXPECT_TRUE(book.isFOKFillable(marketBuySweepsEverything));
+    EXPECT_TRUE(book.isFOKFillable(marketBuySweepsEverything, stpDecision));
 }

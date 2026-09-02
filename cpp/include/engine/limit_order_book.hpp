@@ -38,8 +38,9 @@ public:
     RejectionReason addOrder(const OrderPtr &order);
     RejectionReason cancelOrder(OrderID orderId, OwnerID requesterOwnerID);
 
-    bool isOrderMarketable(const OrderPtr &order)     const;
-    bool isFOKFillable(const OrderPtr &order)         const;
+    bool isOrderMarketable(const OrderPtr &order)                      const;
+    bool isFOKFillable(const OrderPtr &order, STPDecision stpDecision) const;
+    
     OrderPtr getMatchedOrder(const Side incomingSide) const;
     
     void popFront(const Side incomingSide);

@@ -885,6 +885,70 @@ TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_MarketSell_EarlyExit_FillsWithoutTou
     EXPECT_FALSE(orderBook.doesOrderExist(sellOrder->getOrderID()));
 }
 
+TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_LimitBuy_CancelRestingSTP_FillsBySkippingSelfOrder) {
+    LimitOrderBook restingOrderBook;
+    CancelRestingSTP restingPolicy;
+    MatchingEngine restingEngine{&restingOrderBook, &restingPolicy};
+
+    OrderPtr selfSellOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
+    OrderPtr otherSellOrder = std::make_shared<Order>(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1622547801);
+    OrderPtr buyOrder = std::make_shared<Order>(3, 1, 101, 5, Side::Buy, OrderType::Limit, 1622547802, 0, TimeInForce::FOK);
+
+    restingEngine.matchOrder(selfSellOrder);
+    restingEngine.matchOrder(otherSellOrder);
+    RejectionReason result = restingEngine.matchOrder(buyOrder);
+
+    EXPECT_EQ(result, RejectionReason::None);
+    EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Executed);
+    EXPECT_EQ(buyOrder->getQty(), 0);
+    EXPECT_EQ(selfSellOrder->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(selfSellOrder->getQty(), 10);
+    EXPECT_EQ(otherSellOrder->getStatus(), OrderStatus::PartiallyExecuted);
+    EXPECT_EQ(otherSellOrder->getQty(), 5);
+}
+
+TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_LimitSell_CancelRestingSTP_FillsBySkippingSelfOrder) {
+    LimitOrderBook restingOrderBook;
+    CancelRestingSTP restingPolicy;
+    MatchingEngine restingEngine{&restingOrderBook, &restingPolicy};
+
+    OrderPtr selfBuyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
+    OrderPtr otherBuyOrder = std::make_shared<Order>(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1622547801);
+    OrderPtr sellOrder = std::make_shared<Order>(3, 1, 99, 5, Side::Sell, OrderType::Limit, 1622547802, 0, TimeInForce::FOK);
+
+    restingEngine.matchOrder(selfBuyOrder);
+    restingEngine.matchOrder(otherBuyOrder);
+    RejectionReason result = restingEngine.matchOrder(sellOrder);
+
+    EXPECT_EQ(result, RejectionReason::None);
+    EXPECT_EQ(sellOrder->getStatus(), OrderStatus::Executed);
+    EXPECT_EQ(sellOrder->getQty(), 0);
+    EXPECT_EQ(selfBuyOrder->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(selfBuyOrder->getQty(), 10);
+    EXPECT_EQ(otherBuyOrder->getStatus(), OrderStatus::PartiallyExecuted);
+    EXPECT_EQ(otherBuyOrder->getQty(), 5);
+}
+
+TEST_F(MatchingEngineTIFTest, SelfTrade_FOK_CancelRestingSTP_StillUnfillable_WhenOtherLiquidityInsufficient) {
+    LimitOrderBook restingOrderBook;
+    CancelRestingSTP restingPolicy;
+    MatchingEngine restingEngine{&restingOrderBook, &restingPolicy};
+
+    OrderPtr selfSellOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
+    OrderPtr otherSellOrder = std::make_shared<Order>(2, 2, 101, 3, Side::Sell, OrderType::Limit, 1622547801);
+    OrderPtr buyOrder = std::make_shared<Order>(3, 1, 101, 5, Side::Buy, OrderType::Limit, 1622547802, 0, TimeInForce::FOK);
+
+    restingEngine.matchOrder(selfSellOrder);
+    restingEngine.matchOrder(otherSellOrder);
+    RejectionReason result = restingEngine.matchOrder(buyOrder);
+
+    EXPECT_EQ(result, RejectionReason::FOKInsufficientLiquidity);
+    EXPECT_EQ(buyOrder->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(buyOrder->getQty(), 5);
+    EXPECT_TRUE(restingOrderBook.doesOrderExist(selfSellOrder->getOrderID()));
+    EXPECT_TRUE(restingOrderBook.doesOrderExist(otherSellOrder->getOrderID()));
+}
+
 // =====================================================================
 // GTC (default) — remains unaffected by TIF-specific handling
 // =====================================================================

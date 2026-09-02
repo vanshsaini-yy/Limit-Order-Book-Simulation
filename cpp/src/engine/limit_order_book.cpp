@@ -110,14 +110,14 @@ bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
     }
 }
 
-bool LimitOrderBook::isFOKFillable(const OrderPtr &order) const {
+bool LimitOrderBook::isFOKFillable(const OrderPtr &order, STPDecision stpDecision) const {
     if (order->getQty() <= 0) {
         return true;
     }
     if (order->getSide() == Side::Buy) {
-        return book_side_ops::isFOKFillableOnSide(asks, order);
+        return book_side_ops::isFOKFillableOnSide(asks, order, stpDecision);
     } else {
-        return book_side_ops::isFOKFillableOnSide(bids, order);
+        return book_side_ops::isFOKFillableOnSide(bids, order, stpDecision);
     }
 }
 

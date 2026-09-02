@@ -62,7 +62,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return RejectionReason::PostOnlyWouldCross;
     }
 
-    if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder)) {
+    if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder, stpPolicy->getDecision())) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::FOKInsufficientLiquidity;
     }

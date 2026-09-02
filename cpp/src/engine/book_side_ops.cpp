@@ -49,9 +49,8 @@ void popFrontOfSide(BookSide& side, OrderIDMap& orderIDMap) {
     }
 }
 
-// TODO: need to be adjusted for STPPolicy::CancelResting
 template <typename BookSide>
-bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order) {
+bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order, STPDecision stpDecision) {
     Quantity neededQty = order->getQty();
     OwnerID incomingOwnerID = order->getOwnerID();
     bool isLimit = order->getType() == OrderType::Limit;
@@ -63,7 +62,10 @@ bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order) {
         }
         for (const auto& restingOrder : ordersAtLevel) {
             if (restingOrder->getOwnerID() == incomingOwnerID) {
-                return false;
+                if (stpDecision.cancelIncoming) {
+                    return false;
+                }
+                continue;
             }
             availableQty += restingOrder->getQty();
             if (availableQty >= neededQty) {
@@ -115,8 +117,8 @@ template OrderPtr frontOfSide<AskStructure>(const AskStructure&);
 template void popFrontOfSide<BidStructure>(BidStructure&, OrderIDMap&);
 template void popFrontOfSide<AskStructure>(AskStructure&, OrderIDMap&);
 
-template bool isFOKFillableOnSide<BidStructure>(const BidStructure&, const OrderPtr&);
-template bool isFOKFillableOnSide<AskStructure>(const AskStructure&, const OrderPtr&);
+template bool isFOKFillableOnSide<BidStructure>(const BidStructure&, const OrderPtr&, STPDecision);
+template bool isFOKFillableOnSide<AskStructure>(const AskStructure&, const OrderPtr&, STPDecision);
 
 template void summariseSide<BidStructure>(
     const BidStructure&, std::size_t, SideSummary&, std::vector<LevelInfo>&

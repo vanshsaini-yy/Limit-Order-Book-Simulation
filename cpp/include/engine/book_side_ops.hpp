@@ -8,6 +8,7 @@
 #include "models/order.hpp"
 #include "models/rejection_reason.hpp"
 #include "models/market_structure_snapshot.hpp"
+#include "policy/stp_policy.hpp"
 
 using OrderIDMap = std::unordered_map<OrderID, std::list<OrderPtr>::iterator>;
 using BidStructure = std::map<PriceTicks, std::list<OrderPtr>, std::greater<PriceTicks>>;
@@ -30,7 +31,7 @@ template <typename BookSide>
 void popFrontOfSide(BookSide& side, OrderIDMap& orderIDMap);
 
 template <typename BookSide>
-bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order);
+bool isFOKFillableOnSide(const BookSide& side, const OrderPtr& order, STPDecision stpDecision);
 
 template <typename BookSide>
 void summariseSide(
