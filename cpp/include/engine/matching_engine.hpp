@@ -17,7 +17,7 @@ private:
     std::optional<PriceTicks> maxDeviationTicks;
     std::optional<PriceTicks> lastTradedPrice;
 
-    bool violatesPriceCollar(const OrderPtr &order) const;
+    bool violatesPriceCollar(const Order& order) const;
     void applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty);
 
 public:

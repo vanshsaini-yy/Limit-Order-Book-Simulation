@@ -7,11 +7,11 @@
 
 class ExecutionEngine {
 public:
-    static Quantity executeTrade(const OrderPtr& taker, const OrderPtr& maker);
+    static Quantity executeTrade(Order& taker, Order& maker);
 
     static Quantity executeTrade(
-        const OrderPtr& taker,
-        const OrderPtr& maker,
+        Order& taker,
+        Order& maker,
         TradeLogger* tradeLogger,
         TradeIdGenerator* tradeIdGenerator
     );

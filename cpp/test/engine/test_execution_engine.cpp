@@ -43,7 +43,7 @@ protected:
 };
 
 TEST_F(ExecutionEngineTest, ExecuteTradeWithEqualQuantities) {
-    uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, sellOrder);
+    uint32_t tradedQty = ExecutionEngine::executeTrade(*buyOrder, *sellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(buyOrder->getQty(), 0);
@@ -53,7 +53,7 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithEqualQuantities) {
 TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
     OrderPtr largerSellOrder = std::make_shared<Order>(3, 300, 1000, 150, Side::Sell, OrderType::Limit, 1622547802);
     
-    uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, largerSellOrder);
+    uint32_t tradedQty = ExecutionEngine::executeTrade(*buyOrder, *largerSellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(buyOrder->getQty(), 0);
@@ -63,7 +63,7 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithTakerSmallerQuantity) {
 TEST_F(ExecutionEngineTest, ExecuteTradeWithMakerSmallerQuantity) {
     OrderPtr largerBuyOrder = std::make_shared<Order>(4, 400, 1000, 150, Side::Buy, OrderType::Limit, 1622547803);
     
-    uint32_t tradedQty = ExecutionEngine::executeTrade(largerBuyOrder, sellOrder);
+    uint32_t tradedQty = ExecutionEngine::executeTrade(*largerBuyOrder, *sellOrder);
     
     EXPECT_EQ(tradedQty, 100u);
     EXPECT_EQ(largerBuyOrder->getQty(), 50);
@@ -74,7 +74,7 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
     OrderPtr emptyBuyOrder = std::make_shared<Order>(5, 500, 1000, 0, Side::Buy, OrderType::Limit, 1622547804);
     OrderPtr emptySellOrder = std::make_shared<Order>(6, 600, 1000, 0, Side::Sell, OrderType::Limit, 1622547805);
     
-    uint32_t tradedQty = ExecutionEngine::executeTrade(emptyBuyOrder, emptySellOrder);
+    uint32_t tradedQty = ExecutionEngine::executeTrade(*emptyBuyOrder, *emptySellOrder);
     
     EXPECT_EQ(tradedQty, 0u);
     EXPECT_EQ(emptyBuyOrder->getQty(), 0);
@@ -84,7 +84,7 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithZeroQuantities) {
 TEST_F(ExecutionEngineTest, ExecuteTradeWithOneZeroQuantity) {
     OrderPtr emptySellOrder = std::make_shared<Order>(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
     
-    uint32_t tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder);
+    uint32_t tradedQty = ExecutionEngine::executeTrade(*buyOrder, *emptySellOrder);
     
     EXPECT_EQ(tradedQty, 0u);
     EXPECT_EQ(buyOrder->getQty(), 100);
@@ -95,7 +95,7 @@ TEST_F(ExecutionEngineTest, ExecuteTradeWithLargeQuantities) {
     OrderPtr largeBuyOrder = std::make_shared<Order>(10, 1000, 1000, 1000000u, Side::Buy, OrderType::Limit, 1622547809);
     OrderPtr largeSellOrder = std::make_shared<Order>(11, 1100, 1000, 2000000u, Side::Sell, OrderType::Limit, 1622547810);
     
-    uint32_t tradedQty = ExecutionEngine::executeTrade(largeBuyOrder, largeSellOrder);
+    uint32_t tradedQty = ExecutionEngine::executeTrade(*largeBuyOrder, *largeSellOrder);
     
     EXPECT_EQ(tradedQty, 1000000u);
     EXPECT_EQ(largeBuyOrder->getQty(), 0);
@@ -108,7 +108,7 @@ TEST_F(ExecutionEngineTest, ExecuteTradeDoesNotAffectOtherOrderFields) {
     uint64_t originalBuyPrice = buyOrder->getPriceTicks();
     uint64_t originalBuyTimestamp = buyOrder->getTimestamp();
     
-    ExecutionEngine::executeTrade(buyOrder, sellOrder);
+    ExecutionEngine::executeTrade(*buyOrder, *sellOrder);
     
     EXPECT_EQ(buyOrder->getOrderID(), originalBuyOrderID);
     EXPECT_EQ(buyOrder->getOwnerID(), originalBuyOwnerID);
@@ -120,7 +120,7 @@ TEST_F(ExecutionEngineTest, LogsTradeWhenQtyTraded) {
     MockTradeLogger logger;
     MockTradeIdGenerator idGenerator(9001);
 
-    Quantity tradedQty = ExecutionEngine::executeTrade(buyOrder, sellOrder, &logger, &idGenerator);
+    Quantity tradedQty = ExecutionEngine::executeTrade(*buyOrder, *sellOrder, &logger, &idGenerator);
 
     ASSERT_EQ(logger.trades.size(), 1u);
     const Trade& trade = logger.trades.front();
@@ -138,7 +138,7 @@ TEST_F(ExecutionEngineTest, DoesNotLogWhenTradedQtyZero) {
     MockTradeIdGenerator idGenerator(9002);
     OrderPtr emptySellOrder = std::make_shared<Order>(7, 700, 1000, 0, Side::Sell, OrderType::Limit, 1622547806);
 
-    Quantity tradedQty = ExecutionEngine::executeTrade(buyOrder, emptySellOrder, &logger, &idGenerator);
+    Quantity tradedQty = ExecutionEngine::executeTrade(*buyOrder, *emptySellOrder, &logger, &idGenerator);
 
     EXPECT_EQ(tradedQty, 0);
     EXPECT_TRUE(logger.trades.empty());

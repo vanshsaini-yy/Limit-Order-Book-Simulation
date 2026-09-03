@@ -16,8 +16,8 @@ MatchingEngine::MatchingEngine(
 std::optional<PriceTicks> MatchingEngine::getLastTradedPrice()   const { return lastTradedPrice; }
 std::optional<PriceTicks> MatchingEngine::getMaxDeviationTicks() const { return maxDeviationTicks; }
 
-bool MatchingEngine::violatesPriceCollar(const OrderPtr &order) const {
-    if (!maxDeviationTicks.has_value() || order->getType() != OrderType::Limit) {
+bool MatchingEngine::violatesPriceCollar(const Order& order) const {
+    if (!maxDeviationTicks.has_value() || order.getType() != OrderType::Limit) {
         return false;
     }
     std::optional<PriceTicks> reference = lastTradedPrice.has_value() ? lastTradedPrice : orderBook->getMidPrice();
@@ -26,7 +26,7 @@ bool MatchingEngine::violatesPriceCollar(const OrderPtr &order) const {
     }
     PriceTicks lowerBound = *reference - *maxDeviationTicks;
     PriceTicks upperBound = *reference + *maxDeviationTicks;
-    return order->getPriceTicks() < lowerBound || order->getPriceTicks() > upperBound;
+    return order.getPriceTicks() < lowerBound || order.getPriceTicks() > upperBound;
 }
 
 void MatchingEngine::applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty) {
@@ -67,7 +67,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return RejectionReason::FOKInsufficientLiquidity;
     }
 
-    if (violatesPriceCollar(incomingOrder)) {
+    if (violatesPriceCollar(*incomingOrder)) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::PriceCollarViolation;
     }
@@ -83,7 +83,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         }
         Quantity restingInitialQty = restingOrder->getQty();
 
-        if (isSelfTrade(restingOrder, incomingOrder)) {
+        if (isSelfTrade(*restingOrder, *incomingOrder)) {
             applySTPPolicy(restingOrder, incomingOrder, incomingInitialQty);
             if (incomingOrder->isCancelled()) {
                 return RejectionReason::SelfTradePrevention;
@@ -93,7 +93,7 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
             }
         }
 
-        Quantity tradedQty = ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
+        Quantity tradedQty = ExecutionEngine::executeTrade(*incomingOrder, *restingOrder, tradeLogger, tradeIdGenerator);
         orderBook->recordExecution(tradedQty);
         if (tradedQty > 0) {
             lastTradedPrice = restingOrder->getPriceTicks();

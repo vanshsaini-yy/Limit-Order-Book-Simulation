@@ -1,15 +1,15 @@
 #include "engine/execution_engine.hpp"
 
-Quantity ExecutionEngine::executeTrade(const OrderPtr& taker, const OrderPtr& maker) {
-    Quantity tradedQty = std::min(taker->getQty(), maker->getQty());
-    taker->reduceQty(tradedQty);
-    maker->reduceQty(tradedQty);
+Quantity ExecutionEngine::executeTrade(Order& taker, Order& maker) {
+    Quantity tradedQty = std::min(taker.getQty(), maker.getQty());
+    taker.reduceQty(tradedQty);
+    maker.reduceQty(tradedQty);
     return tradedQty;
 }
 
 Quantity ExecutionEngine::executeTrade(
-    const OrderPtr& taker,
-    const OrderPtr& maker,
+    Order& taker,
+    Order& maker,
     TradeLogger* tradeLogger,
     TradeIdGenerator* tradeIdGenerator
 ) {
@@ -19,12 +19,12 @@ Quantity ExecutionEngine::executeTrade(
     }
     Trade trade(
         tradeIdGenerator->nextId(),
-        taker->getOrderID(),
-        maker->getOrderID(),
-        maker->getPriceTicks(),
+        taker.getOrderID(),
+        maker.getOrderID(),
+        maker.getPriceTicks(),
         tradedQty,
-        taker->getSide(),
-        taker->getTimestamp()
+        taker.getSide(),
+        taker.getTimestamp()
     );
     tradeLogger->log(trade);
     return tradedQty;

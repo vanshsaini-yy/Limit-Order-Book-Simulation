@@ -111,6 +111,15 @@ lob.Order(
 - `is_cancelled() -> bool`
 - `is_executed() -> bool`
 
+### Ownership across the Python/C++ boundary
+
+- An `Order` you construct in Python and the corresponding `Order` resting in the book (or held anywhere in C++) are the **same object**, not a copy. `Order` is bound with a `shared_ptr` holder, so passing an `Order` into `match_order` shares ownership between your Python variable and the engine rather than cloning it.
+- Because of that, **your existing Python `Order` object is mutated in place** as the engine processes it — `status` and `qty` change on the reference you already hold. You never need to re-fetch it or call `match_order` again to observe a fill, a cancellation, or an STP outcome.
+- Python cannot mutate an `Order` directly: every property is read-only, and the engine's internal mutators are intentionally not exposed to Python. The only way to change an order's `qty`/`status` is to submit it through `match_order`, or to submit a `Cancel`-type order that references it via `linked_order_id`.
+- A resting order outlives your Python reference. If you let your only variable for a resting order go out of scope (or `del` it), the underlying `Order` is kept alive by the book's own `shared_ptr` — it is not destroyed. There is currently **no API to fetch a handle to a resting order by `order_id`**; `snapshot()` only returns aggregated price-level data, not individual orders. In practice, keep a reference to any `Order` you want to inspect or cancel later.
+- Constructing a second `Order` with the same `order_id` as one already resting in the book does **not** give you a handle to that resting order — it's a distinct object. Submitting it is rejected with `RejectionReason.DUPLICATE_ORDER_ID` and never merges with or mutates the original.
+- A `Cancel`-type order does not turn itself into the order it cancels — it's a separate, short-lived order whose `linked_order_id` tells the engine which resting order to remove. On success, the `Cancel` order's own `status` becomes `EXECUTED`, and it's the *targeted* resting order (visible only through whoever still holds a reference to it) whose `status`/`qty` actually change. If the cancel is rejected, the `Cancel` order's own `status` becomes `CANCELLED` and the resting order is untouched.
+
 ### Order validation rules (important)
 
 - LIMIT orders require:
@@ -275,7 +284,7 @@ Submits an order for validation/matching/cancellation.
 
 - Returns `RejectionReason.NONE` on success.
 - Returns a non-`NONE` rejection reason when not accepted.
-- The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds).
+- The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds) — see [Ownership across the Python/C++ boundary](#ownership-across-the-pythonc-boundary).
 
 #### snapshot(now: int, depth_limit: int = 5) -> dict
 

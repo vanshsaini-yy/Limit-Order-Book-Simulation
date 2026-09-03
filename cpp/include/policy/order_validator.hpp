@@ -4,9 +4,9 @@
 
 class OrderValidator {
 public:
-    static RejectionReason validateLimitOrder(const OrderPtr &order, bool allowPartialExecution = false);
-    static RejectionReason validateMarketOrder(const OrderPtr &order);
-    static RejectionReason validateCancelOrder(const OrderPtr &order);
+    static RejectionReason validateLimitOrder(const Order& order, bool allowPartialExecution = false);
+    static RejectionReason validateMarketOrder(const Order& order);
+    static RejectionReason validateCancelOrder(const Order& order);
     static RejectionReason validateBeforeAddingOrRemoving(const OrderPtr &order);
     static RejectionReason validateBeforeMatching(const OrderPtr &order);
 };
