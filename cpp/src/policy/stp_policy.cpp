@@ -1,4 +1,4 @@
-#include "policy/self_trade_prevention.hpp"
+#include "policy/stp_policy.hpp"
 
 STPDecision CancelBothSTP::getDecision() const {
     return STPDecision{true, true};

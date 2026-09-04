@@ -1,7 +1,7 @@
 #include "order_bindings.hpp"
 
 #include "models/order.hpp"
-#include "policy/order_validation.hpp"
+#include "models/rejection_reason.hpp"
 
 namespace py = pybind11;
 
@@ -35,9 +35,10 @@ void bindOrderTypes(py::module_& module) {
         .value("INVALID_LIMIT_ORDER", RejectionReason::InvalidLimitOrder)
         .value("INVALID_MARKET_ORDER", RejectionReason::InvalidMarketOrder)
         .value("INVALID_CANCEL_ORDER", RejectionReason::InvalidCancelOrder)
-        .value("ORDER_TO_BE_ADDED_ALREADY_EXISTS", RejectionReason::OrderToBeAddedAlreadyExists)
+        .value("DUPLICATE_ORDER_ID", RejectionReason::DuplicateOrderID)
         .value("ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST", RejectionReason::OrderToBeCancelledDoesNotExist)
         .value("ORDER_BOOK_INVARIANT_VIOLATION", RejectionReason::OrderBookInvariantViolation)
+        .value("SELF_TRADE_PREVENTION", RejectionReason::SelfTradePrevention)
         .value("FOK_INSUFFICIENT_LIQUIDITY", RejectionReason::FOKInsufficientLiquidity)
         .value("INVALID_POST_ONLY_ORDER", RejectionReason::InvalidPostOnlyOrder)
         .value("POST_ONLY_WOULD_CROSS", RejectionReason::PostOnlyWouldCross)

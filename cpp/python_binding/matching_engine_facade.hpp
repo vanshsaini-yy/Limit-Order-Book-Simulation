@@ -9,10 +9,10 @@
 #include "infra/monotonic_trade_id_generator.hpp"
 #include "infra/trade_id_generator.hpp"
 #include "infra/trade_logger.hpp"
-#include "models/matching_engine.hpp"
+#include "engine/matching_engine.hpp"
 #include "models/market_structure_snapshot.hpp"
-#include "models/order_book.hpp"
-#include "policy/self_trade_prevention.hpp"
+#include "engine/limit_order_book.hpp"
+#include "policy/stp_policy.hpp"
 #include "utils/constants.hpp"
 
 class MatchingEngineFacade {

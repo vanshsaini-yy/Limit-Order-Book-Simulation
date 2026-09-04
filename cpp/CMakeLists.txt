@@ -1,12 +1,13 @@
 add_library(lob_core STATIC
     src/models/order.cpp
     src/models/trade.cpp
-    src/models/order_book.cpp
-    src/models/matching_engine.cpp
-    src/models/execution_engine.cpp
-    src/policy/order_validation.cpp
+    src/engine/limit_order_book.cpp
+    src/engine/book_side_ops.cpp
+    src/engine/matching_engine.cpp
+    src/engine/execution_engine.cpp
+    src/policy/order_validator.cpp
     src/policy/order_lifecycle.cpp
-    src/policy/self_trade_prevention.cpp
+    src/policy/stp_policy.cpp
     src/infra/monotonic_trade_id_generator.cpp
     src/infra/binary_trade_logger.cpp
     src/utils/order_utils.cpp

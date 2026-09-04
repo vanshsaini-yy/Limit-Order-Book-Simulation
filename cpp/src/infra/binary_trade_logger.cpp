@@ -2,8 +2,8 @@
 
 TradeLogRecord BinaryTradeLogger::toRecord(const Trade& trade) {
     return TradeLogRecord{
-        trade.getTradeID(),
         trade.getTimestamp(),
+        trade.getTradeID(),
         trade.getPriceTicks(),
         trade.getTakerOrderID(),
         trade.getMakerOrderID(),

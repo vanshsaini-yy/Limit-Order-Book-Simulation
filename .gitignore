@@ -1,0 +1,10 @@
+build/
+.vscode/
+.venv/
+__pycache__/
+*.pyc
+*.so
+*.bin
+simulate_noisy_traders.py
+REFACTOR_PLAN.md
+FEATURE_ROADMAP.md

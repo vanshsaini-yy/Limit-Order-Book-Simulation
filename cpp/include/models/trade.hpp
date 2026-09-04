@@ -2,34 +2,34 @@
 #include <cstdint>
 #include "models/order.hpp"
 
-using TradeID = uint64_t;
+using TradeID = uint32_t;
 
 class Trade {
-    private:
-        TradeID tradeID;
-        OrderID takerOrderID;
-        OrderID makerOrderID;
-        PriceTicks priceTicks;
-        Quantity qty;
-        Side side;
-        Timestamp timestamp;
+private:
+    TradeID tradeID;
+    OrderID takerOrderID;
+    OrderID makerOrderID;
+    PriceTicks priceTicks;
+    Quantity qty;
+    Side side;
+    Timestamp timestamp;
 
-    public:
-        Trade(
-            TradeID tradeID_,
-            OrderID takerOrderID_,
-            OrderID makerOrderID_,
-            PriceTicks priceTicks_,
-            Quantity qty_,
-            Side side_,
-            Timestamp timestamp_
-        );
+public:
+    Trade(
+        TradeID tradeID_,
+        OrderID takerOrderID_,
+        OrderID makerOrderID_,
+        PriceTicks priceTicks_,
+        Quantity qty_,
+        Side side_,
+        Timestamp timestamp_
+    );
 
-        TradeID    getTradeID()      const;
-        Timestamp  getTimestamp()    const;
-        PriceTicks getPriceTicks()   const;
-        Quantity   getQty()          const;
-        Side       getSide()         const;
-        OrderID    getTakerOrderID() const;
-        OrderID    getMakerOrderID() const;
+    TradeID    getTradeID()      const;
+    Timestamp  getTimestamp()    const;
+    PriceTicks getPriceTicks()   const;
+    Quantity   getQty()          const;
+    Side       getSide()         const;
+    OrderID    getTakerOrderID() const;
+    OrderID    getMakerOrderID() const;
 };

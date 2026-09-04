@@ -9,7 +9,7 @@ Order::Order(
     OrderType type_,
     Timestamp timestamp_,
     OrderID linkedOrderID_,
-    TimeInForce tif_,
+    TimeInForce timeInForce_,
     bool postOnly_
 )
 :   orderID(orderID_),
@@ -21,7 +21,7 @@ Order::Order(
     timestamp(timestamp_),
     status(OrderStatus::Pending),
     linkedOrderID(linkedOrderID_),
-    tif(tif_),
+    timeInForce(timeInForce_),
     postOnly(postOnly_) {}
 
 OrderID     Order::getOrderID()       const { return orderID; }
@@ -33,7 +33,7 @@ OrderType   Order::getType()          const { return type; }
 Timestamp   Order::getTimestamp()     const { return timestamp; }
 OrderStatus Order::getStatus()        const { return status; }
 OrderID     Order::getLinkedOrderID() const { return linkedOrderID; }
-TimeInForce Order::getTimeInForce()   const { return tif; }
+TimeInForce Order::getTimeInForce()   const { return timeInForce; }
 
 void Order::reduceQty(Quantity qtyFilled)    { qty -= qtyFilled; }
 void Order::setStatus(OrderStatus newStatus) { status = newStatus; }

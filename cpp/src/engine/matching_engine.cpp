@@ -1,14 +1,14 @@
-#include "models/matching_engine.hpp"
+#include "engine/matching_engine.hpp"
 
 MatchingEngine::MatchingEngine(
-    STPPolicy* policy,
     LimitOrderBook* book,
+    STPPolicy* policy,
     TradeLogger* logger,
     TradeIdGenerator* idGenerator,
     std::optional<PriceTicks> deviationTicks
 )
-    : stpPolicy(policy),
-      orderBook(book),
+    : orderBook(book),
+      stpPolicy(policy),
       tradeLogger(logger),
       tradeIdGenerator(idGenerator),
       maxDeviationTicks(deviationTicks) {}
@@ -16,8 +16,8 @@ MatchingEngine::MatchingEngine(
 std::optional<PriceTicks> MatchingEngine::getLastTradedPrice()   const { return lastTradedPrice; }
 std::optional<PriceTicks> MatchingEngine::getMaxDeviationTicks() const { return maxDeviationTicks; }
 
-bool MatchingEngine::violatesPriceCollar(const OrderPtr &order) const {
-    if (!maxDeviationTicks.has_value() || order->getType() != OrderType::Limit) {
+bool MatchingEngine::violatesPriceCollar(const Order& order) const {
+    if (!maxDeviationTicks.has_value() || order.getType() != OrderType::Limit) {
         return false;
     }
     std::optional<PriceTicks> reference = lastTradedPrice.has_value() ? lastTradedPrice : orderBook->getMidPrice();
@@ -26,7 +26,7 @@ bool MatchingEngine::violatesPriceCollar(const OrderPtr &order) const {
     }
     PriceTicks lowerBound = *reference - *maxDeviationTicks;
     PriceTicks upperBound = *reference + *maxDeviationTicks;
-    return order->getPriceTicks() < lowerBound || order->getPriceTicks() > upperBound;
+    return order.getPriceTicks() < lowerBound || order.getPriceTicks() > upperBound;
 }
 
 void MatchingEngine::applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr &incomingOrder, const Quantity incomingInitialQty) {
@@ -53,9 +53,8 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return validationResult;
     }
 
-    // TODO 1: rename this to OrderToBeMatchedAlreadyExists
     if (orderBook->doesOrderExist(incomingOrder->getOrderID())) {
-        return RejectionReason::OrderToBeAddedAlreadyExists;
+        return RejectionReason::DuplicateOrderID;
     }
 
     if (incomingOrder->isPostOnly() && orderBook->isOrderMarketable(incomingOrder)) {
@@ -63,12 +62,12 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return RejectionReason::PostOnlyWouldCross;
     }
 
-    if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder)) {
+    if (incomingOrder->getTimeInForce() == TimeInForce::FOK && !orderBook->isFOKFillable(incomingOrder, stpPolicy->getDecision())) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::FOKInsufficientLiquidity;
     }
 
-    if (violatesPriceCollar(incomingOrder)) {
+    if (violatesPriceCollar(*incomingOrder)) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::PriceCollarViolation;
     }
@@ -78,19 +77,23 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
 
     while (orderBook->isOrderMarketable(incomingOrder)) {
         OrderPtr restingOrder = orderBook->getMatchedOrder(incomingSide);
+        if (!restingOrder) {
+            incomingOrder->setStatus(OrderStatus::Cancelled);
+            return RejectionReason::OrderBookInvariantViolation;
+        }
         Quantity restingInitialQty = restingOrder->getQty();
 
-        if (isSelfTrade(restingOrder, incomingOrder)) {
+        if (isSelfTrade(*restingOrder, *incomingOrder)) {
             applySTPPolicy(restingOrder, incomingOrder, incomingInitialQty);
             if (incomingOrder->isCancelled()) {
-                return RejectionReason::None;
+                return RejectionReason::SelfTradePrevention;
             }
             if (restingOrder->isCancelled()) {
                 continue;
             }
         }
 
-        Quantity tradedQty = ExecutionEngine::executeTrade(incomingOrder, restingOrder, tradeLogger, tradeIdGenerator);
+        Quantity tradedQty = ExecutionEngine::executeTrade(*incomingOrder, *restingOrder, tradeLogger, tradeIdGenerator);
         orderBook->recordExecution(tradedQty);
         if (tradedQty > 0) {
             lastTradedPrice = restingOrder->getPriceTicks();

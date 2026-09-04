@@ -62,9 +62,10 @@ import limit_order_book as lob
 - INVALID_LIMIT_ORDER
 - INVALID_MARKET_ORDER
 - INVALID_CANCEL_ORDER
-- ORDER_TO_BE_ADDED_ALREADY_EXISTS
+- DUPLICATE_ORDER_ID
 - ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST
 - ORDER_BOOK_INVARIANT_VIOLATION
+- SELF_TRADE_PREVENTION
 - FOK_INSUFFICIENT_LIQUIDITY
 - INVALID_POST_ONLY_ORDER
 - POST_ONLY_WOULD_CROSS
@@ -110,6 +111,15 @@ lob.Order(
 - `is_cancelled() -> bool`
 - `is_executed() -> bool`
 
+### Ownership across the Python/C++ boundary
+
+- An `Order` you construct in Python and the corresponding `Order` resting in the book (or held anywhere in C++) are the **same object**, not a copy. `Order` is bound with a `shared_ptr` holder, so passing an `Order` into `match_order` shares ownership between your Python variable and the engine rather than cloning it.
+- Because of that, **your existing Python `Order` object is mutated in place** as the engine processes it — `status` and `qty` change on the reference you already hold. You never need to re-fetch it or call `match_order` again to observe a fill, a cancellation, or an STP outcome.
+- Python cannot mutate an `Order` directly: every property is read-only, and the engine's internal mutators are intentionally not exposed to Python. The only way to change an order's `qty`/`status` is to submit it through `match_order`, or to submit a `Cancel`-type order that references it via `linked_order_id`.
+- A resting order outlives your Python reference. If you let your only variable for a resting order go out of scope (or `del` it), the underlying `Order` is kept alive by the book's own `shared_ptr` — it is not destroyed. There is currently **no API to fetch a handle to a resting order by `order_id`**; `snapshot()` only returns aggregated price-level data, not individual orders. In practice, keep a reference to any `Order` you want to inspect or cancel later.
+- Constructing a second `Order` with the same `order_id` as one already resting in the book does **not** give you a handle to that resting order — it's a distinct object. Submitting it is rejected with `RejectionReason.DUPLICATE_ORDER_ID` and never merges with or mutates the original.
+- A `Cancel`-type order does not turn itself into the order it cancels — it's a separate, short-lived order whose `linked_order_id` tells the engine which resting order to remove. On success, the `Cancel` order's own `status` becomes `EXECUTED`, and it's the *targeted* resting order (visible only through whoever still holds a reference to it) whose `status`/`qty` actually change. If the cancel is rejected, the `Cancel` order's own `status` becomes `CANCELLED` and the resting order is untouched.
+
 ### Order validation rules (important)
 
 - LIMIT orders require:
@@ -127,7 +137,9 @@ lob.Order(
   - `order_id != 0`
   - `linked_order_id == 0`
   - `post_only == False` (a market order is always marketable by
-    definition, so post-only on it is meaningless)
+    definition, so post-only on it is meaningless; violating this rule is
+    reported as `RejectionReason.INVALID_MARKET_ORDER`, not
+    `INVALID_POST_ONLY_ORDER`)
 - CANCEL orders require:
   - `price_ticks == 0`
   - `qty == 0`
@@ -139,7 +151,10 @@ lob.Order(
     matching order — it has no fill semantics for `time_in_force` to apply
     to, so any non-default value is rejected)
 
-Invalid orders are rejected through `RejectionReason`.
+Invalid orders are rejected through `RejectionReason`. `price_ticks` and `qty`
+map to signed 32-bit C++ integers, so a negative value stays negative across the
+binding and is rejected by the rules above rather than wrapping to a large
+positive number.
 
 ### Time-in-force semantics
 
@@ -161,7 +176,10 @@ Invalid orders are rejected through `RejectionReason`.
 ### Post-only semantics
 
 - `post_only` only applies to LIMIT orders with `time_in_force == GTC` —
-  see the LIMIT/MARKET validation rules above.
+  see the LIMIT/MARKET validation rules above. `RejectionReason.INVALID_POST_ONLY_ORDER`
+  is only returned for a LIMIT order combining `post_only` with a non-GTC
+  `time_in_force`; a `post_only` MARKET order is rejected as
+  `INVALID_MARKET_ORDER` instead.
 - The check happens before any matching is attempted: if the incoming order
   would immediately cross the book (i.e. it is marketable), it is rejected
   with `RejectionReason.POST_ONLY_WOULD_CROSS` and `status == CANCELLED`.
@@ -266,7 +284,7 @@ Submits an order for validation/matching/cancellation.
 
 - Returns `RejectionReason.NONE` on success.
 - Returns a non-`NONE` rejection reason when not accepted.
-- The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds).
+- The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds) — see [Ownership across the Python/C++ boundary](#ownership-across-the-pythonc-boundary).
 
 #### snapshot(now: int, depth_limit: int = 5) -> dict
 
@@ -281,12 +299,12 @@ Returns a dictionary describing market structure:
   "mid": Optional[float],
   "bid_summary": {
     "total_quantity": float,
-    "order_count": int,
+    "total_order_count": int,
     "total_notional_value": float,
   },
   "ask_summary": {
     "total_quantity": float,
-    "order_count": int,
+    "total_order_count": int,
     "total_notional_value": float,
   },
   "bid_depths": [

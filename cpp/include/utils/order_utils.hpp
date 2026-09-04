@@ -1,4 +1,4 @@
 #pragma once
 #include "models/order.hpp"
 
-bool isSelfTrade(const OrderPtr &order1, const OrderPtr &order2);
+bool isSelfTrade(const Order& order1, const Order& order2);
