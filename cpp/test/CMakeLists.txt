@@ -5,7 +5,9 @@ set(TEST_SOURCES
     engine/test_execution_engine.cpp
     engine/test_matching_engine_validation.cpp
     engine/test_matching_engine_match.cpp
-    engine/test_matching_engine_stp.cpp
+    engine/test_matching_engine_stp_cancel_both.cpp
+    engine/test_matching_engine_stp_cancel_incoming.cpp
+    engine/test_matching_engine_stp_cancel_resting.cpp
     engine/test_matching_engine_execution.cpp
     engine/test_matching_engine_tif.cpp
     engine/test_matching_engine_post_only.cpp
