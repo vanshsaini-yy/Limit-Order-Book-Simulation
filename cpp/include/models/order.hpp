@@ -1,18 +1,10 @@
 #pragma once
-#include <cstdint>
 #include <memory>
+#include "models/types.hpp"
 #include "models/side.hpp"
 #include "models/order_type.hpp"
 #include "models/time_in_force.hpp"
 #include "models/order_status.hpp"
-
-// PriceTicks and Quantity are deliberately signed: unsigned would wrap a
-// caller's negative value to a large positive one that passes OrderValidator.
-using PriceTicks = int32_t;
-using Timestamp = uint64_t;
-using OrderID = uint32_t;
-using OwnerID = uint32_t;
-using Quantity = int32_t;
 
 class Order {
 private:

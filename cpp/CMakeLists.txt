@@ -1,6 +1,10 @@
 add_library(lob_core STATIC
     src/models/order.cpp
     src/models/trade.cpp
+    src/models/request.cpp
+    src/models/new_order_request.cpp
+    src/models/cancel_request.cpp
+    src/models/modify_request.cpp
     src/engine/limit_order_book.cpp
     src/engine/book_side_ops.cpp
     src/engine/matching_engine.cpp

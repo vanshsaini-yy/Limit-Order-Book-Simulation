@@ -16,4 +16,7 @@ enum class RejectionReason : uint8_t {
     InvalidPostOnlyOrder,               // post-only flag set on a limit order with a non-GTC time in force (e.g. combined with IOC/FOK)
     PostOnlyWouldCross,                 // post-only order would have matched immediately against the resting book
     PriceCollarViolation,               // limit order priced outside the allowed deviation from the reference price
+    InvalidModifyOrder,                 // modify request that doesn't meet the criteria for a valid modify order
+    OrderToBeModifiedDoesNotExist,      // trying to modify an order that doesn't exist or wasn't placed by the same owner
+    ModifyQuantityBelowFilled,          // modify's new quantity is less than the quantity already filled
 };
