@@ -15,6 +15,7 @@ Order::Order(
     ownerID(ownerID_),
     priceTicks(priceTicks_),
     qty(qty_),
+    originalQty(qty_),
     side(side_),
     type(type_),
     timestamp(timestamp_),
@@ -26,6 +27,8 @@ OrderID     Order::getOrderID()       const { return orderID; }
 OwnerID     Order::getOwnerID()       const { return ownerID; }
 PriceTicks  Order::getPriceTicks()    const { return priceTicks; }
 Quantity    Order::getQty()           const { return qty; }
+Quantity    Order::getOriginalQty()   const { return originalQty; }
+Quantity    Order::getFilledQty()     const { return originalQty - qty; }
 Side        Order::getSide()          const { return side; }
 OrderType   Order::getType()          const { return type; }
 Timestamp   Order::getTimestamp()     const { return timestamp; }

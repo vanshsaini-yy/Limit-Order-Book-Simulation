@@ -12,6 +12,7 @@ private:
     OwnerID ownerID;
     PriceTicks priceTicks;
     Quantity qty;
+    Quantity originalQty;
     Side side;
     OrderType type;
     Timestamp timestamp;
@@ -36,6 +37,8 @@ public:
     OwnerID     getOwnerID()       const;
     PriceTicks  getPriceTicks()    const;
     Quantity    getQty()           const;
+    Quantity    getOriginalQty()   const;
+    Quantity    getFilledQty()     const;
     Side        getSide()          const;
     OrderType   getType()          const;
     Timestamp   getTimestamp()     const;

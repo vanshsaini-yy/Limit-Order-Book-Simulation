@@ -94,3 +94,29 @@ TEST_F(OrderTest, IsExecutedReturnsTrueForExecutedStatus) {
     order1->setStatus(OrderStatus::Executed);
     EXPECT_TRUE(order1->isExecuted());
 }
+
+TEST_F(OrderTest, GetOriginalQtyIsUnaffectedByReduceQty) {
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(10));
+    order1->reduceQty(4);
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(10));
+    order1->reduceQty(6);
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(10));
+}
+
+TEST_F(OrderTest, GetFilledQtyIsZeroForUntouchedOrder) {
+    EXPECT_EQ(order1->getFilledQty(), static_cast<Quantity>(0));
+}
+
+TEST_F(OrderTest, GetFilledQtyReflectsPartialFill) {
+    order1->reduceQty(4);
+    EXPECT_EQ(order1->getFilledQty(), static_cast<Quantity>(4));
+    EXPECT_EQ(order1->getQty(), static_cast<Quantity>(6));
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(10));
+}
+
+TEST_F(OrderTest, GetFilledQtyEqualsOriginalQtyWhenFullyFilled) {
+    order1->reduceQty(10);
+    EXPECT_EQ(order1->getFilledQty(), static_cast<Quantity>(10));
+    EXPECT_EQ(order1->getQty(), static_cast<Quantity>(0));
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(10));
+}
