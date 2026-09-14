@@ -85,9 +85,6 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
 }
 
 bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
-    if (order->getType() == OrderType::Cancel) {
-        return false;
-    }
     if (order->getQty() == 0) {
         return false;
     }

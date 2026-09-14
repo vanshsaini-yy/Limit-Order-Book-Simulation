@@ -17,10 +17,6 @@ TEST(OrderLifecycleTest, AfterCancelResting_PartiallyExecuted_BecomesCancelledAf
     EXPECT_EQ(OrderLifecycle::afterCancelResting(OrderStatus::PartiallyExecuted), OrderStatus::CancelledAfterPartialExecution);
 }
 
-TEST(OrderLifecycleTest, AfterMatching_CancelType_AlwaysExecuted) {
-    EXPECT_EQ(OrderLifecycle::afterMatching(0, 0, OrderType::Cancel), OrderStatus::Executed);
-}
-
 TEST(OrderLifecycleTest, AfterMatching_FullyFilled_LimitIsExecuted) {
     EXPECT_EQ(OrderLifecycle::afterMatching(10, 0, OrderType::Limit), OrderStatus::Executed);
 }

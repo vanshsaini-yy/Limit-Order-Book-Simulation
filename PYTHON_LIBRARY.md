@@ -34,12 +34,15 @@ import limit_order_book as lob
 ### Side
 - BUY
 - SELL
-- NONE
 
 ### OrderType
 - LIMIT
 - MARKET
+
+### RequestType
+- NEW
 - CANCEL
+- MODIFY
 
 ### TimeInForce
 - GTC (Good-Til-Cancelled) — default. Any unfilled remainder rests in the book.
@@ -86,7 +89,6 @@ lob.Order(
     side: lob.Side,
     order_type: lob.OrderType,
     timestamp: int,
-    linked_order_id: int = 0,
     time_in_force: lob.TimeInForce = lob.TimeInForce.GTC,
     post_only: bool = False,
 )
@@ -102,7 +104,6 @@ lob.Order(
 - `order_type`
 - `timestamp`
 - `status`
-- `linked_order_id`
 - `time_in_force`
 - `post_only`
 
@@ -115,10 +116,10 @@ lob.Order(
 
 - An `Order` you construct in Python and the corresponding `Order` resting in the book (or held anywhere in C++) are the **same object**, not a copy. `Order` is bound with a `shared_ptr` holder, so passing an `Order` into `match_order` shares ownership between your Python variable and the engine rather than cloning it.
 - Because of that, **your existing Python `Order` object is mutated in place** as the engine processes it — `status` and `qty` change on the reference you already hold. You never need to re-fetch it or call `match_order` again to observe a fill, a cancellation, or an STP outcome.
-- Python cannot mutate an `Order` directly: every property is read-only, and the engine's internal mutators are intentionally not exposed to Python. The only way to change an order's `qty`/`status` is to submit it through `match_order`, or to submit a `Cancel`-type order that references it via `linked_order_id`.
+- Python cannot mutate an `Order` directly: every property is read-only, and the engine's internal mutators are intentionally not exposed to Python. The only way to change an order's `qty`/`status` is to submit it through `match_order`, or to cancel it via a `CancelRequest` submitted through `cancel()`.
 - A resting order outlives your Python reference. If you let your only variable for a resting order go out of scope (or `del` it), the underlying `Order` is kept alive by the book's own `shared_ptr` — it is not destroyed. There is currently **no API to fetch a handle to a resting order by `order_id`**; `snapshot()` only returns aggregated price-level data, not individual orders. In practice, keep a reference to any `Order` you want to inspect or cancel later.
 - Constructing a second `Order` with the same `order_id` as one already resting in the book does **not** give you a handle to that resting order — it's a distinct object. Submitting it is rejected with `RejectionReason.DUPLICATE_ORDER_ID` and never merges with or mutates the original.
-- A `Cancel`-type order does not turn itself into the order it cancels — it's a separate, short-lived order whose `linked_order_id` tells the engine which resting order to remove. On success, the `Cancel` order's own `status` becomes `EXECUTED`, and it's the *targeted* resting order (visible only through whoever still holds a reference to it) whose `status`/`qty` actually change. If the cancel is rejected, the `Cancel` order's own `status` becomes `CANCELLED` and the resting order is untouched.
+- A `CancelRequest` is not an `Order` — it's a separate, immutable message whose `target_order_id` tells the engine which resting order to remove. It is never stored in the book and is never mutated by the engine. On success, `cancel()` returns `RejectionReason.NONE` and it's the *targeted* resting order (visible only through whoever still holds a reference to it) whose `status`/`qty` actually change. If the cancel is rejected, the resting order is untouched.
 
 ### Order validation rules (important)
 
@@ -127,7 +128,6 @@ lob.Order(
   - `qty > 0`
   - `side` is BUY or SELL
   - `order_id != 0`
-  - `linked_order_id == 0`
   - if `post_only` is set, `time_in_force == TimeInForce.GTC` (post-only
     guarantees maker status, which IOC/FOK's semantics contradict)
 - MARKET orders require:
@@ -135,33 +135,24 @@ lob.Order(
   - `qty > 0`
   - `side` is BUY or SELL
   - `order_id != 0`
-  - `linked_order_id == 0`
   - `post_only == False` (a market order is always marketable by
     definition, so post-only on it is meaningless; violating this rule is
     reported as `RejectionReason.INVALID_MARKET_ORDER`, not
     `INVALID_POST_ONLY_ORDER`)
-- CANCEL orders require:
-  - `price_ticks == 0`
-  - `qty == 0`
-  - `side` is NONE
-  - `order_id != 0`
-  - `linked_order_id != 0`
-  - `linked_order_id != order_id`
-  - `time_in_force == TimeInForce.GTC` (a cancel is a control message, not a
-    matching order — it has no fill semantics for `time_in_force` to apply
-    to, so any non-default value is rejected)
 
 Invalid orders are rejected through `RejectionReason`. `price_ticks` and `qty`
 map to signed 32-bit C++ integers, so a negative value stays negative across the
 binding and is rejected by the rules above rather than wrapping to a large
 positive number.
 
+`CancelRequest.validate()` requires `target_order_id != 0`, reported as
+`RejectionReason.INVALID_CANCEL_ORDER` — see [Class: CancelRequest](#class-cancelrequest).
+
 ### Time-in-force semantics
 
 - `time_in_force` applies to LIMIT and MARKET orders. MARKET orders already
   discard any unfilled remainder, so IOC has no additional effect on them
-  beyond FOK's all-or-nothing check. CANCEL orders must use the default
-  `GTC` — see the CANCEL validation rule above.
+  beyond FOK's all-or-nothing check.
 - FOK is evaluated as a read-only pass over the book before any fills happen:
   it walks the marketable price levels on the opposing side and sums
   available quantity. If a same-owner (self-trade) resting order is
@@ -208,6 +199,38 @@ positive number.
   exactly the boundary are accepted.
 - This check runs after the Post-Only and FOK-insufficient-liquidity checks,
   so those two rejections take precedence over a price collar violation.
+
+---
+
+## Class: CancelRequest
+
+`CancelRequest` is an immutable inbound message, distinct from `Order` — it is
+never stored in the book and never mutated by the engine.
+
+### Constructor
+
+```python
+lob.CancelRequest(
+    request_id: int,
+    owner_id: int,
+    timestamp: int,
+    target_order_id: int,
+)
+```
+
+### Read-only properties
+
+- `request_id`
+- `request_type` (always `lob.RequestType.CANCEL`)
+- `owner_id`
+- `timestamp`
+- `target_order_id`
+
+### Methods
+
+- `validate() -> lob.RejectionReason` — field-level validation only
+  (`target_order_id != 0`). Book-level checks (existence, ownership) happen
+  inside `MatchingEngine.cancel()`.
 
 ---
 
@@ -286,6 +309,20 @@ Submits an order for validation/matching/cancellation.
 - Returns a non-`NONE` rejection reason when not accepted.
 - The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds) — see [Ownership across the Python/C++ boundary](#ownership-across-the-pythonc-boundary).
 
+#### cancel(request: lob.CancelRequest) -> lob.RejectionReason
+
+Submits a cancel request for a resting order.
+
+- Returns `RejectionReason.NONE` on success; the targeted resting order's
+  `status` becomes `CANCELLED` (or `CANCELLED_AFTER_PARTIAL_EXECUTION` if it
+  had already partially filled), and it is removed from the book.
+- Returns `RejectionReason.INVALID_CANCEL_ORDER` if `request.validate()` fails.
+- Returns `RejectionReason.ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST` if
+  `target_order_id` doesn't exist in the book, or exists but belongs to a
+  different `owner_id` than `request.owner_id` (the same reason is returned
+  in both cases, deliberately, so a caller cannot probe for the existence of
+  another owner's order).
+
 #### snapshot(now: int, depth_limit: int = 5) -> dict
 
 Returns a dictionary describing market structure:
@@ -353,15 +390,11 @@ assert result == lob.RejectionReason.NONE
 snap = engine.snapshot(now=1, depth_limit=5)
 print(snap["best_bid"], snap["best_ask"], snap["mid"])
 
-cancel = lob.Order(
-    order_id=2,
+cancel_request = lob.CancelRequest(
+    request_id=1,
     owner_id=101,
-    price_ticks=0,
-    qty=0,
-    side=lob.Side.NONE,
-    order_type=lob.OrderType.CANCEL,
     timestamp=2,
-    linked_order_id=1,
+    target_order_id=1,
 )
-engine.match_order(cancel)
+engine.cancel(cancel_request)
 ```

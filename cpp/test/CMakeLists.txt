@@ -1,10 +1,12 @@
 set(TEST_SOURCES
     models/test_order.cpp
     models/test_trade.cpp
+    models/test_cancel_request.cpp
     engine/test_limit_order_book.cpp
     engine/test_execution_engine.cpp
     engine/test_matching_engine_validation.cpp
     engine/test_matching_engine_match.cpp
+    engine/test_matching_engine_cancel.cpp
     engine/test_matching_engine_stp_cancel_both.cpp
     engine/test_matching_engine_stp_cancel_incoming.cpp
     engine/test_matching_engine_stp_cancel_resting.cpp

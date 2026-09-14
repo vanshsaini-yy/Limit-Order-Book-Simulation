@@ -16,7 +16,6 @@ private:
     OrderType type;
     Timestamp timestamp;
     OrderStatus status;
-    OrderID linkedOrderID;
     TimeInForce timeInForce;
     bool postOnly;
 
@@ -29,7 +28,6 @@ public:
         Side side_,
         OrderType type_,
         Timestamp timestamp_,
-        OrderID linkedOrderID_ = 0,
         TimeInForce timeInForce_ = TimeInForce::GTC,
         bool postOnly_ = false
     );
@@ -42,7 +40,6 @@ public:
     OrderType   getType()          const;
     Timestamp   getTimestamp()     const;
     OrderStatus getStatus()        const;
-    OrderID     getLinkedOrderID() const;
     TimeInForce getTimeInForce()   const;
 
     void reduceQty(Quantity qtyFilled);

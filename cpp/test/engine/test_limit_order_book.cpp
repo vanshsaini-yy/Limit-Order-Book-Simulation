@@ -47,16 +47,6 @@ TEST_F(OrderBookTest, AddOrder_MarketOrder_ViolatesInvariant) {
     EXPECT_FALSE(book.doesOrderExist(2));
 }
 
-TEST_F(OrderBookTest, AddOrder_CancelType_ViolatesInvariant) {
-    OrderPtr cancelOrder1 = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Cancel, 1000);
-    OrderPtr cancelOrder2 = std::make_shared<Order>(2, 2, 0, 10, Side::Sell, OrderType::Cancel, 1001);
-
-    EXPECT_EQ(book.addOrder(cancelOrder1), RejectionReason::OrderBookInvariantViolation);
-    EXPECT_FALSE(book.doesOrderExist(1));
-    EXPECT_EQ(book.addOrder(cancelOrder2), RejectionReason::OrderBookInvariantViolation);
-    EXPECT_FALSE(book.doesOrderExist(2));
-}
-
 TEST_F(OrderBookTest, AddOrder_InvalidLimitPrice_ViolatesInvariant) {
     OrderPtr invalidPriceOrder1 = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr invalidPriceOrder2 = std::make_shared<Order>(2, 2, -10, 10, Side::Sell, OrderType::Limit, 1001);
@@ -336,16 +326,6 @@ TEST_F(OrderBookTest, IsOrderMarketable_ZeroQty_ReturnsFalse) {
 
     EXPECT_FALSE(book.isOrderMarketable(zeroQtyLimitOrder));
     EXPECT_FALSE(book.isOrderMarketable(zeroQtyMarketOrder));
-}
-
-TEST_F(OrderBookTest, IsOrderMarketable_CancelType_ReturnsFalse) {
-    OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
-    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 110, 10, Side::Sell, OrderType::Limit, 1001);
-    book.addOrder(buyOrder);
-    book.addOrder(sellOrder);
-
-    OrderPtr cancelOrder = std::make_shared<Order>(3, 3, 0, 0, Side::None, OrderType::Cancel, 1002);
-    EXPECT_FALSE(book.isOrderMarketable(cancelOrder));
 }
 
 // =====================================================================
@@ -840,18 +820,18 @@ TEST_F(OrderBookTest, IsFOKFillable_AcrossMultipleAskLevels_MatchesExpectedOutco
     STPDecision stpDecision{true, true};
 
     OrderPtr limitBuySpanningAllLevels =
-        std::make_shared<Order>(4, 4, 102, 15, Side::Buy, OrderType::Limit, 1003, 0, TimeInForce::FOK);
+        std::make_shared<Order>(4, 4, 102, 15, Side::Buy, OrderType::Limit, 1003, TimeInForce::FOK);
     EXPECT_TRUE(book.isFOKFillable(limitBuySpanningAllLevels, stpDecision));
 
     OrderPtr marketBuyMoreThanBookHolds =
-        std::make_shared<Order>(5, 5, 0, 20, Side::Buy, OrderType::Market, 1004, 0, TimeInForce::FOK);
+        std::make_shared<Order>(5, 5, 0, 20, Side::Buy, OrderType::Market, 1004, TimeInForce::FOK);
     EXPECT_FALSE(book.isFOKFillable(marketBuyMoreThanBookHolds, stpDecision));
 
     OrderPtr limitBuyOneLevelShort =
-        std::make_shared<Order>(6, 6, 101, 15, Side::Buy, OrderType::Limit, 1005, 0, TimeInForce::FOK);
+        std::make_shared<Order>(6, 6, 101, 15, Side::Buy, OrderType::Limit, 1005, TimeInForce::FOK);
     EXPECT_FALSE(book.isFOKFillable(limitBuyOneLevelShort, stpDecision));
 
     OrderPtr marketBuySweepsEverything =
-        std::make_shared<Order>(7, 7, 0, 15, Side::Buy, OrderType::Market, 1006, 0, TimeInForce::FOK);
+        std::make_shared<Order>(7, 7, 0, 15, Side::Buy, OrderType::Market, 1006, TimeInForce::FOK);
     EXPECT_TRUE(book.isFOKFillable(marketBuySweepsEverything, stpDecision));
 }

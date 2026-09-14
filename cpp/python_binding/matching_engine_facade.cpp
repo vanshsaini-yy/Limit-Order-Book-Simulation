@@ -89,6 +89,10 @@ RejectionReason MatchingEngineFacade::matchOrder(const OrderPtr& incomingOrder) 
     return matchingEngine->matchOrder(incomingOrder);
 }
 
+RejectionReason MatchingEngineFacade::cancel(const CancelRequest& request) {
+    return matchingEngine->submit(request);
+}
+
 MarketStructureSnapshot MatchingEngineFacade::snapshot(Timestamp now, std::size_t depthLimit) const {
     return orderBook->snapshot(now, depthLimit);
 }

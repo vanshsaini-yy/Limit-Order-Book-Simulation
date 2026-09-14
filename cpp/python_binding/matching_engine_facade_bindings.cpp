@@ -79,6 +79,11 @@ void bindMatchingEngineFacade(py::module_& module) {
             py::arg("order")
         )
         .def(
+            "cancel",
+            &MatchingEngineFacade::cancel,
+            py::arg("request")
+        )
+        .def(
             "snapshot",
             [](const MatchingEngineFacade& facade, Timestamp now, std::size_t depthLimit) {
                 return snapshotToDict(

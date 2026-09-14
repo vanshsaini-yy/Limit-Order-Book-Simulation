@@ -15,7 +15,7 @@ protected:
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldCross_Rejected) {
     OrderPtr sellOrder = std::make_shared<Order>(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1622547800);
-    OrderPtr buyOrder = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1622547801, 0, TimeInForce::GTC, true);
+    OrderPtr buyOrder = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1622547801, TimeInForce::GTC, true);
 
     engine.matchOrder(sellOrder);
     RejectionReason result = engine.matchOrder(buyOrder);
@@ -28,7 +28,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldCross_Rejected) {
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldCross_AboveBestAsk_Rejected) {
     OrderPtr sellOrder = std::make_shared<Order>(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1622547800);
-    OrderPtr buyOrder = std::make_shared<Order>(2, 2, 101, 10, Side::Buy, OrderType::Limit, 1622547801, 0, TimeInForce::GTC, true);
+    OrderPtr buyOrder = std::make_shared<Order>(2, 2, 101, 10, Side::Buy, OrderType::Limit, 1622547801, TimeInForce::GTC, true);
 
     engine.matchOrder(sellOrder);
     RejectionReason result = engine.matchOrder(buyOrder);
@@ -41,7 +41,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldCross_AboveBestAsk_Rej
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldNotCross_RestsNormally) {
     OrderPtr sellOrder = std::make_shared<Order>(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1622547800);
-    OrderPtr buyOrder = std::make_shared<Order>(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1622547801, 0, TimeInForce::GTC, true);
+    OrderPtr buyOrder = std::make_shared<Order>(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1622547801, TimeInForce::GTC, true);
 
     engine.matchOrder(sellOrder);
     RejectionReason result = engine.matchOrder(buyOrder);
@@ -53,7 +53,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_WouldNotCross_RestsNormally
 }
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_EmptyBook_RestsNormally) {
-    OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800, 0, TimeInForce::GTC, true);
+    OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800, TimeInForce::GTC, true);
 
     RejectionReason result = engine.matchOrder(buyOrder);
 
@@ -69,7 +69,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitBuy_EmptyBook_RestsNormally) {
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldCross_Rejected) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1622547800);
-    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1622547801, 0, TimeInForce::GTC, true);
+    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1622547801, TimeInForce::GTC, true);
 
     engine.matchOrder(buyOrder);
     RejectionReason result = engine.matchOrder(sellOrder);
@@ -82,7 +82,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldCross_Rejected) {
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldCross_BelowBestBid_Rejected) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1622547800);
-    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 99, 10, Side::Sell, OrderType::Limit, 1622547801, 0, TimeInForce::GTC, true);
+    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 99, 10, Side::Sell, OrderType::Limit, 1622547801, TimeInForce::GTC, true);
 
     engine.matchOrder(buyOrder);
     RejectionReason result = engine.matchOrder(sellOrder);
@@ -95,7 +95,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldCross_BelowBestBid_Re
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldNotCross_RestsNormally) {
     OrderPtr buyOrder = std::make_shared<Order>(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1622547800);
-    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1622547801, 0, TimeInForce::GTC, true);
+    OrderPtr sellOrder = std::make_shared<Order>(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1622547801, TimeInForce::GTC, true);
 
     engine.matchOrder(buyOrder);
     RejectionReason result = engine.matchOrder(sellOrder);
@@ -107,7 +107,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_WouldNotCross_RestsNormall
 }
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_EmptyBook_RestsNormally) {
-    OrderPtr sellOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800, 0, TimeInForce::GTC, true);
+    OrderPtr sellOrder = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800, TimeInForce::GTC, true);
 
     RejectionReason result = engine.matchOrder(sellOrder);
 
@@ -122,7 +122,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_LimitSell_EmptyBook_RestsNormally) {
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_CombinedWithIOC_Rejected) {
-    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800, 0, TimeInForce::IOC, true);
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800, TimeInForce::IOC, true);
 
     RejectionReason result = engine.matchOrder(order);
 
@@ -132,7 +132,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_CombinedWithIOC_Rejected) {
 }
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_CombinedWithFOK_Rejected) {
-    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800, 0, TimeInForce::FOK, true);
+    OrderPtr order = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800, TimeInForce::FOK, true);
 
     RejectionReason result = engine.matchOrder(order);
 
@@ -142,7 +142,7 @@ TEST_F(MatchingEnginePostOnlyTest, PostOnly_CombinedWithFOK_Rejected) {
 }
 
 TEST_F(MatchingEnginePostOnlyTest, PostOnly_OnMarketOrder_Rejected) {
-    OrderPtr order = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Market, 1622547800, 0, TimeInForce::GTC, true);
+    OrderPtr order = std::make_shared<Order>(1, 1, 0, 10, Side::Buy, OrderType::Market, 1622547800, TimeInForce::GTC, true);
 
     RejectionReason result = engine.matchOrder(order);
 

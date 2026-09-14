@@ -836,35 +836,3 @@ TEST_F(MatchingEnginePriceCollarTest, MarketOrder_FullLiquidity_SellFullyExecute
     EXPECT_EQ(marketSell->getStatus(), OrderStatus::Executed);
     EXPECT_FALSE(orderBook.doesOrderExist(4));
 }
-
-// =====================================================================
-// Cancel orders bypass the collar
-// =====================================================================
-
-TEST_F(MatchingEnginePriceCollarTest, CancelOrder_BypassesCollar_WhenNoReferenceExists) {
-    makeEngine(5);
-    OrderPtr restingBuy = std::make_shared<Order>(1, 1, 500, 5, Side::Buy, OrderType::Limit, 1622547800);
-    engine->matchOrder(restingBuy);
-    OrderPtr cancelOrder = std::make_shared<Order>(2, 1, 0, 0, Side::None, OrderType::Cancel, 1622547801, 1);
-
-    RejectionReason result = engine->matchOrder(cancelOrder);
-
-    EXPECT_EQ(result, RejectionReason::None);
-    EXPECT_FALSE(orderBook.doesOrderExist(1));
-    EXPECT_EQ(orderBook.getOrderCancellationCount(), 1);
-}
-
-TEST_F(MatchingEnginePriceCollarTest, CancelOrder_BypassesCollar_WhenReferenceEstablished) {
-    makeEngine(5);
-    engine->matchOrder(std::make_shared<Order>(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1622547800));
-    engine->matchOrder(std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1622547801));
-    OrderPtr restingBuy = std::make_shared<Order>(3, 3, 102, 5, Side::Buy, OrderType::Limit, 1622547802);
-    engine->matchOrder(restingBuy);
-    OrderPtr cancelOrder = std::make_shared<Order>(4, 3, 0, 0, Side::None, OrderType::Cancel, 1622547803, 3);
-
-    RejectionReason result = engine->matchOrder(cancelOrder);
-
-    EXPECT_EQ(result, RejectionReason::None);
-    EXPECT_FALSE(orderBook.doesOrderExist(3));
-    EXPECT_EQ(orderBook.getOrderCancellationCount(), 1);
-}

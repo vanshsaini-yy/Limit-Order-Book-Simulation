@@ -2,19 +2,24 @@
 
 #include "models/order.hpp"
 #include "models/rejection_reason.hpp"
+#include "models/request.hpp"
+#include "models/cancel_request.hpp"
 
 namespace py = pybind11;
 
 void bindOrderTypes(py::module_& module) {
     py::enum_<Side>(module, "Side")
         .value("BUY", Side::Buy)
-        .value("SELL", Side::Sell)
-        .value("NONE", Side::None);
+        .value("SELL", Side::Sell);
 
     py::enum_<OrderType>(module, "OrderType")
         .value("LIMIT", OrderType::Limit)
-        .value("MARKET", OrderType::Market)
-        .value("CANCEL", OrderType::Cancel);
+        .value("MARKET", OrderType::Market);
+
+    py::enum_<RequestType>(module, "RequestType")
+        .value("NEW", RequestType::New)
+        .value("CANCEL", RequestType::Cancel)
+        .value("MODIFY", RequestType::Modify);
 
     py::enum_<TimeInForce>(module, "TimeInForce")
         .value("GTC", TimeInForce::GTC)
@@ -46,7 +51,7 @@ void bindOrderTypes(py::module_& module) {
 
     py::class_<Order, std::shared_ptr<Order>>(module, "Order")
         .def(
-            py::init<OrderID, OwnerID, PriceTicks, Quantity, Side, OrderType, Timestamp, OrderID, TimeInForce, bool>(),
+            py::init<OrderID, OwnerID, PriceTicks, Quantity, Side, OrderType, Timestamp, TimeInForce, bool>(),
             py::arg("order_id"),
             py::arg("owner_id"),
             py::arg("price_ticks"),
@@ -54,7 +59,6 @@ void bindOrderTypes(py::module_& module) {
             py::arg("side"),
             py::arg("order_type"),
             py::arg("timestamp"),
-            py::arg("linked_order_id") = 0,
             py::arg("time_in_force") = TimeInForce::GTC,
             py::arg("post_only") = false
         )
@@ -66,9 +70,25 @@ void bindOrderTypes(py::module_& module) {
         .def_property_readonly("order_type", &Order::getType)
         .def_property_readonly("timestamp", &Order::getTimestamp)
         .def_property_readonly("status", &Order::getStatus)
-        .def_property_readonly("linked_order_id", &Order::getLinkedOrderID)
         .def_property_readonly("time_in_force", &Order::getTimeInForce)
         .def_property_readonly("post_only", &Order::isPostOnly)
         .def("is_cancelled", &Order::isCancelled)
         .def("is_executed", &Order::isExecuted);
+
+    py::class_<IRequest>(module, "IRequest")
+        .def_property_readonly("request_id", &IRequest::getRequestId)
+        .def_property_readonly("request_type", &IRequest::getRequestType)
+        .def_property_readonly("owner_id", &IRequest::getOwnerID)
+        .def_property_readonly("timestamp", &IRequest::getTimestamp)
+        .def("validate", &IRequest::validate);
+
+    py::class_<CancelRequest, IRequest>(module, "CancelRequest")
+        .def(
+            py::init<RequestID, OwnerID, Timestamp, OrderID>(),
+            py::arg("request_id"),
+            py::arg("owner_id"),
+            py::arg("timestamp"),
+            py::arg("target_order_id")
+        )
+        .def_property_readonly("target_order_id", &CancelRequest::getTargetOrderID);
 }

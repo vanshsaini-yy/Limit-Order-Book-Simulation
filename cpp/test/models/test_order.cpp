@@ -8,7 +8,7 @@ protected:
 
     void SetUp() override {
         order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
-        order2 = std::make_shared<Order>(2, 1, 0, 0, Side::None, OrderType::Cancel, 1622547801, 1);
+        order2 = std::make_shared<Order>(2, 1, 0, 5, Side::Sell, OrderType::Market, 1622547801);
     }
 };
 
@@ -21,32 +21,30 @@ TEST_F(OrderTest, GettersReturnExpectedValues) {
     EXPECT_EQ(order1->getType(), OrderType::Limit);
     EXPECT_EQ(order1->getTimestamp(), 1622547800);
     EXPECT_EQ(order1->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(order1->getLinkedOrderID(), 0);
     EXPECT_EQ(order1->getTimeInForce(), TimeInForce::GTC);
     EXPECT_FALSE(order1->isPostOnly());
 
     EXPECT_EQ(order2->getOrderID(), 2);
     EXPECT_EQ(order2->getOwnerID(), 1);
     EXPECT_EQ(order2->getPriceTicks(), 0);
-    EXPECT_EQ(order2->getQty(), 0);
-    EXPECT_EQ(order2->getSide(), Side::None);
-    EXPECT_EQ(order2->getType(), OrderType::Cancel);
+    EXPECT_EQ(order2->getQty(), 5);
+    EXPECT_EQ(order2->getSide(), Side::Sell);
+    EXPECT_EQ(order2->getType(), OrderType::Market);
     EXPECT_EQ(order2->getTimestamp(), 1622547801);
     EXPECT_EQ(order2->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(order2->getLinkedOrderID(), 1);
     EXPECT_EQ(order2->getTimeInForce(), TimeInForce::GTC);
 }
 
 TEST_F(OrderTest, TimeInForceCanBeSetExplicitly) {
-    OrderPtr iocOrder = std::make_shared<Order>(3, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547802, 0, TimeInForce::IOC);
-    OrderPtr fokOrder = std::make_shared<Order>(4, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547803, 0, TimeInForce::FOK);
+    OrderPtr iocOrder = std::make_shared<Order>(3, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547802, TimeInForce::IOC);
+    OrderPtr fokOrder = std::make_shared<Order>(4, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547803, TimeInForce::FOK);
 
     EXPECT_EQ(iocOrder->getTimeInForce(), TimeInForce::IOC);
     EXPECT_EQ(fokOrder->getTimeInForce(), TimeInForce::FOK);
 }
 
 TEST_F(OrderTest, PostOnlyCanBeSetExplicitly) {
-    OrderPtr postOnlyOrder = std::make_shared<Order>(5, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547804, 0, TimeInForce::GTC, true);
+    OrderPtr postOnlyOrder = std::make_shared<Order>(5, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547804, TimeInForce::GTC, true);
 
     EXPECT_TRUE(postOnlyOrder->isPostOnly());
 }

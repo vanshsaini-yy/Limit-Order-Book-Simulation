@@ -68,17 +68,6 @@ TEST_F(MatchingEngineExecutionTest, RecordExecution_DoesNotIncrement_WhenNoOppos
     EXPECT_EQ(orderBook.getTotalVolumeTraded(), 0u);
 }
 
-TEST_F(MatchingEngineExecutionTest, RecordCancellation_Cancels_RestingOrder_OnCancelOrder) {
-	OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547800);
-	OrderPtr order2 = std::make_shared<Order>(2, 1, 0, 0, Side::None, OrderType::Cancel, 1622547801, 1);
-
-	engine.matchOrder(order1);
-	engine.matchOrder(order2);
-
-	EXPECT_EQ(orderBook.getOrderCancellationCount(), 1u);
-	EXPECT_FALSE(orderBook.doesOrderExist(1));
-}
-
 TEST_F(MatchingEngineExecutionTest, RecordCancellation_For_SelfTradePolicy) {
 	OrderPtr order1 = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1622547800);
 	OrderPtr order2 = std::make_shared<Order>(2, 1, 100, 10, Side::Buy, OrderType::Limit, 1622547801);
@@ -95,16 +84,6 @@ TEST_F(MatchingEngineExecutionTest, RecordCancellation_DoesNotIncrement_WhenInva
     engine.matchOrder(order);
 
     EXPECT_EQ(order->getStatus(), OrderStatus::Cancelled);
-    EXPECT_EQ(orderBook.getOrderCancellationCount(), 0u);
-}
-
-TEST_F(MatchingEngineExecutionTest, RecordCancellation_DoesNotIncrement_WhenOrderDoesNotExist) {
-    OrderID nonExistentOrderID = 999;
-	OrderPtr cancelOrder = std::make_shared<Order>(1, 1, 0, 0, Side::None, OrderType::Cancel, 1622547800, nonExistentOrderID);
-
-    engine.matchOrder(cancelOrder);
-
-    EXPECT_EQ(cancelOrder->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(orderBook.getOrderCancellationCount(), 0u);
 }
 

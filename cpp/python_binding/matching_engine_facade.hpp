@@ -63,5 +63,6 @@ public:
     MatchingEngineFacade& operator=(MatchingEngineFacade&&) noexcept = default;
     
     RejectionReason matchOrder(const OrderPtr& incomingOrder);
+    RejectionReason cancel(const CancelRequest& request);
     MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const;
 };

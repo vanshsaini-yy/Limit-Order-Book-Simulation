@@ -107,15 +107,6 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         }
     }
 
-    if (incomingOrder->getType() == OrderType::Cancel) {
-        RejectionReason cancelResult = orderBook->cancelOrder(incomingOrder->getLinkedOrderID(), incomingOrder->getOwnerID());
-        if (cancelResult != RejectionReason::None) {
-            incomingOrder->setStatus(OrderStatus::Cancelled);
-            return cancelResult;
-        }
-        orderBook->recordCancellation();
-    }
-
     OrderStatus finalStatus = OrderLifecycle::afterMatching(incomingInitialQty, incomingOrder->getQty(), incomingOrder->getType());
     incomingOrder->setStatus(finalStatus);
 
@@ -137,5 +128,18 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
             return addResult;
         }
     }
+    return RejectionReason::None;
+}
+
+RejectionReason MatchingEngine::submit(const CancelRequest &request) {
+    RejectionReason validationResult = request.validate();
+    if (validationResult != RejectionReason::None) {
+        return validationResult;
+    }
+    RejectionReason cancelResult = orderBook->cancelOrder(request.getTargetOrderID(), request.getOwnerID());
+    if (cancelResult != RejectionReason::None) {
+        return cancelResult;
+    }
+    orderBook->recordCancellation();
     return RejectionReason::None;
 }

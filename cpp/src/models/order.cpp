@@ -8,7 +8,6 @@ Order::Order(
     Side side_,
     OrderType type_,
     Timestamp timestamp_,
-    OrderID linkedOrderID_,
     TimeInForce timeInForce_,
     bool postOnly_
 )
@@ -20,7 +19,6 @@ Order::Order(
     type(type_),
     timestamp(timestamp_),
     status(OrderStatus::Pending),
-    linkedOrderID(linkedOrderID_),
     timeInForce(timeInForce_),
     postOnly(postOnly_) {}
 
@@ -32,7 +30,6 @@ Side        Order::getSide()          const { return side; }
 OrderType   Order::getType()          const { return type; }
 Timestamp   Order::getTimestamp()     const { return timestamp; }
 OrderStatus Order::getStatus()        const { return status; }
-OrderID     Order::getLinkedOrderID() const { return linkedOrderID; }
 TimeInForce Order::getTimeInForce()   const { return timeInForce; }
 
 void Order::reduceQty(Quantity qtyFilled)    { qty -= qtyFilled; }

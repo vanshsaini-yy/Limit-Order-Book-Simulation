@@ -5,10 +5,8 @@ RejectionReason OrderValidator::validateLimitOrder(const Order& order, bool allo
                     (allowPartialExecution && order.getStatus() == OrderStatus::PartiallyExecuted);
     if (order.getPriceTicks() > 0 &&
         order.getQty() > 0 &&
-        order.getSide() != Side::None &&
         statusOk &&
-        order.getOrderID() != 0 &&
-        order.getLinkedOrderID() == 0) {
+        order.getOrderID() != 0) {
         if (order.isPostOnly() && order.getTimeInForce() != TimeInForce::GTC) {
             return RejectionReason::InvalidPostOnlyOrder;
         }
@@ -20,29 +18,12 @@ RejectionReason OrderValidator::validateLimitOrder(const Order& order, bool allo
 RejectionReason OrderValidator::validateMarketOrder(const Order& order) {
     if (order.getPriceTicks() == 0 &&
         order.getQty() > 0 &&
-        order.getSide() != Side::None &&
         order.getStatus() == OrderStatus::Pending &&
         order.getOrderID() != 0 &&
-        order.getLinkedOrderID() == 0 &&
         !order.isPostOnly()) {
         return RejectionReason::None;
     }
     return RejectionReason::InvalidMarketOrder;
-}
-
-RejectionReason OrderValidator::validateCancelOrder(const Order& order) {
-    if (order.getPriceTicks() == 0 &&
-        order.getQty() == 0 &&
-        order.getSide() == Side::None &&
-        order.getStatus() == OrderStatus::Pending &&
-        order.getOrderID() != 0 &&
-        order.getLinkedOrderID() != 0 &&
-        order.getLinkedOrderID() != order.getOrderID() &&
-        order.getTimeInForce() == TimeInForce::GTC &&
-        !order.isPostOnly()) {
-        return RejectionReason::None;
-    }
-    return RejectionReason::InvalidCancelOrder;
 }
 
 RejectionReason OrderValidator::validateBeforeAddingOrRemoving(const OrderPtr &order) {
@@ -61,9 +42,6 @@ RejectionReason OrderValidator::validateBeforeMatching(const OrderPtr &order) {
     }
     if (order->getType() == OrderType::Market) {
         return validateMarketOrder(*order);
-    }
-    if (order->getType() == OrderType::Cancel) {
-        return validateCancelOrder(*order);
     }
     return RejectionReason::InvalidOrderType;
 }

@@ -4,6 +4,7 @@
 #include "engine/execution_engine.hpp"
 #include "policy/stp_policy.hpp"
 #include "utils/order_utils.hpp"
+#include "models/cancel_request.hpp"
 
 class TradeLogger;
 class TradeIdGenerator;
@@ -30,6 +31,7 @@ public:
     );
 
     RejectionReason matchOrder(const OrderPtr &incomingOrder);
+    RejectionReason submit(const CancelRequest &request);
 
     std::optional<PriceTicks> getLastTradedPrice()   const;
     std::optional<PriceTicks> getMaxDeviationTicks() const;
