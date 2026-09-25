@@ -36,6 +36,13 @@ OrderStatus Order::getStatus()        const { return status; }
 TimeInForce Order::getTimeInForce()   const { return timeInForce; }
 
 void Order::reduceQty(Quantity qtyFilled)    { qty -= qtyFilled; }
+
+void Order::modifyOriginalQty(Quantity newOriginalQty) {
+    Quantity filled = getFilledQty();
+    originalQty = newOriginalQty;
+    qty = newOriginalQty - filled;
+}
+
 void Order::setStatus(OrderStatus newStatus) { status = newStatus; }
 
 bool Order::isCancelled() const { return status == OrderStatus::Cancelled || status == OrderStatus::CancelledAfterPartialExecution; }

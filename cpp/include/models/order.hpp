@@ -46,6 +46,7 @@ public:
     TimeInForce getTimeInForce()   const;
 
     void reduceQty(Quantity qtyFilled);
+    void modifyOriginalQty(Quantity newOriginalQty);
     void setStatus(OrderStatus newStatus);
 
     bool isCancelled() const;

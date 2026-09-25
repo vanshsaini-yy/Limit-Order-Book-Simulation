@@ -120,3 +120,18 @@ TEST_F(OrderTest, GetFilledQtyEqualsOriginalQtyWhenFullyFilled) {
     EXPECT_EQ(order1->getQty(), static_cast<Quantity>(0));
     EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(10));
 }
+
+TEST_F(OrderTest, ModifyOriginalQtyOnUntouchedOrderSetsQtyAndOriginalQty) {
+    order1->modifyOriginalQty(3);
+    EXPECT_EQ(order1->getQty(), static_cast<Quantity>(3));
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(3));
+    EXPECT_EQ(order1->getFilledQty(), static_cast<Quantity>(0));
+}
+
+TEST_F(OrderTest, ModifyOriginalQtyAfterPartialFillPreservesFilledQty) {
+    order1->reduceQty(4);
+    order1->modifyOriginalQty(9);
+    EXPECT_EQ(order1->getFilledQty(), static_cast<Quantity>(4));
+    EXPECT_EQ(order1->getQty(), static_cast<Quantity>(5));
+    EXPECT_EQ(order1->getOriginalQty(), static_cast<Quantity>(9));
+}
