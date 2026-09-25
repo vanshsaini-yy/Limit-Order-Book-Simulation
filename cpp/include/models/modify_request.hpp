@@ -6,7 +6,7 @@ class ModifyRequest : public IRequest {
 private:
     OrderID targetOrderID;
     std::optional<PriceTicks> newPriceTicks;
-    std::optional<Quantity> newQty;
+    std::optional<Quantity> newOriginalQty;
 
 public:
     ModifyRequest(
@@ -15,12 +15,12 @@ public:
         Timestamp timestamp_,
         OrderID targetOrderID_,
         std::optional<PriceTicks> newPriceTicks_,
-        std::optional<Quantity> newQty_
+        std::optional<Quantity> newOriginalQty_
     );
 
-    OrderID                   getTargetOrderID() const;
-    std::optional<PriceTicks> getNewPriceTicks() const;
-    std::optional<Quantity>   getNewQty()        const;
+    OrderID                   getTargetOrderID()    const;
+    std::optional<PriceTicks> getNewPriceTicks()    const;
+    std::optional<Quantity>   getNewOriginalQty()   const;
 
     RejectionReason validate() const override;
 };

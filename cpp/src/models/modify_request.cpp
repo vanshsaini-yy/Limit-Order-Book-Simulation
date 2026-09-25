@@ -6,28 +6,28 @@ ModifyRequest::ModifyRequest(
     Timestamp timestamp_,
     OrderID targetOrderID_,
     std::optional<PriceTicks> newPriceTicks_,
-    std::optional<Quantity> newQty_
+    std::optional<Quantity> newOriginalQty_
 )
 :   IRequest(requestId_, RequestType::Modify, ownerID_, timestamp_),
     targetOrderID(targetOrderID_),
     newPriceTicks(newPriceTicks_),
-    newQty(newQty_) {}
+    newOriginalQty(newOriginalQty_) {}
 
-OrderID                   ModifyRequest::getTargetOrderID() const { return targetOrderID; }
-std::optional<PriceTicks> ModifyRequest::getNewPriceTicks() const { return newPriceTicks; }
-std::optional<Quantity>   ModifyRequest::getNewQty()        const { return newQty; }
+OrderID                   ModifyRequest::getTargetOrderID()    const { return targetOrderID; }
+std::optional<PriceTicks> ModifyRequest::getNewPriceTicks()    const { return newPriceTicks; }
+std::optional<Quantity>   ModifyRequest::getNewOriginalQty()   const { return newOriginalQty; }
 
 RejectionReason ModifyRequest::validate() const {
     if (targetOrderID == 0) {
         return RejectionReason::InvalidModifyOrder;
     }
-    if (!newPriceTicks.has_value() && !newQty.has_value()) {
+    if (!newPriceTicks.has_value() && !newOriginalQty.has_value()) {
         return RejectionReason::InvalidModifyOrder;
     }
     if (newPriceTicks.has_value() && *newPriceTicks <= 0) {
         return RejectionReason::InvalidModifyOrder;
     }
-    if (newQty.has_value() && *newQty <= 0) {
+    if (newOriginalQty.has_value() && *newOriginalQty <= 0) {
         return RejectionReason::InvalidModifyOrder;
     }
     return RejectionReason::None;
