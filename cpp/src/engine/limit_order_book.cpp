@@ -4,6 +4,14 @@ bool LimitOrderBook::doesOrderExist(OrderID orderId) const {
     return orderIDMap.contains(orderId);
 }
 
+OrderPtr LimitOrderBook::getOrder(OrderID orderId) const {
+    auto it = orderIDMap.find(orderId);
+    if (it == orderIDMap.end()) {
+        return nullptr;
+    }
+    return *(it->second);
+}
+
 std::optional<PriceTicks> LimitOrderBook::getBestBid() const {
     if (bids.empty()) return std::nullopt;
     return bids.begin()->first;

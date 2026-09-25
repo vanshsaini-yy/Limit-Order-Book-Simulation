@@ -22,6 +22,7 @@ public:
     LimitOrderBook() = default;
 
     bool doesOrderExist(OrderID orderId) const;
+    OrderPtr getOrder(OrderID orderId)   const;
 
     std::optional<PriceTicks> getBestBid()  const;
     std::optional<PriceTicks> getBestAsk()  const;
