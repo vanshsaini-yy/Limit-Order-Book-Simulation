@@ -92,6 +92,7 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
     return RejectionReason::None;
 }
 
+// TODO: make this fn non-owning for order
 bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
     if (order->getQty() == 0) {
         return false;
@@ -115,6 +116,7 @@ bool LimitOrderBook::isOrderMarketable(const OrderPtr &order) const {
     }
 }
 
+// TODO: make this fn non-owning for order
 bool LimitOrderBook::isFOKFillable(const OrderPtr &order, STPDecision stpDecision) const {
     if (order->getQty() <= 0) {
         return true;
