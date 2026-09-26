@@ -22,7 +22,7 @@ RejectionReason ModifyRequest::validate() const {
         return RejectionReason::InvalidModifyOrder;
     }
     if (!newPriceTicks.has_value() && !newOriginalQty.has_value()) {
-        return RejectionReason::InvalidModifyOrder;
+        return RejectionReason::NoOpModify;
     }
     if (newPriceTicks.has_value() && *newPriceTicks <= 0) {
         return RejectionReason::InvalidModifyOrder;

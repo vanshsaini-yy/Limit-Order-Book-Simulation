@@ -33,12 +33,12 @@ TEST(ModifyRequestTest, Validate_ZeroTargetOrderID_IsRejected) {
     EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
 }
 
-TEST(ModifyRequestTest, Validate_NeitherPriceNorQtyGiven_IsRejected) {
+TEST(ModifyRequestTest, Validate_NeitherPriceNorQtyGiven_IsRejectedAsNoOp) {
     ModifyRequest request(1, 1, 1622547800, 1, std::nullopt, std::nullopt);
 
     RejectionReason result = request.validate();
 
-    EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
+    EXPECT_EQ(result, RejectionReason::NoOpModify);
 }
 
 TEST(ModifyRequestTest, Validate_ZeroNewPriceTicks_IsRejected) {

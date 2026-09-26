@@ -19,4 +19,5 @@ enum class RejectionReason : uint8_t {
     InvalidModifyOrder,                 // modify request that doesn't meet the criteria for a valid modify order
     OrderToBeModifiedDoesNotExist,      // trying to modify an order that doesn't exist or wasn't placed by the same owner
     ModifyQuantityBelowFilled,          // modify's new quantity is less than the quantity already filled
+    NoOpModify,                         // modify request's new price/quantity match the resting order's current price/quantity
 };
