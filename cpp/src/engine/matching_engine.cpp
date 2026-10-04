@@ -1,17 +1,26 @@
 #include "engine/matching_engine.hpp"
 
+namespace {
+ModifyPolicy* fallbackModifyPolicy() {
+    static DefaultModifyPolicy policy;
+    return &policy;
+}
+}
+
 MatchingEngine::MatchingEngine(
     LimitOrderBook* book,
     STPPolicy* policy,
     TradeLogger* logger,
     TradeIdGenerator* idGenerator,
-    std::optional<PriceTicks> deviationTicks
+    std::optional<PriceTicks> deviationTicks,
+    ModifyPolicy* modifyPolicy_
 )
     : orderBook(book),
       stpPolicy(policy),
       tradeLogger(logger),
       tradeIdGenerator(idGenerator),
-      maxDeviationTicks(deviationTicks) {}
+      maxDeviationTicks(deviationTicks),
+      modifyPolicy(modifyPolicy_ != nullptr ? modifyPolicy_ : fallbackModifyPolicy()) {}
 
 std::optional<PriceTicks> MatchingEngine::getLastTradedPrice()   const { return lastTradedPrice; }
 std::optional<PriceTicks> MatchingEngine::getMaxDeviationTicks() const { return maxDeviationTicks; }
@@ -44,19 +53,7 @@ void MatchingEngine::applySTPPolicy(const OrderPtr &restingOrder, const OrderPtr
     }
 }
 
-RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
-    RejectionReason validationResult = OrderValidator::validateBeforeMatching(incomingOrder);
-    if (validationResult != RejectionReason::None) {
-        if (incomingOrder) {
-            incomingOrder->setStatus(OrderStatus::Cancelled);
-        }
-        return validationResult;
-    }
-
-    if (orderBook->doesOrderExist(incomingOrder->getOrderID())) {
-        return RejectionReason::DuplicateOrderID;
-    }
-
+RejectionReason MatchingEngine::checkBeforeMatching(const OrderPtr &incomingOrder) const {
     if (incomingOrder->isPostOnly() && orderBook->isOrderMarketable(incomingOrder)) {
         incomingOrder->setStatus(OrderStatus::Cancelled);
         return RejectionReason::PostOnlyWouldCross;
@@ -72,13 +69,39 @@ RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
         return RejectionReason::PriceCollarViolation;
     }
 
-    Quantity incomingInitialQty = incomingOrder->getQty();
+    return RejectionReason::None;
+}
+
+RejectionReason MatchingEngine::matchOrder(const OrderPtr &incomingOrder) {
+    RejectionReason validationResult = OrderValidator::validateBeforeMatching(incomingOrder);
+    if (validationResult != RejectionReason::None) {
+        if (incomingOrder) {
+            incomingOrder->setStatus(OrderStatus::Cancelled);
+        }
+        return validationResult;
+    }
+
+    if (orderBook->doesOrderExist(incomingOrder->getOrderID())) {
+        return RejectionReason::DuplicateOrderID;
+    }
+
+    RejectionReason checkResult = checkBeforeMatching(incomingOrder);
+    if (checkResult != RejectionReason::None) {
+        return checkResult;
+    }
+
+    return executeMatching(incomingOrder);
+}
+
+RejectionReason MatchingEngine::executeMatching(const OrderPtr &incomingOrder) {
+    Quantity incomingInitialQty = incomingOrder->getOriginalQty();
     Side incomingSide = incomingOrder->getSide();
 
     while (orderBook->isOrderMarketable(incomingOrder)) {
         OrderPtr restingOrder = orderBook->getMatchedOrder(incomingSide);
         if (!restingOrder) {
             incomingOrder->setStatus(OrderStatus::Cancelled);
+            // TODO: why do we return invariant violation here
             return RejectionReason::OrderBookInvariantViolation;
         }
         Quantity restingInitialQty = restingOrder->getQty();
@@ -142,4 +165,77 @@ RejectionReason MatchingEngine::submit(const CancelRequest &request) {
     }
     orderBook->recordCancellation();
     return RejectionReason::None;
+}
+
+RejectionReason MatchingEngine::submit(const ModifyRequest &request) {
+    RejectionReason validationResult = request.validate();
+    if (validationResult != RejectionReason::None) {
+        return validationResult;
+    }
+
+    OrderPtr resting = orderBook->getOrder(request.getTargetOrderID());
+    if (!resting || resting->getOwnerID() != request.getOwnerID()) {
+        return RejectionReason::OrderToBeModifiedDoesNotExist;
+    }
+
+    std::optional<PriceTicks> newPriceTicks = request.getNewPriceTicks();
+    std::optional<Quantity> newOriginalQty = request.getNewOriginalQty();
+    bool priceUnchanged = !newPriceTicks.has_value() || *newPriceTicks == resting->getPriceTicks();
+    bool quantityUnchanged = !newOriginalQty.has_value() || *newOriginalQty == resting->getOriginalQty();
+    if (priceUnchanged && quantityUnchanged) {
+        return RejectionReason::NoOpModify;
+    }
+
+    if (newOriginalQty.has_value()) {
+        if (*newOriginalQty < resting->getFilledQty()) {
+            return RejectionReason::ModifyQuantityBelowFilled;
+        }
+        if (*newOriginalQty == resting->getFilledQty()) {
+            RejectionReason cancelResult = orderBook->cancelOrder(request.getTargetOrderID(), request.getOwnerID());
+            if (cancelResult != RejectionReason::None) {
+                return cancelResult;
+            }
+            orderBook->recordCancellation();
+            return RejectionReason::None;
+        }
+    }
+
+    ModifyDecision decision = modifyPolicy->getDecision(*resting, request);
+
+    if (!decision.losesPriority) {
+        if (newOriginalQty.has_value()) {
+            resting->modifyOriginalQty(*newOriginalQty);
+        }
+        return RejectionReason::None;
+    }
+
+    PriceTicks replacementPriceTicks = newPriceTicks.value_or(resting->getPriceTicks());
+
+    OrderPtr replacement = std::make_shared<Order>(
+        resting->getOrderID(),
+        resting->getOwnerID(),
+        replacementPriceTicks,
+        resting->getOriginalQty(),
+        resting->getSide(),
+        resting->getType(),
+        request.getTimestamp(),
+        resting->getTimeInForce(),
+        resting->isPostOnly()
+    );
+    replacement->reduceQty(resting->getFilledQty());
+    if (newOriginalQty.has_value()) {
+        replacement->modifyOriginalQty(*newOriginalQty);
+    }
+
+    RejectionReason checkResult = checkBeforeMatching(replacement);
+    if (checkResult != RejectionReason::None) {
+        return checkResult;
+    }
+
+    RejectionReason cancelResult = orderBook->cancelOrder(request.getTargetOrderID(), request.getOwnerID());
+    if (cancelResult != RejectionReason::None) {
+        return cancelResult;
+    }
+
+    return executeMatching(replacement);
 }

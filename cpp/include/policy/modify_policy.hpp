@@ -16,3 +16,8 @@ class DefaultModifyPolicy final : public ModifyPolicy {
 public:
     ModifyDecision getDecision(const Order &resting, const ModifyRequest &request) const override;
 };
+
+class QuantityKeepsPriorityModifyPolicy final : public ModifyPolicy {
+public:
+    ModifyDecision getDecision(const Order &resting, const ModifyRequest &request) const override;
+};

@@ -47,7 +47,11 @@ void bindOrderTypes(py::module_& module) {
         .value("FOK_INSUFFICIENT_LIQUIDITY", RejectionReason::FOKInsufficientLiquidity)
         .value("INVALID_POST_ONLY_ORDER", RejectionReason::InvalidPostOnlyOrder)
         .value("POST_ONLY_WOULD_CROSS", RejectionReason::PostOnlyWouldCross)
-        .value("PRICE_COLLAR_VIOLATION", RejectionReason::PriceCollarViolation);
+        .value("PRICE_COLLAR_VIOLATION", RejectionReason::PriceCollarViolation)
+        .value("INVALID_MODIFY_ORDER", RejectionReason::InvalidModifyOrder)
+        .value("ORDER_TO_BE_MODIFIED_DOES_NOT_EXIST", RejectionReason::OrderToBeModifiedDoesNotExist)
+        .value("MODIFY_QUANTITY_BELOW_FILLED", RejectionReason::ModifyQuantityBelowFilled)
+        .value("NO_OP_MODIFY", RejectionReason::NoOpModify);
 
     py::class_<Order, std::shared_ptr<Order>>(module, "Order")
         .def(

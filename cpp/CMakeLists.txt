@@ -12,6 +12,7 @@ add_library(lob_core STATIC
     src/policy/order_validator.cpp
     src/policy/order_lifecycle.cpp
     src/policy/stp_policy.cpp
+    src/policy/modify_policy.cpp
     src/infra/monotonic_trade_id_generator.cpp
     src/infra/binary_trade_logger.cpp
     src/utils/order_utils.cpp

@@ -14,6 +14,7 @@ Quantity ExecutionEngine::executeTrade(
     TradeIdGenerator* tradeIdGenerator
 ) {
     Quantity tradedQty = executeTrade(taker, maker);
+    // TODO: use ! instead of comparison with nullptr
     if (tradedQty == 0 || tradeLogger == nullptr || tradeIdGenerator == nullptr) {
         return tradedQty;
     }

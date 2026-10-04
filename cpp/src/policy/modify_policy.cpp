@@ -13,3 +13,12 @@ ModifyDecision DefaultModifyPolicy::getDecision(const Order &resting, const Modi
 
     return ModifyDecision{false};
 }
+
+ModifyDecision QuantityKeepsPriorityModifyPolicy::getDecision(const Order &resting, const ModifyRequest &request) const {
+    std::optional<PriceTicks> newPriceTicks = request.getNewPriceTicks();
+    if (newPriceTicks.has_value() && *newPriceTicks != resting.getPriceTicks()) {
+        return ModifyDecision{true};
+    }
+
+    return ModifyDecision{false};
+}

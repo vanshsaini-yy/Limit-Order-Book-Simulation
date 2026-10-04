@@ -6,5 +6,5 @@ __pycache__/
 *.so
 *.bin
 simulate_noisy_traders.py
-REFACTOR_PLAN.md
 FEATURE_ROADMAP.md
+REQUEST_MIGRATION_PLAN.md

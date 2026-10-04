@@ -13,7 +13,7 @@ protected:
     }
 
     ModifyRequest makeRequest(std::optional<PriceTicks> newPriceTicks, std::optional<Quantity> newOriginalQty) {
-        return ModifyRequest(1, 1, 2000, 1, newPriceTicks, newOriginalQty);
+        return ModifyRequest(1, 1, 1001, 1, newPriceTicks, newOriginalQty);
     }
 };
 
