@@ -29,7 +29,7 @@ TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, QuantityIncrease_Inc
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, 15);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     expectOrderState(resting->getOrderID(), 100, 15, OrderStatus::Pending);
@@ -46,7 +46,7 @@ TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, QuantityIncrease_Kee
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), std::nullopt, 12);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 100, 12, Side::Sell, OrderType::Limit, 1003);
@@ -64,7 +64,7 @@ TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, PriceChange_LosesPri
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 2, 1002, secondResting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 105, 5, Side::Sell, OrderType::Limit, 1003);

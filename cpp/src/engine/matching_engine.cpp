@@ -154,28 +154,29 @@ RejectionReason MatchingEngine::executeMatching(const OrderPtr &incomingOrder) {
     return RejectionReason::None;
 }
 
-RejectionReason MatchingEngine::submit(const CancelRequest &request) {
+SubmitResult MatchingEngine::submit(const CancelRequest &request) {
     RejectionReason validationResult = request.validate();
     if (validationResult != RejectionReason::None) {
-        return validationResult;
+        return {validationResult, nullptr};
     }
+    OrderPtr target = orderBook->getOrder(request.getTargetOrderID());
     RejectionReason cancelResult = orderBook->cancelOrder(request.getTargetOrderID(), request.getOwnerID());
     if (cancelResult != RejectionReason::None) {
-        return cancelResult;
+        return {cancelResult, nullptr};
     }
     orderBook->recordCancellation();
-    return RejectionReason::None;
+    return {RejectionReason::None, target};
 }
 
-RejectionReason MatchingEngine::submit(const ModifyRequest &request) {
+SubmitResult MatchingEngine::submit(const ModifyRequest &request) {
     RejectionReason validationResult = request.validate();
     if (validationResult != RejectionReason::None) {
-        return validationResult;
+        return {validationResult, nullptr};
     }
 
     OrderPtr resting = orderBook->getOrder(request.getTargetOrderID());
     if (!resting || resting->getOwnerID() != request.getOwnerID()) {
-        return RejectionReason::OrderToBeModifiedDoesNotExist;
+        return {RejectionReason::OrderToBeModifiedDoesNotExist, nullptr};
     }
 
     std::optional<PriceTicks> newPriceTicks = request.getNewPriceTicks();
@@ -183,20 +184,21 @@ RejectionReason MatchingEngine::submit(const ModifyRequest &request) {
     bool priceUnchanged = !newPriceTicks.has_value() || *newPriceTicks == resting->getPriceTicks();
     bool quantityUnchanged = !newOriginalQty.has_value() || *newOriginalQty == resting->getOriginalQty();
     if (priceUnchanged && quantityUnchanged) {
-        return RejectionReason::NoOpModify;
+        return {RejectionReason::NoOpModify, resting};
     }
 
     if (newOriginalQty.has_value()) {
         if (*newOriginalQty < resting->getFilledQty()) {
-            return RejectionReason::ModifyQuantityBelowFilled;
+            return {RejectionReason::ModifyQuantityBelowFilled, resting};
         }
         if (*newOriginalQty == resting->getFilledQty()) {
+            // TODO: this can be optimized, define a orderBook fn that removes without validation as we already did validation above
             RejectionReason cancelResult = orderBook->cancelOrder(request.getTargetOrderID(), request.getOwnerID());
             if (cancelResult != RejectionReason::None) {
-                return cancelResult;
+                return {cancelResult, resting};
             }
             orderBook->recordCancellation();
-            return RejectionReason::None;
+            return {RejectionReason::None, resting};
         }
     }
 
@@ -206,7 +208,7 @@ RejectionReason MatchingEngine::submit(const ModifyRequest &request) {
         if (newOriginalQty.has_value()) {
             resting->modifyOriginalQty(*newOriginalQty);
         }
-        return RejectionReason::None;
+        return {RejectionReason::None, resting};
     }
 
     PriceTicks replacementPriceTicks = newPriceTicks.value_or(resting->getPriceTicks());
@@ -229,13 +231,14 @@ RejectionReason MatchingEngine::submit(const ModifyRequest &request) {
 
     RejectionReason checkResult = checkBeforeMatching(replacement);
     if (checkResult != RejectionReason::None) {
-        return checkResult;
+        return {checkResult, resting};
     }
 
+    // TODO: this can be optimized as well
     RejectionReason cancelResult = orderBook->cancelOrder(request.getTargetOrderID(), request.getOwnerID());
     if (cancelResult != RejectionReason::None) {
-        return cancelResult;
+        return {cancelResult, resting};
     }
 
-    return executeMatching(replacement);
+    return {executeMatching(replacement), replacement};
 }

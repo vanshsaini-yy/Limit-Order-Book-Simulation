@@ -2,6 +2,7 @@
 #include <optional>
 #include "engine/limit_order_book.hpp"
 #include "engine/execution_engine.hpp"
+#include "engine/submit_result.hpp"
 #include "policy/stp_policy.hpp"
 #include "policy/modify_policy.hpp"
 #include "utils/order_utils.hpp"
@@ -37,8 +38,8 @@ public:
     );
 
     RejectionReason matchOrder(const OrderPtr &incomingOrder);
-    RejectionReason submit(const CancelRequest &request);
-    RejectionReason submit(const ModifyRequest &request);
+    SubmitResult submit(const CancelRequest &request);
+    SubmitResult submit(const ModifyRequest &request);
 
     std::optional<PriceTicks> getLastTradedPrice()   const;
     std::optional<PriceTicks> getMaxDeviationTicks() const;

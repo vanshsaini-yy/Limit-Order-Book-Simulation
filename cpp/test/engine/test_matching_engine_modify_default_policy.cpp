@@ -33,7 +33,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroTargetOrderID_IsRejecte
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, 0, 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -45,7 +45,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NeitherPriceNorQtyGiven_IsR
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::NoOpModify);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -57,7 +57,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroNewPriceTicks_IsRejecte
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 0, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -69,7 +69,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NegativeNewPriceTicks_IsRej
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), -5, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -81,7 +81,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroNewOriginalQty_IsReject
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, 0);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -93,7 +93,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NegativeNewOriginalQty_IsRe
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, -3);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::InvalidModifyOrder);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -108,7 +108,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NonExistentOrder_IsRejected
     OrderID nonExistentOrderID = 999;
 
     ModifyRequest request(1, 1, 1000, nonExistentOrderID, 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::OrderToBeModifiedDoesNotExist);
 }
@@ -120,7 +120,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_AnotherOwnersOrder_IsReject
 
     OwnerID anotherOwnerID = 2;
     ModifyRequest request(1, anotherOwnerID, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::OrderToBeModifiedDoesNotExist);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -134,7 +134,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_FullyExecutedOrder_IsReject
     engine->matchOrder(fullFill);
 
     ModifyRequest request(1, 1, 1002, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::OrderToBeModifiedDoesNotExist);
     EXPECT_TRUE(resting->isExecuted());
@@ -150,7 +150,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityDecrease_DecreasesQuantity
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, 6);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(resting->getQty(), static_cast<Quantity>(6));
@@ -162,7 +162,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityIncrease_IncreasesQuantity
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, 15);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr modifiedOrder = orderBook.getOrder(resting->getOrderID());
@@ -176,7 +176,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityUnchanged_IsRejectedAsNoOp
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), std::nullopt, 10);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::NoOpModify);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -251,7 +251,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceDecrease_DecreasesPrice) {
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 95, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr modifiedOrder = orderBook.getOrder(resting->getOrderID());
@@ -265,7 +265,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceIncrease_IncreasesPrice) {
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr modifiedOrder = orderBook.getOrder(resting->getOrderID());
@@ -279,7 +279,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceUnchanged_IsRejectedAsNoOp) {
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 100, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::NoOpModify);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -293,7 +293,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceIncrease_LosesPriority) {
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 2, 1002, secondResting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 105, 5, Side::Sell, OrderType::Limit, 1003);
@@ -312,7 +312,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceDecrease_LosesPriority) {
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 2, 1002, secondResting->getOrderID(), 95, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 95, 5, Side::Sell, OrderType::Limit, 1003);
@@ -331,7 +331,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceUnchanged_KeepsPriority) {
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), 100, 6);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 100, 6, Side::Sell, OrderType::Limit, 1003);
@@ -353,7 +353,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityChange_BothReflect
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, 6);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr modifiedOrder = orderBook.getOrder(resting->getOrderID());
@@ -368,7 +368,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityUnchanged_IsReject
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 100, 10);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::NoOpModify);
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -382,7 +382,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceChangeWithQuantityIncrease_Lo
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 2, 1002, secondResting->getOrderID(), 105, 15);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 105, 5, Side::Sell, OrderType::Limit, 1003);
@@ -401,7 +401,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceChangeWithQuantityDecrease_Lo
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 2, 1002, secondResting->getOrderID(), 105, 6);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 105, 5, Side::Sell, OrderType::Limit, 1003);
@@ -420,7 +420,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityUnchanged_KeepsPri
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), 100, 10);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::NoOpModify);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 100, 10, Side::Sell, OrderType::Limit, 1003);
@@ -444,7 +444,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalBelowFille
     engine->matchOrder(partialFill);
 
     ModifyRequest request(1, 1, 1002, resting->getOrderID(), std::nullopt, 3);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::ModifyQuantityBelowFilled);
     expectOrderState(resting->getOrderID(), 100, 6, OrderStatus::PartiallyExecuted);
@@ -459,7 +459,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFill
     engine->matchOrder(partialFill);
 
     ModifyRequest request(1, 1, 1002, resting->getOrderID(), std::nullopt, 4);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_FALSE(orderBook.doesOrderExist(resting->getOrderID()));
@@ -487,7 +487,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFill
     engine->matchOrder(partialFill);
 
     ModifyRequest request(1, 1, 1002, resting->getOrderID(), 105, 4);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_FALSE(orderBook.doesOrderExist(resting->getOrderID()));
@@ -505,7 +505,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_QuantityDecrease_K
     engine->matchOrder(partialFill);
 
     ModifyRequest request(1, 1, 1003, firstResting->getOrderID(), std::nullopt, 8);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(firstResting->getQty(), static_cast<Quantity>(4));
 
@@ -528,7 +528,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PendingOrder_RestsW
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, 12);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -545,7 +545,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PartiallyFilledOrde
     engine->matchOrder(partialFill);
 
     ModifyRequest request(1, 1, 1002, resting->getOrderID(), 105, 12);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -560,7 +560,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PendingOrder_Remain
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -576,7 +576,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PartiallyFilledOrde
     engine->matchOrder(partialFill);
 
     ModifyRequest request(1, 1, 1002, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -591,7 +591,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementUsesRequ
 
     Timestamp requestTimestamp = 1001;
     ModifyRequest request(1, 1, requestTimestamp, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -607,7 +607,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementKeepsOrd
     engine->matchOrder(resting);
 
     ModifyRequest request(1, originalOwnerID, 1001, originalOrderID, 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(originalOrderID);
@@ -622,7 +622,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -636,7 +636,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -650,7 +650,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -664,7 +664,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 95, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -682,7 +682,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_OriginalOrderHandle
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_TRUE(resting->isCancelled());
@@ -694,11 +694,11 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModifyTwice_BothApply) {
     engine->matchOrder(resting);
 
     ModifyRequest firstRequest(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason firstResult = engine->submit(firstRequest);
+    RejectionReason firstResult = engine->submit(firstRequest).reason;
     EXPECT_EQ(firstResult, RejectionReason::None);
 
     ModifyRequest secondRequest(2, 1, 1002, resting->getOrderID(), 110, std::nullopt);
-    RejectionReason secondResult = engine->submit(secondRequest);
+    RejectionReason secondResult = engine->submit(secondRequest).reason;
     EXPECT_EQ(secondResult, RejectionReason::None);
 
     OrderPtr replacement = orderBook.getOrder(resting->getOrderID());
@@ -713,7 +713,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_DoesNotRecordCancel
     engine->matchOrder(resting);
 
     ModifyRequest request(1, 1, 1001, resting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(orderBook.getOrderCancellationCount(), 0u);
@@ -733,7 +733,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPriceColl
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1003, restingBuy->getOrderID(), 200, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     expectOrderState(restingBuy->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -749,7 +749,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPriceColl
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1003, firstResting->getOrderID(), 200, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
 
     OrderPtr incoming = std::make_shared<Order>(4, 4, 100, 10, Side::Sell, OrderType::Limit, 1004);
@@ -769,7 +769,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_NoLastTrade_MidRefe
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 200, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::PriceCollarViolation);
     expectOrderState(restingBuy->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -783,7 +783,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPostOnly_
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::PostOnlyWouldCross);
     expectOrderState(restingBuy->getOrderID(), 100, 10, OrderStatus::Pending);
@@ -801,7 +801,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_Execut
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_EQ(restingSell->getQty(), static_cast<Quantity>(0));
@@ -817,7 +817,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_Remain
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     expectOrderState(restingBuy->getOrderID(), 105, 6, OrderStatus::PartiallyExecuted);
@@ -831,7 +831,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_FullyF
     engine->matchOrder(restingSell);
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     EXPECT_FALSE(orderBook.doesOrderExist(restingBuy->getOrderID()));
@@ -847,7 +847,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_Update
     EXPECT_FALSE(engine->getLastTradedPrice().has_value());
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 110, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::None);
     ASSERT_TRUE(engine->getLastTradedPrice().has_value());
@@ -862,7 +862,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingOwnOrder_Is
     engine->matchOrder(ownRestingSell);
 
     ModifyRequest request(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
 
     EXPECT_EQ(result, RejectionReason::SelfTradePrevention);
     EXPECT_FALSE(orderBook.doesOrderExist(restingBuy->getOrderID()));
@@ -881,7 +881,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_QuantityDecrease_KeepsPriorit
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), std::nullopt, 6);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 100, 6, Side::Buy, OrderType::Limit, 1003);
@@ -899,7 +899,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_QuantityIncrease_LosesPriorit
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), std::nullopt, 12);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 100, 5, Side::Buy, OrderType::Limit, 1003);
@@ -917,7 +917,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_PriceIncrease_LosesPriority) 
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), 105, std::nullopt);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 105, 5, Side::Buy, OrderType::Limit, 1003);
@@ -939,7 +939,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoModifyPolicyInjected_Uses
     engine->matchOrder(secondResting);
 
     ModifyRequest request(1, 1, 1002, firstResting->getOrderID(), std::nullopt, 12);
-    RejectionReason result = engine->submit(request);
+    RejectionReason result = engine->submit(request).reason;
     EXPECT_EQ(result, RejectionReason::None);
 
     OrderPtr incoming = std::make_shared<Order>(3, 3, 100, 5, Side::Sell, OrderType::Limit, 1003);
@@ -947,4 +947,166 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoModifyPolicyInjected_Uses
 
     EXPECT_TRUE(secondResting->isExecuted());
     expectOrderState(firstResting->getOrderID(), 100, 12, OrderStatus::Pending);
+}
+
+// =====================================================================
+// Returned order
+// =====================================================================
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_InvalidRequest_ReturnsNoOrder) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1001, 0, 105, std::nullopt));
+
+    EXPECT_EQ(result.reason, RejectionReason::InvalidModifyOrder);
+    EXPECT_EQ(result.order, nullptr);
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_AnotherOwnersOrder_IsIndistinguishableFromNonExistentOrder) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+
+    OwnerID anotherOwnerID = 2;
+    OrderID nonExistentOrderID = 999;
+    SubmitResult wrongOwner = engine->submit(ModifyRequest(1, anotherOwnerID, 1001, resting->getOrderID(), 105, std::nullopt));
+    SubmitResult nonExistent = engine->submit(ModifyRequest(2, anotherOwnerID, 1002, nonExistentOrderID, 105, std::nullopt));
+
+    EXPECT_EQ(wrongOwner.reason, nonExistent.reason);
+    EXPECT_EQ(wrongOwner.order, nonExistent.order);
+    EXPECT_EQ(wrongOwner.order, nullptr);
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoOpModify_ReturnsRestingOrder) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1001, resting->getOrderID(), 100, 10));
+
+    EXPECT_EQ(result.reason, RejectionReason::NoOpModify);
+    EXPECT_EQ(result.order, resting);
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NewTotalBelowFilled_ReturnsRestingOrderCarryingFilledQty) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+    OrderPtr partialFill = std::make_shared<Order>(2, 2, 100, 4, Side::Sell, OrderType::Limit, 1001);
+    engine->matchOrder(partialFill);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1002, resting->getOrderID(), std::nullopt, 3));
+
+    EXPECT_EQ(result.reason, RejectionReason::ModifyQuantityBelowFilled);
+    ASSERT_NE(result.order, nullptr);
+    EXPECT_EQ(result.order, resting);
+    EXPECT_EQ(result.order->getFilledQty(), static_cast<Quantity>(4));
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NewTotalEqualsFilled_ReturnsCancelledRestingOrder) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+    OrderPtr partialFill = std::make_shared<Order>(2, 2, 100, 4, Side::Sell, OrderType::Limit, 1001);
+    engine->matchOrder(partialFill);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1002, resting->getOrderID(), std::nullopt, 4));
+
+    EXPECT_EQ(result.reason, RejectionReason::None);
+    EXPECT_EQ(result.order, resting);
+    EXPECT_TRUE(result.order->isCancelled());
+    EXPECT_FALSE(orderBook.doesOrderExist(resting->getOrderID()));
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityKept_ReturnsRestingOrder) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1001, resting->getOrderID(), std::nullopt, 6));
+
+    EXPECT_EQ(result.reason, RejectionReason::None);
+    EXPECT_EQ(result.order, resting);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(6));
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityLost_ReturnsTheReplacementResting) {
+    makeEngine();
+    OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    engine->matchOrder(resting);
+
+    Timestamp requestTimestamp = 1001;
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, requestTimestamp, resting->getOrderID(), 105, std::nullopt));
+
+    EXPECT_EQ(result.reason, RejectionReason::None);
+    ASSERT_NE(result.order, nullptr);
+    EXPECT_NE(result.order, resting);
+    EXPECT_EQ(result.order, orderBook.getOrder(resting->getOrderID()));
+    EXPECT_EQ(result.order->getOrderID(), resting->getOrderID());
+    EXPECT_EQ(result.order->getTimestamp(), requestTimestamp);
+    EXPECT_EQ(result.order->getPriceTicks(), static_cast<PriceTicks>(105));
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityLostAndFullyFilled_ReturnsTheReplacementOutsideTheBook) {
+    makeEngine();
+    OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 4, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 10, Side::Sell, OrderType::Limit, 1001);
+    engine->matchOrder(restingBuy);
+    engine->matchOrder(restingSell);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt));
+
+    EXPECT_EQ(result.reason, RejectionReason::None);
+    ASSERT_NE(result.order, nullptr);
+    EXPECT_NE(result.order, restingBuy);
+    EXPECT_TRUE(result.order->isExecuted());
+    EXPECT_FALSE(orderBook.doesOrderExist(restingBuy->getOrderID()));
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedByPriceCollar_ReturnsRestingOrderStillInBook) {
+    makeEngine(5);
+    OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr restingSell = std::make_shared<Order>(2, 2, 110, 5, Side::Sell, OrderType::Limit, 1001);
+    engine->matchOrder(restingBuy);
+    engine->matchOrder(restingSell);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1002, restingBuy->getOrderID(), 200, std::nullopt));
+
+    EXPECT_EQ(result.reason, RejectionReason::PriceCollarViolation);
+    EXPECT_EQ(result.order, restingBuy);
+    EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
+    EXPECT_EQ(result.order->getPriceTicks(), static_cast<PriceTicks>(100));
+    EXPECT_EQ(orderBook.getOrder(restingBuy->getOrderID()), restingBuy);
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedByPostOnly_ReturnsRestingOrderStillInBook) {
+    makeEngine();
+    OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
+    OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 5, Side::Sell, OrderType::Limit, 1001);
+    engine->matchOrder(restingBuy);
+    engine->matchOrder(restingSell);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt));
+
+    EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
+    EXPECT_EQ(result.order, restingBuy);
+    EXPECT_EQ(orderBook.getOrder(restingBuy->getOrderID()), restingBuy);
+}
+
+TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedBySelfTradePrevention_ReturnsTheCancelledReplacement) {
+    makeEngine();
+    OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
+    OrderPtr ownRestingSell = std::make_shared<Order>(2, 1, 105, 4, Side::Sell, OrderType::Limit, 1001);
+    engine->matchOrder(restingBuy);
+    engine->matchOrder(ownRestingSell);
+
+    SubmitResult result = engine->submit(ModifyRequest(1, 1, 1002, restingBuy->getOrderID(), 105, std::nullopt));
+
+    EXPECT_EQ(result.reason, RejectionReason::SelfTradePrevention);
+    ASSERT_NE(result.order, nullptr);
+    EXPECT_NE(result.order, restingBuy);
+    EXPECT_TRUE(result.order->isCancelled());
+    EXPECT_EQ(orderBook.getOrder(restingBuy->getOrderID()), nullptr);
 }
