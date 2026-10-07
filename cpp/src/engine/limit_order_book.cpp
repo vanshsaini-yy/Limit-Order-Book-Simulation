@@ -67,6 +67,7 @@ RejectionReason LimitOrderBook::addOrder(const OrderPtr &order) {
     return RejectionReason::OrderBookInvariantViolation;
 }
 
+// TODO: rename to removeOrder
 RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOwnerID) {
     auto it = orderIDMap.find(orderId);
     if (it == orderIDMap.end())
@@ -75,6 +76,7 @@ RejectionReason LimitOrderBook::cancelOrder(OrderID orderId, OwnerID requesterOw
     if (order->getOwnerID() != requesterOwnerID) {
         return RejectionReason::OrderToBeCancelledDoesNotExist;
     }
+    // TODO: do we actually need this validation?
     RejectionReason validationResult = OrderValidator::validateBeforeAddingOrRemoving(order);
     if (validationResult != RejectionReason::None) {
         return validationResult;
