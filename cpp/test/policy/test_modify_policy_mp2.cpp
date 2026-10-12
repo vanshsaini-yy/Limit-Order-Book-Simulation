@@ -2,9 +2,9 @@
 #include <memory>
 #include "policy/modify_policy.hpp"
 
-class DefaultModifyPolicyTest : public ::testing::Test {
+class MP2Test : public ::testing::Test {
 protected:
-    DefaultModifyPolicy policy;
+    MP2 policy;
 
     OrderPtr makeResting(Quantity originalQty, Quantity filledQty) {
         OrderPtr order = std::make_shared<Order>(1, 1, 100, originalQty, Side::Buy, OrderType::Limit, 1000);
@@ -17,7 +17,11 @@ protected:
     }
 };
 
-TEST_F(DefaultModifyPolicyTest, PriceIncrease_LosesPriority) {
+// =====================================================================
+// Price-only modify
+// =====================================================================
+
+TEST_F(MP2Test, PriceIncrease_LosesPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(101, std::nullopt);
 
@@ -26,7 +30,7 @@ TEST_F(DefaultModifyPolicyTest, PriceIncrease_LosesPriority) {
     EXPECT_TRUE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PriceDecrease_LosesPriority) {
+TEST_F(MP2Test, PriceDecrease_LosesPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(99, std::nullopt);
 
@@ -35,7 +39,7 @@ TEST_F(DefaultModifyPolicyTest, PriceDecrease_LosesPriority) {
     EXPECT_TRUE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PriceUnchanged_KeepsPriority) {
+TEST_F(MP2Test, PriceUnchanged_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(100, std::nullopt);
 
@@ -44,16 +48,20 @@ TEST_F(DefaultModifyPolicyTest, PriceUnchanged_KeepsPriority) {
     EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, QuantityIncrease_LosesPriority) {
+// =====================================================================
+// Quantity-only modify
+// =====================================================================
+
+TEST_F(MP2Test, QuantityIncrease_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(std::nullopt, 12);
 
     ModifyDecision decision = policy.getDecision(*resting, request);
 
-    EXPECT_TRUE(decision.losesPriority);
+    EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, QuantityDecrease_KeepsPriority) {
+TEST_F(MP2Test, QuantityDecrease_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(std::nullopt, 6);
 
@@ -62,7 +70,7 @@ TEST_F(DefaultModifyPolicyTest, QuantityDecrease_KeepsPriority) {
     EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, QuantityUnchanged_KeepsPriority) {
+TEST_F(MP2Test, QuantityUnchanged_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(std::nullopt, 10);
 
@@ -71,7 +79,29 @@ TEST_F(DefaultModifyPolicyTest, QuantityUnchanged_KeepsPriority) {
     EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PartiallyFilled_NewTotalAboveRemainingButBelowOriginal_KeepsPriority) {
+// =====================================================================
+// Partially filled orders
+// =====================================================================
+
+TEST_F(MP2Test, PartiallyFilled_NewTotalBelowFilled_KeepsPriority) {
+    OrderPtr resting = makeResting(10, 4);
+    ModifyRequest request = makeRequest(std::nullopt, 3);
+
+    ModifyDecision decision = policy.getDecision(*resting, request);
+
+    EXPECT_FALSE(decision.losesPriority);
+}
+
+TEST_F(MP2Test, PartiallyFilled_NewTotalEqualsFilled_KeepsPriority) {
+    OrderPtr resting = makeResting(10, 4);
+    ModifyRequest request = makeRequest(std::nullopt, 4);
+
+    ModifyDecision decision = policy.getDecision(*resting, request);
+
+    EXPECT_FALSE(decision.losesPriority);
+}
+
+TEST_F(MP2Test, PartiallyFilled_NewTotalAboveFilledButBelowOriginal_KeepsPriority) {
     OrderPtr resting = makeResting(10, 4);
     ModifyRequest request = makeRequest(std::nullopt, 8);
 
@@ -80,7 +110,7 @@ TEST_F(DefaultModifyPolicyTest, PartiallyFilled_NewTotalAboveRemainingButBelowOr
     EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PartiallyFilled_NewTotalEqualsOriginal_KeepsPriority) {
+TEST_F(MP2Test, PartiallyFilled_NewTotalEqualsOriginal_KeepsPriority) {
     OrderPtr resting = makeResting(10, 4);
     ModifyRequest request = makeRequest(std::nullopt, 10);
 
@@ -89,25 +119,29 @@ TEST_F(DefaultModifyPolicyTest, PartiallyFilled_NewTotalEqualsOriginal_KeepsPrio
     EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PartiallyFilled_NewTotalAboveOriginal_LosesPriority) {
+TEST_F(MP2Test, PartiallyFilled_NewTotalAboveOriginal_KeepsPriority) {
     OrderPtr resting = makeResting(10, 4);
     ModifyRequest request = makeRequest(std::nullopt, 12);
 
     ModifyDecision decision = policy.getDecision(*resting, request);
 
-    EXPECT_TRUE(decision.losesPriority);
+    EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PriceChangeWithQuantityIncrease_LosesPriority) {
+// =====================================================================
+// Combined price and quantity modify
+// =====================================================================
+
+TEST_F(MP2Test, PriceChangeWithQuantityIncrease_LosesPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(101, 12);
-    
+
     ModifyDecision decision = policy.getDecision(*resting, request);
-    
+
     EXPECT_TRUE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PriceChangeWithQuantityDecrease_LosesPriority) {
+TEST_F(MP2Test, PriceChangeWithQuantityDecrease_LosesPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(101, 6);
 
@@ -116,7 +150,7 @@ TEST_F(DefaultModifyPolicyTest, PriceChangeWithQuantityDecrease_LosesPriority) {
     EXPECT_TRUE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, PriceChangeWithQuantityUnchanged_LosesPriority) {
+TEST_F(MP2Test, PriceChangeWithQuantityUnchanged_LosesPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(101, 10);
 
@@ -125,16 +159,16 @@ TEST_F(DefaultModifyPolicyTest, PriceChangeWithQuantityUnchanged_LosesPriority) 
     EXPECT_TRUE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, SamePriceWithQuantityIncrease_LosesPriority) {
+TEST_F(MP2Test, SamePriceWithQuantityIncrease_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(100, 12);
 
     ModifyDecision decision = policy.getDecision(*resting, request);
 
-    EXPECT_TRUE(decision.losesPriority);
+    EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, SamePriceWithQuantityDecrease_KeepsPriority) {
+TEST_F(MP2Test, SamePriceWithQuantityDecrease_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(100, 6);
 
@@ -143,7 +177,7 @@ TEST_F(DefaultModifyPolicyTest, SamePriceWithQuantityDecrease_KeepsPriority) {
     EXPECT_FALSE(decision.losesPriority);
 }
 
-TEST_F(DefaultModifyPolicyTest, SamePriceWithQuantityUnchanged_KeepsPriority) {
+TEST_F(MP2Test, SamePriceWithQuantityUnchanged_KeepsPriority) {
     OrderPtr resting = makeResting(10, 0);
     ModifyRequest request = makeRequest(100, 10);
 

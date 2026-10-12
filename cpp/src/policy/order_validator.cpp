@@ -1,5 +1,6 @@
 #include "policy/order_validator.hpp"
 
+// TODO: remove these zero checks from everywhere, zero is not a sentinel
 RejectionReason OrderValidator::validateLimitOrder(const Order& order, bool allowPartialExecution) {
     bool statusOk = order.getStatus() == OrderStatus::Pending ||
                     (allowPartialExecution && order.getStatus() == OrderStatus::PartiallyExecuted);

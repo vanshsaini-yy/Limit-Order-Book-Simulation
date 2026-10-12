@@ -2,7 +2,7 @@
 
 namespace {
 ModifyPolicy* fallbackModifyPolicy() {
-    static DefaultModifyPolicy policy;
+    static MP1 policy;
     return &policy;
 }
 }

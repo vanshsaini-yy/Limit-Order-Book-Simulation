@@ -1,12 +1,17 @@
 #include "order_bindings.hpp"
 
+#include <pybind11/stl.h>
+
+#include "engine/submit_result.hpp"
 #include "models/order.hpp"
 #include "models/rejection_reason.hpp"
 #include "models/request.hpp"
 #include "models/cancel_request.hpp"
+#include "models/modify_request.hpp"
 
 namespace py = pybind11;
 
+// TODO: this file is accumulating too much
 void bindOrderTypes(py::module_& module) {
     py::enum_<Side>(module, "Side")
         .value("BUY", Side::Buy)
@@ -70,6 +75,8 @@ void bindOrderTypes(py::module_& module) {
         .def_property_readonly("owner_id", &Order::getOwnerID)
         .def_property_readonly("price_ticks", &Order::getPriceTicks)
         .def_property_readonly("qty", &Order::getQty)
+        .def_property_readonly("original_qty", &Order::getOriginalQty)
+        .def_property_readonly("filled_qty", &Order::getFilledQty)
         .def_property_readonly("side", &Order::getSide)
         .def_property_readonly("order_type", &Order::getType)
         .def_property_readonly("timestamp", &Order::getTimestamp)
@@ -95,4 +102,22 @@ void bindOrderTypes(py::module_& module) {
             py::arg("target_order_id")
         )
         .def_property_readonly("target_order_id", &CancelRequest::getTargetOrderID);
+
+    py::class_<ModifyRequest, IRequest>(module, "ModifyRequest")
+        .def(
+            py::init<RequestID, OwnerID, Timestamp, OrderID, std::optional<PriceTicks>, std::optional<Quantity>>(),
+            py::arg("request_id"),
+            py::arg("owner_id"),
+            py::arg("timestamp"),
+            py::arg("target_order_id"),
+            py::arg("new_price_ticks") = std::nullopt,
+            py::arg("new_original_qty") = std::nullopt
+        )
+        .def_property_readonly("target_order_id", &ModifyRequest::getTargetOrderID)
+        .def_property_readonly("new_price_ticks", &ModifyRequest::getNewPriceTicks)
+        .def_property_readonly("new_original_qty", &ModifyRequest::getNewOriginalQty);
+
+    py::class_<SubmitResult>(module, "SubmitResult")
+        .def_readonly("reason", &SubmitResult::reason)
+        .def_readonly("order", &SubmitResult::order);
 }

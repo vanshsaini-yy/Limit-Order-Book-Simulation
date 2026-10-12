@@ -104,6 +104,8 @@ lob.Order(
 - `owner_id`
 - `price_ticks`
 - `qty`
+- `original_qty`
+- `filled_qty`
 - `side`
 - `order_type`
 - `timestamp`
@@ -123,7 +125,9 @@ lob.Order(
 - Python cannot mutate an `Order` directly: every property is read-only, and the engine's internal mutators are intentionally not exposed to Python. The only way to change an order's `qty`/`status` is to submit it through `match_order`, or to cancel it via a `CancelRequest` submitted through `cancel()`.
 - A resting order outlives your Python reference. If you let your only variable for a resting order go out of scope (or `del` it), the underlying `Order` is kept alive by the book's own `shared_ptr` — it is not destroyed. There is currently **no API to fetch a handle to a resting order by `order_id`**; `snapshot()` only returns aggregated price-level data, not individual orders. In practice, keep a reference to any `Order` you want to inspect or cancel later.
 - Constructing a second `Order` with the same `order_id` as one already resting in the book does **not** give you a handle to that resting order — it's a distinct object. Submitting it is rejected with `RejectionReason.DUPLICATE_ORDER_ID` and never merges with or mutates the original.
-- A `CancelRequest` is not an `Order` — it's a separate, immutable message whose `target_order_id` tells the engine which resting order to remove. It is never stored in the book and is never mutated by the engine. On success, `cancel()` returns `RejectionReason.NONE` and it's the *targeted* resting order (visible only through whoever still holds a reference to it) whose `status`/`qty` actually change. If the cancel is rejected, the resting order is untouched.
+- A `CancelRequest` is not an `Order` — it's a separate, immutable message whose `target_order_id` tells the engine which resting order to remove. It is never stored in the book and is never mutated by the engine. On success, `cancel()` returns a `SubmitResult` with `reason == RejectionReason.NONE` and `order` set to the *targeted* order, whose `status`/`qty` actually change. If the cancel is rejected, the resting order is untouched.
+- A `ModifyRequest` follows the same rule: it is an immutable message and is never stored in the book. It changes the price and/or the total quantity of a resting order.
+- **After a modify, rebind your variable to `result.order`.** A modify that loses queue priority (a price change, or a quantity increase under the default policy) cancels the resting order and puts a *replacement* in the book with the same `order_id`. The `Order` object you held before is then cancelled and stale. The replacement is `result.order`. A modify that keeps priority changes the resting order in place, and `result.order` is that same object. A rejected modify returns the original, still resting, so `order = engine.modify(request).order or order` is always safe — see [Class: SubmitResult](#class-submitresult).
 
 ### Order validation rules (important)
 
@@ -151,6 +155,8 @@ positive number.
 
 `CancelRequest.validate()` requires `target_order_id != 0`, reported as
 `RejectionReason.INVALID_CANCEL_ORDER` — see [Class: CancelRequest](#class-cancelrequest).
+
+`ModifyRequest.validate()` is described under [Class: ModifyRequest](#class-modifyrequest).
 
 ### Time-in-force semantics
 
@@ -238,6 +244,98 @@ lob.CancelRequest(
 
 ---
 
+## Class: ModifyRequest
+
+`ModifyRequest` is an immutable inbound message that changes a resting order
+with a FIX-style cancel-replace. It is never stored in the book.
+
+### Constructor
+
+```python
+lob.ModifyRequest(
+    request_id: int,
+    owner_id: int,
+    timestamp: int,
+    target_order_id: int,
+    new_price_ticks: Optional[int] = None,
+    new_original_qty: Optional[int] = None,
+)
+```
+
+`new_original_qty` is the new **total** quantity of the order (FIX `OrderQty`),
+not the new remaining quantity. For an order with `original_qty == 10` and
+`filled_qty == 4`, `new_original_qty=8` leaves 4 working. Compare it with
+`Order.original_qty` and `Order.filled_qty`, never with `Order.qty`.
+
+### Read-only properties
+
+- `request_id`
+- `request_type` (always `lob.RequestType.MODIFY`)
+- `owner_id`
+- `timestamp`
+- `target_order_id`
+- `new_price_ticks` — `None` if not given
+- `new_original_qty` — `None` if not given
+
+### Methods
+
+- `validate() -> lob.RejectionReason` — field-level validation only.
+  Returns `INVALID_MODIFY_ORDER` if `target_order_id == 0`, or if a given
+  `new_price_ticks` or `new_original_qty` is not positive. Returns
+  `NO_OP_MODIFY` if neither field is given.
+
+### How the engine handles a modify
+
+Checks run in this order:
+
+1. `validate()` fails: the reason from `validate()`.
+2. The order does not exist, or belongs to a different `owner_id`:
+   `ORDER_TO_BE_MODIFIED_DOES_NOT_EXIST` (the same reason for both, so a
+   caller cannot probe for another owner's order).
+3. The given price and quantity both equal the current ones: `NO_OP_MODIFY`.
+   The order keeps its place in the queue.
+4. `new_original_qty < filled_qty`: `MODIFY_QUANTITY_BELOW_FILLED`.
+5. `new_original_qty == filled_qty`: this is "done for day". The remainder is
+   cancelled and the reason is `NONE`.
+6. Otherwise the `modify_policy` decides whether the order loses its queue
+   priority.
+
+If the order keeps its priority, the engine changes it in place. If it loses
+priority, the engine builds a replacement with the same `order_id`, the
+request's `timestamp`, and the same fill history, and runs it through normal
+matching. A repriced modify can therefore **execute trades**, and it is subject
+to the price collar, post-only and self-trade prevention like a new order.
+
+A modify rejected by the price collar or post-only check leaves the original
+order in the book, in its original queue position.
+
+---
+
+## Class: SubmitResult
+
+`cancel()` and `modify()` return a `SubmitResult`. You do not construct it.
+
+### Read-only properties
+
+- `reason: lob.RejectionReason`
+- `order: Optional[lob.Order]`
+
+`order` is the order you should look at next. It is `None` when validation
+fails, and when the order does not exist or belongs to a different owner. The
+same `(reason, None)` result is returned for both of those cases, so a caller
+cannot tell another owner's order from an order that never existed.
+
+| Call | Outcome | `order` |
+|---|---|---|
+| `cancel` | success | the cancelled order (no longer in the book) |
+| `modify` | priority kept | the resting order, changed in place |
+| `modify` | priority lost, accepted | the replacement (it may already be filled, or cancelled by STP) |
+| `modify` | done for day | the cancelled resting order |
+| `modify` | `NO_OP_MODIFY`, `MODIFY_QUANTITY_BELOW_FILLED` | the resting order, unchanged |
+| `modify` | rejected by price collar or post-only | the original resting order, unchanged |
+
+---
+
 ## Class: MatchingEngine
 
 ### Constructor
@@ -253,6 +351,7 @@ lob.MatchingEngine(
     lot_size: float = 1.0,
     time_interval: float = 1.0,
     max_deviation_ticks: Optional[int] = None,
+    modify_policy: str = "mp1",
 )
 ```
 
@@ -268,6 +367,12 @@ All string options below are case-insensitive (for example, `"CANCEL_BOTH"` and 
   - `"cancel_both"`
   - `"cancel_incoming"`
   - `"cancel_resting"`
+
+- `modify_policy` *(default `"mp1"`)* — decides which modifies lose queue priority:
+  - `"mp1"` — a price change or a quantity increase loses priority. A
+    quantity decrease keeps it. This is the usual exchange rule.
+  - `"mp2"` — only a price change loses priority. A quantity increase keeps
+    the order's place in the queue.
 
 - `trade_id_generator`:
   - `"none"`
@@ -313,19 +418,39 @@ Submits an order for validation/matching/cancellation.
 - Returns a non-`NONE` rejection reason when not accepted.
 - The same `Order` object is mutated in-place by the engine (status/qty updates as matching proceeds) — see [Ownership across the Python/C++ boundary](#ownership-across-the-pythonc-boundary).
 
-#### cancel(request: lob.CancelRequest) -> lob.RejectionReason
+#### cancel(request: lob.CancelRequest) -> lob.SubmitResult
 
-Submits a cancel request for a resting order.
+Submits a cancel request for a resting order. **Breaking change:** this
+returned a bare `RejectionReason` before. Use `result.reason` where you
+compared the return value.
 
-- Returns `RejectionReason.NONE` on success; the targeted resting order's
-  `status` becomes `CANCELLED` (or `CANCELLED_AFTER_PARTIAL_EXECUTION` if it
-  had already partially filled), and it is removed from the book.
-- Returns `RejectionReason.INVALID_CANCEL_ORDER` if `request.validate()` fails.
-- Returns `RejectionReason.ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST` if
+- `result.reason` is `RejectionReason.NONE` on success; the targeted resting
+  order's `status` becomes `CANCELLED` (or `CANCELLED_AFTER_PARTIAL_EXECUTION`
+  if it had already partially filled), and it is removed from the book.
+  `result.order` is that order.
+- `result.reason` is `RejectionReason.INVALID_CANCEL_ORDER` if
+  `request.validate()` fails.
+- `result.reason` is `RejectionReason.ORDER_TO_BE_CANCELLED_DOES_NOT_EXIST` if
   `target_order_id` doesn't exist in the book, or exists but belongs to a
   different `owner_id` than `request.owner_id` (the same reason is returned
   in both cases, deliberately, so a caller cannot probe for the existence of
   another owner's order).
+- `result.order` is `None` on every rejection.
+
+#### modify(request: lob.ModifyRequest) -> lob.SubmitResult
+
+Submits a cancel-replace modify for a resting order. See
+[Class: ModifyRequest](#class-modifyrequest) for the checks and their order,
+and [Class: SubmitResult](#class-submitresult) for what `result.order` holds in
+each case.
+
+- `result.reason` is `RejectionReason.NONE` on success.
+- Other reasons: `INVALID_MODIFY_ORDER`, `ORDER_TO_BE_MODIFIED_DOES_NOT_EXIST`,
+  `NO_OP_MODIFY`, `MODIFY_QUANTITY_BELOW_FILLED`, and, for a modify that loses
+  priority and goes back through matching, `PRICE_COLLAR_VIOLATION`,
+  `POST_ONLY_WOULD_CROSS` and `SELF_TRADE_PREVENTION`.
+- After a modify that loses priority, **rebind your `Order` variable to
+  `result.order`**. The object you held is cancelled.
 
 #### snapshot(now: int, depth_limit: int = 5) -> dict
 
@@ -401,4 +526,35 @@ cancel_request = lob.CancelRequest(
     target_order_id=1,
 )
 engine.cancel(cancel_request)
+```
+
+Modify, then cancel the replacement:
+
+```python
+limit_buy = lob.Order(
+    order_id=2,
+    owner_id=101,
+    price_ticks=1000,
+    qty=10,
+    side=lob.Side.BUY,
+    order_type=lob.OrderType.LIMIT,
+    timestamp=3,
+)
+engine.match_order(limit_buy)
+
+modify_request = lob.ModifyRequest(
+    request_id=2,
+    owner_id=101,
+    timestamp=4,
+    target_order_id=2,
+    new_price_ticks=1005,
+)
+result = engine.modify(modify_request)
+assert result.reason == lob.RejectionReason.NONE
+
+assert limit_buy.is_cancelled()
+limit_buy = result.order
+assert limit_buy.price_ticks == 1005
+
+engine.cancel(lob.CancelRequest(request_id=3, owner_id=101, timestamp=5, target_order_id=2))
 ```

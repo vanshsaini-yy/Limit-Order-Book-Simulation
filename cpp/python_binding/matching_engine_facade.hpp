@@ -12,6 +12,7 @@
 #include "engine/matching_engine.hpp"
 #include "models/market_structure_snapshot.hpp"
 #include "engine/limit_order_book.hpp"
+#include "policy/modify_policy.hpp"
 #include "policy/stp_policy.hpp"
 #include "utils/constants.hpp"
 
@@ -22,12 +23,17 @@ private:
     double timeInterval;
     std::unique_ptr<LimitOrderBook> orderBook;
     std::unique_ptr<STPPolicy> stpPolicy;
+    std::unique_ptr<ModifyPolicy> modifyPolicy;
     std::unique_ptr<TradeIdGenerator> tradeIdGenerator;
     std::unique_ptr<TradeLogger> tradeLogger;
     std::unique_ptr<MatchingEngine> matchingEngine;
 
     static std::unique_ptr<STPPolicy> makeSTPPolicy(
         const std::string& stpPolicyName
+    );
+
+    static std::unique_ptr<ModifyPolicy> makeModifyPolicy(
+        const std::string& modifyPolicyName
     );
 
     static std::unique_ptr<TradeIdGenerator> makeTradeIdGenerator(
@@ -50,7 +56,8 @@ public:
         double tickSize_ = DEFAULT_TICK_SIZE,
         double lotSize_ = DEFAULT_LOT_SIZE,
         double timeInterval_ = DEFAULT_TIME_INTERVAL,
-        std::optional<PriceTicks> deviationTicks = std::nullopt
+        std::optional<PriceTicks> deviationTicks = std::nullopt,
+        const std::string& modifyPolicyName = "mp1"
     );
 
     double getTickSize()     const { return tickSize; }
@@ -63,6 +70,8 @@ public:
     MatchingEngineFacade& operator=(MatchingEngineFacade&&) noexcept = default;
     
     RejectionReason matchOrder(const OrderPtr& incomingOrder);
-    RejectionReason cancel(const CancelRequest& request);
+    SubmitResult cancel(const CancelRequest& request);
+    SubmitResult modify(const ModifyRequest& request);
+    
     MarketStructureSnapshot snapshot(Timestamp now, std::size_t depthLimit = 5) const;
 };

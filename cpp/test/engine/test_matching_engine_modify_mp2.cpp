@@ -3,10 +3,10 @@
 #include "engine/matching_engine.hpp"
 #include "models/modify_request.hpp"
 
-class MatchingEngineModifyQuantityKeepsPriorityPolicyTest : public ::testing::Test {
+class MatchingEngineModifyMP2Test : public ::testing::Test {
 protected:
     CancelBothSTP stpPolicy;
-    QuantityKeepsPriorityModifyPolicy modifyPolicy;
+    MP2 modifyPolicy;
     LimitOrderBook orderBook;
     std::optional<MatchingEngine> engine;
 
@@ -23,7 +23,7 @@ protected:
     }
 };
 
-TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, QuantityIncrease_IncreasesQuantityInPlace) {
+TEST_F(MatchingEngineModifyMP2Test, QuantityIncrease_IncreasesQuantityInPlace) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -38,7 +38,7 @@ TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, QuantityIncrease_Inc
     EXPECT_EQ(modifiedOrder->getTimestamp(), static_cast<Timestamp>(1000));
 }
 
-TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, QuantityIncrease_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP2Test, QuantityIncrease_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -56,7 +56,7 @@ TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, QuantityIncrease_Kee
     expectOrderState(secondResting->getOrderID(), 100, 5, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyQuantityKeepsPriorityPolicyTest, PriceChange_LosesPriority) {
+TEST_F(MatchingEngineModifyMP2Test, PriceChange_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 105, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);

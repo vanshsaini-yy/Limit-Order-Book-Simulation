@@ -3,10 +3,10 @@
 #include "engine/matching_engine.hpp"
 #include "models/modify_request.hpp"
 
-class MatchingEngineModifyDefaultPolicyTest : public ::testing::Test {
+class MatchingEngineModifyMP1Test : public ::testing::Test {
 protected:
     CancelBothSTP stpPolicy;
-    DefaultModifyPolicy modifyPolicy;
+    MP1 modifyPolicy;
     LimitOrderBook orderBook;
     std::optional<MatchingEngine> engine;
 
@@ -27,7 +27,7 @@ protected:
 // Request validation
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroTargetOrderID_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_ZeroTargetOrderID_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -39,7 +39,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroTargetOrderID_IsRejecte
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NeitherPriceNorQtyGiven_IsRejectedAsNoOp) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NeitherPriceNorQtyGiven_IsRejectedAsNoOp) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -51,7 +51,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NeitherPriceNorQtyGiven_IsR
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroNewPriceTicks_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_ZeroNewPriceTicks_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -63,7 +63,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroNewPriceTicks_IsRejecte
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NegativeNewPriceTicks_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NegativeNewPriceTicks_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -75,7 +75,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NegativeNewPriceTicks_IsRej
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroNewOriginalQty_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_ZeroNewOriginalQty_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -87,7 +87,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_ZeroNewOriginalQty_IsReject
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NegativeNewOriginalQty_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NegativeNewOriginalQty_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -103,7 +103,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NegativeNewOriginalQty_IsRe
 // Order lookup
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NonExistentOrder_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NonExistentOrder_IsRejected) {
     makeEngine();
     OrderID nonExistentOrderID = 999;
 
@@ -113,7 +113,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NonExistentOrder_IsRejected
     EXPECT_EQ(result, RejectionReason::OrderToBeModifiedDoesNotExist);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_AnotherOwnersOrder_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_AnotherOwnersOrder_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -126,7 +126,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_AnotherOwnersOrder_IsReject
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_FullyExecutedOrder_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_FullyExecutedOrder_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -144,7 +144,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_FullyExecutedOrder_IsReject
 // Quantity-only modify
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityDecrease_DecreasesQuantity) {
+TEST_F(MatchingEngineModifyMP1Test, QuantityDecrease_DecreasesQuantity) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -156,7 +156,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityDecrease_DecreasesQuantity
     EXPECT_EQ(resting->getQty(), static_cast<Quantity>(6));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityIncrease_IncreasesQuantity) {
+TEST_F(MatchingEngineModifyMP1Test, QuantityIncrease_IncreasesQuantity) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -170,7 +170,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityIncrease_IncreasesQuantity
     EXPECT_EQ(modifiedOrder->getQty(), static_cast<Quantity>(15));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityUnchanged_IsRejectedAsNoOp) {
+TEST_F(MatchingEngineModifyMP1Test, QuantityUnchanged_IsRejectedAsNoOp) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -182,7 +182,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityUnchanged_IsRejectedAsNoOp
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityDecrease_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP1Test, QuantityDecrease_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -201,7 +201,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityDecrease_KeepsPriority) {
     EXPECT_EQ(secondResting->getStatus(), OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityIncrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, QuantityIncrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -222,7 +222,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityIncrease_LosesPriority) {
     EXPECT_EQ(modifiedOrder->getStatus(), OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityUnchanged_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP1Test, QuantityUnchanged_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -245,7 +245,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, QuantityUnchanged_KeepsPriority) {
 // Price-only modify
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceDecrease_DecreasesPrice) {
+TEST_F(MatchingEngineModifyMP1Test, PriceDecrease_DecreasesPrice) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -259,7 +259,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceDecrease_DecreasesPrice) {
     EXPECT_EQ(modifiedOrder->getPriceTicks(), static_cast<PriceTicks>(95));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceIncrease_IncreasesPrice) {
+TEST_F(MatchingEngineModifyMP1Test, PriceIncrease_IncreasesPrice) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -273,7 +273,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceIncrease_IncreasesPrice) {
     EXPECT_EQ(modifiedOrder->getPriceTicks(), static_cast<PriceTicks>(105));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceUnchanged_IsRejectedAsNoOp) {
+TEST_F(MatchingEngineModifyMP1Test, PriceUnchanged_IsRejectedAsNoOp) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -285,7 +285,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceUnchanged_IsRejectedAsNoOp) {
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceIncrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PriceIncrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 105, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
@@ -304,7 +304,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceIncrease_LosesPriority) {
     expectOrderState(secondResting->getOrderID(), 105, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceDecrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PriceDecrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 95, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
@@ -323,7 +323,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceDecrease_LosesPriority) {
     expectOrderState(secondResting->getOrderID(), 95, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceUnchanged_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PriceUnchanged_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -347,7 +347,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceUnchanged_KeepsPriority) {
 // Combined price and quantity modify
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityChange_BothReflectedInOrder) {
+TEST_F(MatchingEngineModifyMP1Test, PriceAndQuantityChange_BothReflectedInOrder) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -362,7 +362,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityChange_BothReflect
     EXPECT_EQ(modifiedOrder->getQty(), static_cast<Quantity>(6));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityUnchanged_IsRejectedAsNoOp) {
+TEST_F(MatchingEngineModifyMP1Test, PriceAndQuantityUnchanged_IsRejectedAsNoOp) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -374,7 +374,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityUnchanged_IsReject
     expectOrderState(resting->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceChangeWithQuantityIncrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PriceChangeWithQuantityIncrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 105, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
@@ -393,7 +393,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceChangeWithQuantityIncrease_Lo
     expectOrderState(secondResting->getOrderID(), 105, 15, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceChangeWithQuantityDecrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PriceChangeWithQuantityDecrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 105, 5, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
@@ -412,7 +412,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceChangeWithQuantityDecrease_Lo
     expectOrderState(secondResting->getOrderID(), 105, 6, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityUnchanged_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PriceAndQuantityUnchanged_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -436,7 +436,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PriceAndQuantityUnchanged_KeepsPri
 // Partially filled orders
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalBelowFilled_IsRejected) {
+TEST_F(MatchingEngineModifyMP1Test, PartiallyFilled_NewTotalBelowFilled_IsRejected) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -451,7 +451,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalBelowFille
     EXPECT_EQ(resting->getOriginalQty(), static_cast<Quantity>(10));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFilled_CancelsRemainderAsDoneForDay) {
+TEST_F(MatchingEngineModifyMP1Test, PartiallyFilled_NewTotalEqualsFilled_CancelsRemainderAsDoneForDay) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -466,7 +466,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFill
     EXPECT_EQ(resting->getStatus(), OrderStatus::CancelledAfterPartialExecution);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFilled_RecordsCancellation) {
+TEST_F(MatchingEngineModifyMP1Test, PartiallyFilled_NewTotalEqualsFilled_RecordsCancellation) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -479,7 +479,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFill
     EXPECT_EQ(orderBook.getOrderCancellationCount(), 1u);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFilledWithPriceChange_IsDoneForDay) {
+TEST_F(MatchingEngineModifyMP1Test, PartiallyFilled_NewTotalEqualsFilledWithPriceChange_IsDoneForDay) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -495,7 +495,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_NewTotalEqualsFill
     EXPECT_EQ(orderBook.getOrderCancellationCount(), 1u);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_QuantityDecrease_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP1Test, PartiallyFilled_QuantityDecrease_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -522,7 +522,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, PartiallyFilled_QuantityDecrease_K
 // Replacement order construction
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PendingOrder_RestsWithCorrectQuantity) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_PendingOrder_RestsWithCorrectQuantity) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -537,7 +537,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PendingOrder_RestsW
     EXPECT_EQ(replacement->getOriginalQty(), static_cast<Quantity>(12));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PartiallyFilledOrder_RestsWithCorrectQuantity) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_PartiallyFilledOrder_RestsWithCorrectQuantity) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -554,7 +554,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PartiallyFilledOrde
     EXPECT_EQ(replacement->getOriginalQty(), static_cast<Quantity>(12));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PendingOrder_RemainsPending) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_PendingOrder_RemainsPending) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -568,7 +568,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PendingOrder_Remain
     EXPECT_EQ(replacement->getStatus(), OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PartiallyFilledOrder_RemainsPartiallyFilled) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_PartiallyFilledOrder_RemainsPartiallyFilled) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -584,7 +584,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_PartiallyFilledOrde
     EXPECT_EQ(replacement->getStatus(), OrderStatus::PartiallyExecuted);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementUsesRequestTimestamp) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_ReplacementUsesRequestTimestamp) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -599,7 +599,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementUsesRequ
     EXPECT_EQ(replacement->getTimestamp(), requestTimestamp);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementKeepsOrderIDAndOwner) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_ReplacementKeepsOrderIDAndOwner) {
     makeEngine();
     OrderID originalOrderID = 1;
     OwnerID originalOwnerID = 7;
@@ -616,7 +616,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementKeepsOrd
     EXPECT_EQ(replacement->getOwnerID(), originalOwnerID);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesOverSide) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_ReplacementCarriesOverSide) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -630,7 +630,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     EXPECT_EQ(replacement->getSide(), Side::Sell);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesOverType) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_ReplacementCarriesOverType) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -644,7 +644,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     EXPECT_EQ(replacement->getType(), OrderType::Limit);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesOverTimeInForce) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_ReplacementCarriesOverTimeInForce) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC);
     engine->matchOrder(resting);
@@ -658,7 +658,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
     EXPECT_EQ(replacement->getTimeInForce(), TimeInForce::GTC);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesOverPostOnlyFlag) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_ReplacementCarriesOverPostOnlyFlag) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
     engine->matchOrder(resting);
@@ -676,7 +676,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_ReplacementCarriesO
 // Cancel-replace mechanics
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_OriginalOrderHandleIsCancelled) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_OriginalOrderHandleIsCancelled) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -688,7 +688,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_OriginalOrderHandle
     EXPECT_TRUE(resting->isCancelled());
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModifyTwice_BothApply) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModifyTwice_BothApply) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -707,7 +707,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModifyTwice_BothApply) {
     EXPECT_EQ(replacement->getQty(), static_cast<Quantity>(10));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_DoesNotRecordCancellation) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_DoesNotRecordCancellation) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -723,7 +723,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_DoesNotRecordCancel
 // Cancel-replace rejections
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPriceCollar_OrderStaysResting) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_RejectedByPriceCollar_OrderStaysResting) {
     makeEngine(5);
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr otherRestingBuy = std::make_shared<Order>(2, 2, 95, 3, Side::Buy, OrderType::Limit, 1001);
@@ -739,7 +739,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPriceColl
     expectOrderState(restingBuy->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPriceCollar_KeepsQueuePriority) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_RejectedByPriceCollar_KeepsQueuePriority) {
     makeEngine(5);
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -761,7 +761,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPriceColl
     EXPECT_EQ(secondResting->getStatus(), OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_NoLastTrade_MidReferenceIncludesOrderBeingModified) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_NoLastTrade_MidReferenceIncludesOrderBeingModified) {
     makeEngine(5);
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 110, 5, Side::Sell, OrderType::Limit, 1001);
@@ -775,7 +775,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_NoLastTrade_MidRefe
     expectOrderState(restingBuy->getOrderID(), 100, 10, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPostOnly_OrderStaysResting) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_RejectedByPostOnly_OrderStaysResting) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 5, Side::Sell, OrderType::Limit, 1001);
@@ -793,7 +793,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_RejectedByPostOnly_
 // Matching on a repriced modify
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_ExecutesAgainstRestingOrder) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_CrossingBook_ExecutesAgainstRestingOrder) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 4, Side::Sell, OrderType::Limit, 1001);
@@ -809,7 +809,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_Execut
     EXPECT_EQ(orderBook.getTradeExecutionCount(), 1u);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_RemainderRestsAsPartiallyExecuted) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_CrossingBook_RemainderRestsAsPartiallyExecuted) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 4, Side::Sell, OrderType::Limit, 1001);
@@ -823,7 +823,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_Remain
     expectOrderState(restingBuy->getOrderID(), 105, 6, OrderStatus::PartiallyExecuted);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_FullyFilledReplacementLeavesBook) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_CrossingBook_FullyFilledReplacementLeavesBook) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 4, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 10, Side::Sell, OrderType::Limit, 1001);
@@ -838,7 +838,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_FullyF
     EXPECT_EQ(restingSell->getQty(), static_cast<Quantity>(6));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_UpdatesLastTradedPrice) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_CrossingBook_UpdatesLastTradedPrice) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 4, Side::Sell, OrderType::Limit, 1001);
@@ -854,7 +854,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingBook_Update
     EXPECT_EQ(*engine->getLastTradedPrice(), static_cast<PriceTicks>(105));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingOwnOrder_IsRejectedBySelfTradePrevention) {
+TEST_F(MatchingEngineModifyMP1Test, RepricedModify_CrossingOwnOrder_IsRejectedBySelfTradePrevention) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr ownRestingSell = std::make_shared<Order>(2, 1, 105, 4, Side::Sell, OrderType::Limit, 1001);
@@ -873,7 +873,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, RepricedModify_CrossingOwnOrder_Is
 // Sell side
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_QuantityDecrease_KeepsPriority) {
+TEST_F(MatchingEngineModifyMP1Test, Sell_QuantityDecrease_KeepsPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Sell, OrderType::Limit, 1001);
@@ -891,7 +891,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_QuantityDecrease_KeepsPriorit
     expectOrderState(secondResting->getOrderID(), 100, 5, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_QuantityIncrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, Sell_QuantityIncrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Sell, OrderType::Limit, 1001);
@@ -909,7 +909,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_QuantityIncrease_LosesPriorit
     expectOrderState(firstResting->getOrderID(), 100, 12, OrderStatus::Pending);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_PriceIncrease_LosesPriority) {
+TEST_F(MatchingEngineModifyMP1Test, Sell_PriceIncrease_LosesPriority) {
     makeEngine();
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 105, 5, Side::Sell, OrderType::Limit, 1001);
@@ -931,7 +931,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Sell_PriceIncrease_LosesPriority) 
 // Policy injection
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoModifyPolicyInjected_UsesDefaultPolicy) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NoModifyPolicyInjected_UsesDefaultPolicy) {
     engine.emplace(&orderBook, &stpPolicy);
     OrderPtr firstResting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr secondResting = std::make_shared<Order>(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
@@ -953,7 +953,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoModifyPolicyInjected_Uses
 // Returned order
 // =====================================================================
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_InvalidRequest_ReturnsNoOrder) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_InvalidRequest_ReturnsNoOrder) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -964,7 +964,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_InvalidRequest_ReturnsNoOrd
     EXPECT_EQ(result.order, nullptr);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_AnotherOwnersOrder_IsIndistinguishableFromNonExistentOrder) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_AnotherOwnersOrder_IsIndistinguishableFromNonExistentOrder) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -979,7 +979,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_AnotherOwnersOrder_IsIndist
     EXPECT_EQ(wrongOwner.order, nullptr);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoOpModify_ReturnsRestingOrder) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NoOpModify_ReturnsRestingOrder) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -990,7 +990,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NoOpModify_ReturnsRestingOr
     EXPECT_EQ(result.order, resting);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NewTotalBelowFilled_ReturnsRestingOrderCarryingFilledQty) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NewTotalBelowFilled_ReturnsRestingOrderCarryingFilledQty) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -1005,7 +1005,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NewTotalBelowFilled_Returns
     EXPECT_EQ(result.order->getFilledQty(), static_cast<Quantity>(4));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NewTotalEqualsFilled_ReturnsCancelledRestingOrder) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_NewTotalEqualsFilled_ReturnsCancelledRestingOrder) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -1020,7 +1020,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_NewTotalEqualsFilled_Return
     EXPECT_FALSE(orderBook.doesOrderExist(resting->getOrderID()));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityKept_ReturnsRestingOrder) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_PriorityKept_ReturnsRestingOrder) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -1032,7 +1032,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityKept_ReturnsResting
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(6));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityLost_ReturnsTheReplacementResting) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_PriorityLost_ReturnsTheReplacementResting) {
     makeEngine();
     OrderPtr resting = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     engine->matchOrder(resting);
@@ -1049,7 +1049,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityLost_ReturnsTheRepl
     EXPECT_EQ(result.order->getPriceTicks(), static_cast<PriceTicks>(105));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityLostAndFullyFilled_ReturnsTheReplacementOutsideTheBook) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_PriorityLostAndFullyFilled_ReturnsTheReplacementOutsideTheBook) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 4, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 10, Side::Sell, OrderType::Limit, 1001);
@@ -1065,7 +1065,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_PriorityLostAndFullyFilled_
     EXPECT_FALSE(orderBook.doesOrderExist(restingBuy->getOrderID()));
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedByPriceCollar_ReturnsRestingOrderStillInBook) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_RejectedByPriceCollar_ReturnsRestingOrderStillInBook) {
     makeEngine(5);
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 110, 5, Side::Sell, OrderType::Limit, 1001);
@@ -1081,7 +1081,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedByPriceCollar_Retur
     EXPECT_EQ(orderBook.getOrder(restingBuy->getOrderID()), restingBuy);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedByPostOnly_ReturnsRestingOrderStillInBook) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_RejectedByPostOnly_ReturnsRestingOrderStillInBook) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
     OrderPtr restingSell = std::make_shared<Order>(2, 2, 105, 5, Side::Sell, OrderType::Limit, 1001);
@@ -1095,7 +1095,7 @@ TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedByPostOnly_ReturnsR
     EXPECT_EQ(orderBook.getOrder(restingBuy->getOrderID()), restingBuy);
 }
 
-TEST_F(MatchingEngineModifyDefaultPolicyTest, Submit_RejectedBySelfTradePrevention_ReturnsTheCancelledReplacement) {
+TEST_F(MatchingEngineModifyMP1Test, Submit_RejectedBySelfTradePrevention_ReturnsTheCancelledReplacement) {
     makeEngine();
     OrderPtr restingBuy = std::make_shared<Order>(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr ownRestingSell = std::make_shared<Order>(2, 1, 105, 4, Side::Sell, OrderType::Limit, 1001);

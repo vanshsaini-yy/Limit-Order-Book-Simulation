@@ -8,8 +8,8 @@ set(TEST_SOURCES
     engine/test_matching_engine_validation.cpp
     engine/test_matching_engine_match.cpp
     engine/test_matching_engine_cancel.cpp
-    engine/test_matching_engine_modify_default_policy.cpp
-    engine/test_matching_engine_modify_quantity_keeps_priority_policy.cpp
+    engine/test_matching_engine_modify_mp1.cpp
+    engine/test_matching_engine_modify_mp2.cpp
     engine/test_matching_engine_stp_cancel_both.cpp
     engine/test_matching_engine_stp_cancel_incoming.cpp
     engine/test_matching_engine_stp_cancel_resting.cpp
@@ -20,8 +20,8 @@ set(TEST_SOURCES
     policy/test_order_lifecycle.cpp
     policy/test_order_validator.cpp
     policy/test_stp_policy.cpp
-    policy/test_modify_policy_default.cpp
-    policy/test_modify_policy_quantity_keeps_priority.cpp
+    policy/test_modify_policy_mp1.cpp
+    policy/test_modify_policy_mp2.cpp
     utils/test_order_utils.cpp
     infra/test_binary_trade_logger.cpp
     infra/test_trade_id_generator.cpp

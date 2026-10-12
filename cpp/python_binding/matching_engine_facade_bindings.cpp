@@ -59,7 +59,7 @@ py::dict snapshotToDict(const MarketStructureSnapshot& snapshot, double tickSize
 void bindMatchingEngineFacade(py::module_& module) {
     py::class_<MatchingEngineFacade>(module, "MatchingEngine")
         .def(
-            py::init<const std::string&, const std::string&, TradeID, const std::string&, const std::string&, double, double, double, std::optional<PriceTicks>>(),
+            py::init<const std::string&, const std::string&, TradeID, const std::string&, const std::string&, double, double, double, std::optional<PriceTicks>, const std::string&>(),
             py::arg("stp_policy"),
             py::arg("trade_id_generator") = "none",
             py::arg("trade_id_start") = 1,
@@ -68,7 +68,8 @@ void bindMatchingEngineFacade(py::module_& module) {
             py::arg("tick_size") = DEFAULT_TICK_SIZE,
             py::arg("lot_size") = DEFAULT_LOT_SIZE,
             py::arg("time_interval") = DEFAULT_TIME_INTERVAL,
-            py::arg("max_deviation_ticks") = std::nullopt
+            py::arg("max_deviation_ticks") = std::nullopt,
+            py::arg("modify_policy") = "mp1"
         )
         .def_property_readonly("tick_size",     &MatchingEngineFacade::getTickSize)
         .def_property_readonly("lot_size",      &MatchingEngineFacade::getLotSize)
@@ -81,6 +82,11 @@ void bindMatchingEngineFacade(py::module_& module) {
         .def(
             "cancel",
             &MatchingEngineFacade::cancel,
+            py::arg("request")
+        )
+        .def(
+            "modify",
+            &MatchingEngineFacade::modify,
             py::arg("request")
         )
         .def(

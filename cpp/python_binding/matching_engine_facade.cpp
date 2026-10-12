@@ -28,6 +28,17 @@ std::unique_ptr<STPPolicy> MatchingEngineFacade::makeSTPPolicy(const std::string
     throw std::invalid_argument("Unknown STP policy: " + stpPolicyName);
 }
 
+std::unique_ptr<ModifyPolicy> MatchingEngineFacade::makeModifyPolicy(const std::string& modifyPolicyName) {
+    const std::string key = normalize(modifyPolicyName);
+    if (key == "mp1") {
+        return std::make_unique<MP1>();
+    }
+    if (key == "mp2") {
+        return std::make_unique<MP2>();
+    }
+    throw std::invalid_argument("Unknown modify policy: " + modifyPolicyName);
+}
+
 std::unique_ptr<TradeIdGenerator> MatchingEngineFacade::makeTradeIdGenerator(
     const std::string& tradeIdGeneratorName,
     TradeID tradeIdStart
@@ -65,13 +76,15 @@ MatchingEngineFacade::MatchingEngineFacade(
     double tickSize_,
     double lotSize_,
     double timeInterval_,
-    std::optional<PriceTicks> deviationTicks
+    std::optional<PriceTicks> deviationTicks,
+    const std::string& modifyPolicyName
 )
     : tickSize(tickSize_),
       lotSize(lotSize_),
       timeInterval(timeInterval_),
       orderBook(std::make_unique<LimitOrderBook>()),
       stpPolicy(makeSTPPolicy(stpPolicyName)),
+      modifyPolicy(makeModifyPolicy(modifyPolicyName)),
       tradeIdGenerator(makeTradeIdGenerator(tradeIdGeneratorName, tradeIdStart)),
       tradeLogger(makeTradeLogger(tradeLoggerName, tradeLogFilePath)),
       matchingEngine(std::make_unique<MatchingEngine>(
@@ -79,7 +92,8 @@ MatchingEngineFacade::MatchingEngineFacade(
           stpPolicy.get(),
           tradeLogger.get(),
           tradeIdGenerator.get(),
-          deviationTicks)) {
+          deviationTicks,
+          modifyPolicy.get())) {
     if (tradeLogger != nullptr && tradeIdGenerator == nullptr) {
         throw std::invalid_argument("tradeLogger requires a tradeIdGenerator");
     }
@@ -89,8 +103,12 @@ RejectionReason MatchingEngineFacade::matchOrder(const OrderPtr& incomingOrder) 
     return matchingEngine->matchOrder(incomingOrder);
 }
 
-RejectionReason MatchingEngineFacade::cancel(const CancelRequest& request) {
-    return matchingEngine->submit(request).reason;
+SubmitResult MatchingEngineFacade::cancel(const CancelRequest& request) {
+    return matchingEngine->submit(request);
+}
+
+SubmitResult MatchingEngineFacade::modify(const ModifyRequest& request) {
+    return matchingEngine->submit(request);
 }
 
 MarketStructureSnapshot MatchingEngineFacade::snapshot(Timestamp now, std::size_t depthLimit) const {
