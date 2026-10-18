@@ -6,6 +6,7 @@
 #include "models/order.hpp"
 #include "models/rejection_reason.hpp"
 #include "models/request.hpp"
+#include "models/new_order_request.hpp"
 #include "models/cancel_request.hpp"
 #include "models/modify_request.hpp"
 
@@ -92,6 +93,28 @@ void bindOrderTypes(py::module_& module) {
         .def_property_readonly("owner_id", &IRequest::getOwnerID)
         .def_property_readonly("timestamp", &IRequest::getTimestamp)
         .def("validate", &IRequest::validate);
+
+    py::class_<NewOrderRequest, IRequest>(module, "NewOrderRequest")
+        .def(
+            py::init<RequestID, OwnerID, Timestamp, OrderID, PriceTicks, Quantity, Side, OrderType, TimeInForce, bool>(),
+            py::arg("request_id"),
+            py::arg("owner_id"),
+            py::arg("timestamp"),
+            py::arg("order_id"),
+            py::arg("price_ticks"),
+            py::arg("qty"),
+            py::arg("side"),
+            py::arg("order_type"),
+            py::arg("time_in_force") = TimeInForce::GTC,
+            py::arg("post_only") = false
+        )
+        .def_property_readonly("order_id", &NewOrderRequest::getOrderID)
+        .def_property_readonly("price_ticks", &NewOrderRequest::getPriceTicks)
+        .def_property_readonly("qty", &NewOrderRequest::getQty)
+        .def_property_readonly("side", &NewOrderRequest::getSide)
+        .def_property_readonly("order_type", &NewOrderRequest::getType)
+        .def_property_readonly("time_in_force", &NewOrderRequest::getTimeInForce)
+        .def_property_readonly("post_only", &NewOrderRequest::isPostOnly);
 
     py::class_<CancelRequest, IRequest>(module, "CancelRequest")
         .def(

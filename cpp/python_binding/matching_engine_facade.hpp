@@ -69,7 +69,7 @@ public:
     MatchingEngineFacade(MatchingEngineFacade&&) noexcept = default;
     MatchingEngineFacade& operator=(MatchingEngineFacade&&) noexcept = default;
     
-    RejectionReason matchOrder(const OrderPtr& incomingOrder);
+    SubmitResult submit(const NewOrderRequest& request);
     SubmitResult cancel(const CancelRequest& request);
     SubmitResult modify(const ModifyRequest& request);
     

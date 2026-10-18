@@ -54,7 +54,7 @@ py::dict snapshotToDict(const MarketStructureSnapshot& snapshot, double tickSize
 
     return output;
 }
-}
+} // namespace
 
 void bindMatchingEngineFacade(py::module_& module) {
     py::class_<MatchingEngineFacade>(module, "MatchingEngine")
@@ -75,9 +75,9 @@ void bindMatchingEngineFacade(py::module_& module) {
         .def_property_readonly("lot_size",      &MatchingEngineFacade::getLotSize)
         .def_property_readonly("time_interval", &MatchingEngineFacade::getTimeInterval)
         .def(
-            "match_order",
-            &MatchingEngineFacade::matchOrder,
-            py::arg("order")
+            "submit",
+            &MatchingEngineFacade::submit,
+            py::arg("request")
         )
         .def(
             "cancel",

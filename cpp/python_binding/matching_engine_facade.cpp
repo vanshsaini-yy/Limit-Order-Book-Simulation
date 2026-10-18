@@ -99,8 +99,8 @@ MatchingEngineFacade::MatchingEngineFacade(
     }
 }
 
-RejectionReason MatchingEngineFacade::matchOrder(const OrderPtr& incomingOrder) {
-    return matchingEngine->matchOrder(incomingOrder);
+SubmitResult MatchingEngineFacade::submit(const NewOrderRequest& request) {
+    return matchingEngine->submit(request);
 }
 
 SubmitResult MatchingEngineFacade::cancel(const CancelRequest& request) {
