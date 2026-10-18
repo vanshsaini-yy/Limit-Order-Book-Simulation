@@ -8,6 +8,7 @@
 #include "utils/order_utils.hpp"
 #include "models/cancel_request.hpp"
 #include "models/modify_request.hpp"
+#include "models/new_order_request.hpp"
 
 class TradeLogger;
 class TradeIdGenerator;
@@ -38,6 +39,8 @@ public:
     );
 
     RejectionReason matchOrder(const OrderPtr &incomingOrder);
+    
+    SubmitResult submit(const NewOrderRequest &request);
     SubmitResult submit(const CancelRequest &request);
     SubmitResult submit(const ModifyRequest &request);
 

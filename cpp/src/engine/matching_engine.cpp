@@ -154,6 +154,37 @@ RejectionReason MatchingEngine::executeMatching(const OrderPtr &incomingOrder) {
     return RejectionReason::None;
 }
 
+SubmitResult MatchingEngine::submit(const NewOrderRequest &request) {
+    RejectionReason validationResult = request.validate();
+    if (validationResult != RejectionReason::None) {
+        return {validationResult, nullptr};
+    }
+
+    // TODO: leaks information
+    if (orderBook->doesOrderExist(request.getOrderID())) {
+        return {RejectionReason::DuplicateOrderID, nullptr};
+    }
+
+    OrderPtr order = std::make_shared<Order>(
+        request.getOrderID(),
+        request.getOwnerID(),
+        request.getPriceTicks(),
+        request.getQty(),
+        request.getSide(),
+        request.getType(),
+        request.getTimestamp(),
+        request.getTimeInForce(),
+        request.isPostOnly()
+    );
+
+    RejectionReason checkResult = checkBeforeMatching(order);
+    if (checkResult != RejectionReason::None) {
+        return {checkResult, order};
+    }
+
+    return {executeMatching(order), order};
+}
+
 SubmitResult MatchingEngine::submit(const CancelRequest &request) {
     RejectionReason validationResult = request.validate();
     if (validationResult != RejectionReason::None) {

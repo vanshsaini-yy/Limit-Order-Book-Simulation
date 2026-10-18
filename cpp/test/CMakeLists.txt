@@ -3,11 +3,14 @@ set(TEST_SOURCES
     models/test_trade.cpp
     models/test_cancel_request.cpp
     models/test_modify_request.cpp
+    models/test_new_order_request.cpp
     engine/test_limit_order_book.cpp
     engine/test_execution_engine.cpp
     engine/test_matching_engine_validation.cpp
     engine/test_matching_engine_match.cpp
     engine/test_matching_engine_cancel.cpp
+    engine/test_matching_engine_submit_new.cpp
+    engine/test_matching_engine_match_order_parity.cpp
     engine/test_matching_engine_modify_mp1.cpp
     engine/test_matching_engine_modify_mp2.cpp
     engine/test_matching_engine_stp_cancel_both.cpp
