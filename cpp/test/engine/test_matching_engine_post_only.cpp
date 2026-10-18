@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <memory>
 #include "engine/matching_engine.hpp"
 #include "support/new_order.hpp"
 
@@ -276,6 +275,18 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyFromSameOwnerAsBestAsk_Reje
     EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
+TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellFromSameOwnerAsBestBid_RejectedAsPostOnlyWouldCross) {
+    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 1, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuy);
+
+    SubmitResult result = engine.submit(postOnlySell);
+
+    EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
+    EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
+    EXPECT_FALSE(orderBook.doesOrderExist(2));
+}
+
 // =====================================================================
 // Post-only as maker
 // =====================================================================
@@ -286,6 +297,19 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_IncomingSellAgainstRestingPostOnlyBuy_
     OrderPtr restingPostOnlyOrder = engine.submit(postOnlyBuy).order;
 
     SubmitResult result = engine.submit(incomingSell);
+
+    EXPECT_EQ(result.reason, RejectionReason::None);
+    EXPECT_EQ(restingPostOnlyOrder->getStatus(), OrderStatus::Executed);
+    EXPECT_EQ(restingPostOnlyOrder->getQty(), static_cast<Quantity>(0));
+    EXPECT_FALSE(orderBook.doesOrderExist(1));
+}
+
+TEST_F(MatchingEnginePostOnlyTest, Submit_IncomingBuyAgainstRestingPostOnlySell_PostOnlyOrderExecuted) {
+    NewOrderRequest postOnlySell = newOrderRequestHelper(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000, TimeInForce::GTC, true);
+    NewOrderRequest incomingBuy = newOrderRequestHelper(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr restingPostOnlyOrder = engine.submit(postOnlySell).order;
+
+    SubmitResult result = engine.submit(incomingBuy);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(restingPostOnlyOrder->getStatus(), OrderStatus::Executed);
