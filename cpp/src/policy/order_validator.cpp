@@ -34,6 +34,7 @@ RejectionReason OrderValidator::validateBeforeAddingOrRemoving(const OrderPtr &o
     return RejectionReason::OrderBookInvariantViolation;
 }
 
+// TODO: drop the null checks here and in validateBeforeAddingOrRemoving, submit(NewOrderRequest) never passes a null order
 RejectionReason OrderValidator::validateBeforeMatching(const OrderPtr &order) {
     if (!order) {
         return RejectionReason::NullOrder;

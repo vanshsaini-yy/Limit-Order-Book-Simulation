@@ -3,7 +3,7 @@
 
 enum class RejectionReason : uint8_t {
     None,                               // No rejection, order is valid
-    NullOrder,                          // nullptr passed
+    NullOrder,                          // nullptr passed. TODO: remove, unreachable once matchOrder is gone
     InvalidOrderType,                   // order type is not recognized
     InvalidLimitOrder,                  // limit order that doesn't meet the criteria for a valid limit order
     InvalidMarketOrder,                 // market order that doesn't meet the criteria for a valid market order
