@@ -97,6 +97,7 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAtBestAskWithMultipleAskLev
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
     EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
@@ -122,6 +123,8 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAtBestBid_RestsAtSamePriceL
     LevelInfo bestBidLevel = snapshot.bidDepths.front();
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
+    EXPECT_TRUE(orderBook.doesOrderExist(2));
     EXPECT_EQ(bestBidLevel.orderCount, static_cast<Count>(2));
 }
 
@@ -179,6 +182,7 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAtBestBidWithMultipleBidLe
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
     EXPECT_FALSE(orderBook.doesOrderExist(3));
 }
 
@@ -204,6 +208,8 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAtBestAsk_RestsAtSamePrice
     LevelInfo bestAskLevel = snapshot.askDepths.front();
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
+    EXPECT_TRUE(orderBook.doesOrderExist(2));
     EXPECT_EQ(bestAskLevel.orderCount, static_cast<Count>(2));
 }
 
@@ -272,6 +278,7 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyFromSameOwnerAsBestAsk_Reje
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
     EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
@@ -284,6 +291,7 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellFromSameOwnerAsBestBid_Rej
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
+    EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
     EXPECT_FALSE(orderBook.doesOrderExist(2));
 }
 
