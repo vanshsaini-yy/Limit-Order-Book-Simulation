@@ -14,36 +14,36 @@ protected:
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyWithIOC_RejectedAsInvalidPostOnlyOrder) {
-    OrderID postOnlyIOCID = 1;
-    NewOrderRequest postOnlyIOCRequest = newOrderRequestHelper(postOnlyIOCID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::IOC, true);
+    OrderID orderID = 1;
+    NewOrderRequest request = newOrderRequestHelper(orderID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::IOC, true);
 
-    SubmitResult result = engine.submit(postOnlyIOCRequest);
+    SubmitResult result = engine.submit(request);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidPostOnlyOrder);
     EXPECT_EQ(result.order, nullptr);
-    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyIOCID));
+    EXPECT_FALSE(orderBook.doesOrderExist(orderID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyWithFOK_RejectedAsInvalidPostOnlyOrder) {
-    OrderID postOnlyFOKID = 1;
-    NewOrderRequest postOnlyFOKRequest = newOrderRequestHelper(postOnlyFOKID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::FOK, true);
+    OrderID orderID = 1;
+    NewOrderRequest request = newOrderRequestHelper(orderID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::FOK, true);
 
-    SubmitResult result = engine.submit(postOnlyFOKRequest);
+    SubmitResult result = engine.submit(request);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidPostOnlyOrder);
     EXPECT_EQ(result.order, nullptr);
-    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyFOKID));
+    EXPECT_FALSE(orderBook.doesOrderExist(orderID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyMarketOrder_RejectedAsInvalidMarketOrder) {
-    OrderID postOnlyMarketBuyID = 1;
-    NewOrderRequest postOnlyMarketBuyRequest = newOrderRequestHelper(postOnlyMarketBuyID, 1, 0, 10, Side::Buy, OrderType::Market, 1000, TimeInForce::GTC, true);
+    OrderID orderID = 1;
+    NewOrderRequest request = newOrderRequestHelper(orderID, 1, 0, 10, Side::Buy, OrderType::Market, 1000, TimeInForce::GTC, true);
 
-    SubmitResult result = engine.submit(postOnlyMarketBuyRequest);
+    SubmitResult result = engine.submit(request);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidMarketOrder);
     EXPECT_EQ(result.order, nullptr);
-    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyMarketBuyID));
+    EXPECT_FALSE(orderBook.doesOrderExist(orderID));
 }
 
 // =====================================================================
