@@ -15,9 +15,9 @@ protected:
 // =====================================================================
 
 TEST_F(MatchingEngineCancelTest, Submit_CancelWithZeroTargetOrderID_RejectedAsInvalidCancelOrder) {
-    CancelRequest zeroTargetCancelRequest = cancelRequestHelper(0, 1, 1000);
+    CancelRequest cancelRequest = cancelRequestHelper(0, 1, 1000);
 
-    SubmitResult result = engine.submit(zeroTargetCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidCancelOrder);
     EXPECT_EQ(result.order, nullptr);
@@ -29,10 +29,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelWithZeroTargetOrderID_RejectedAsIn
 // =====================================================================
 
 TEST_F(MatchingEngineCancelTest, Submit_CancelNonExistentOrder_RejectedAsOrderToBeCancelledDoesNotExist) {
-    OrderID nonExistentID = 999;
-    CancelRequest nonExistentCancelRequest = cancelRequestHelper(nonExistentID, 1, 1000);
+    OrderID nonExistentOrderID = 999;
+    CancelRequest cancelRequest = cancelRequestHelper(nonExistentOrderID, 1, 1000);
 
-    SubmitResult result = engine.submit(nonExistentCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_EQ(result.order, nullptr);
@@ -45,9 +45,9 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelAnotherOwnersOrder_RejectedAsOrder
     OwnerID anotherOwnerID = 2;
     NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, restingOwnerID, 100, 10, Side::Buy, OrderType::Limit, 1000);
     OrderPtr restingBuy = engine.submit(restingBuyRequest).order;
-    CancelRequest anotherOwnerCancelRequest = cancelRequestHelper(restingBuyID, anotherOwnerID, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(restingBuyID, anotherOwnerID, 1001);
 
-    SubmitResult result = engine.submit(anotherOwnerCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_EQ(result.order, nullptr);
@@ -92,14 +92,13 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelAlreadyCancelledOrder_RejectedAsOr
 
 TEST_F(MatchingEngineCancelTest, Submit_CancelFullyFilledOrder_RejectedAsOrderToBeCancelledDoesNotExist) {
     OrderID restingBuyID = 1;
-    OrderID fillingSellID = 2;
     NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest fillingSellRequest = newOrderRequestHelper(fillingSellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
-    CancelRequest restingBuyCancelRequest = cancelRequestHelper(restingBuyID, 1, 1002);
+    NewOrderRequest fillingSellRequest = newOrderRequestHelper(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(restingBuyID, 1, 1002);
     OrderPtr restingBuy = engine.submit(restingBuyRequest).order;
     engine.submit(fillingSellRequest);
 
-    SubmitResult result = engine.submit(restingBuyCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::OrderToBeCancelledDoesNotExist);
     EXPECT_EQ(result.order, nullptr);
@@ -114,10 +113,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelFullyFilledOrder_RejectedAsOrderTo
 TEST_F(MatchingEngineCancelTest, Submit_CancelRestingBuy_CancelsOrder) {
     OrderID restingBuyID = 1;
     NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
-    CancelRequest restingBuyCancelRequest = cancelRequestHelper(restingBuyID, 1, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(restingBuyID, 1, 1001);
     OrderPtr restingBuy = engine.submit(restingBuyRequest).order;
 
-    SubmitResult result = engine.submit(restingBuyCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order, restingBuy);
@@ -128,10 +127,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelRestingBuy_CancelsOrder) {
 TEST_F(MatchingEngineCancelTest, Submit_CancelRestingSell_CancelsOrder) {
     OrderID restingSellID = 1;
     NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
-    CancelRequest restingSellCancelRequest = cancelRequestHelper(restingSellID, 1, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(restingSellID, 1, 1001);
     OrderPtr restingSell = engine.submit(restingSellRequest).order;
 
-    SubmitResult result = engine.submit(restingSellCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order, restingSell);
@@ -224,10 +223,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelBestAsk_NextAskBecomesBestAsk) {
 TEST_F(MatchingEngineCancelTest, Submit_CancelOnlyBuy_LeavesBidSideEmpty) {
     OrderID onlyBuyID = 1;
     NewOrderRequest onlyBuyRequest = newOrderRequestHelper(onlyBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
-    CancelRequest onlyBuyCancelRequest = cancelRequestHelper(onlyBuyID, 1, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(onlyBuyID, 1, 1001);
     engine.submit(onlyBuyRequest);
 
-    SubmitResult result = engine.submit(onlyBuyCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     MarketStructureSnapshot snapshot = orderBook.snapshot(1002);
     EXPECT_EQ(result.reason, RejectionReason::None);
@@ -238,10 +237,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelOnlyBuy_LeavesBidSideEmpty) {
 TEST_F(MatchingEngineCancelTest, Submit_CancelOnlySell_LeavesAskSideEmpty) {
     OrderID onlySellID = 1;
     NewOrderRequest onlySellRequest = newOrderRequestHelper(onlySellID, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
-    CancelRequest onlySellCancelRequest = cancelRequestHelper(onlySellID, 1, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(onlySellID, 1, 1001);
     engine.submit(onlySellRequest);
 
-    SubmitResult result = engine.submit(onlySellCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     MarketStructureSnapshot snapshot = orderBook.snapshot(1002);
     EXPECT_EQ(result.reason, RejectionReason::None);
@@ -255,14 +254,13 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelOnlySell_LeavesAskSideEmpty) {
 
 TEST_F(MatchingEngineCancelTest, Submit_CancelPartiallyFilledBuy_LandsInCancelledAfterPartialExecution) {
     OrderID partiallyFilledBuyID = 1;
-    OrderID partiallyFillingSellID = 2;
     NewOrderRequest partiallyFilledBuyRequest = newOrderRequestHelper(partiallyFilledBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest partiallyFillingSellRequest = newOrderRequestHelper(partiallyFillingSellID, 2, 100, 5, Side::Sell, OrderType::Limit, 1001);
-    CancelRequest partiallyFilledBuyCancelRequest = cancelRequestHelper(partiallyFilledBuyID, 1, 1002);
+    NewOrderRequest partiallyFillingSellRequest = newOrderRequestHelper(2, 2, 100, 5, Side::Sell, OrderType::Limit, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(partiallyFilledBuyID, 1, 1002);
     OrderPtr partiallyFilledBuy = engine.submit(partiallyFilledBuyRequest).order;
     engine.submit(partiallyFillingSellRequest);
 
-    SubmitResult result = engine.submit(partiallyFilledBuyCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order, partiallyFilledBuy);
@@ -273,14 +271,13 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelPartiallyFilledBuy_LandsInCancelle
 
 TEST_F(MatchingEngineCancelTest, Submit_CancelPartiallyFilledSell_LandsInCancelledAfterPartialExecution) {
     OrderID partiallyFilledSellID = 1;
-    OrderID partiallyFillingBuyID = 2;
     NewOrderRequest partiallyFilledSellRequest = newOrderRequestHelper(partiallyFilledSellID, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest partiallyFillingBuyRequest = newOrderRequestHelper(partiallyFillingBuyID, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
-    CancelRequest partiallyFilledSellCancelRequest = cancelRequestHelper(partiallyFilledSellID, 1, 1002);
+    NewOrderRequest partiallyFillingBuyRequest = newOrderRequestHelper(2, 2, 100, 5, Side::Buy, OrderType::Limit, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(partiallyFilledSellID, 1, 1002);
     OrderPtr partiallyFilledSell = engine.submit(partiallyFilledSellRequest).order;
     engine.submit(partiallyFillingBuyRequest);
 
-    SubmitResult result = engine.submit(partiallyFilledSellCancelRequest);
+    SubmitResult result = engine.submit(cancelRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order, partiallyFilledSell);
@@ -296,10 +293,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelPartiallyFilledSell_LandsInCancell
 TEST_F(MatchingEngineCancelTest, Submit_CancelOneBuy_CancelCountIsOne) {
     OrderID restingBuyID = 1;
     NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000);
-    CancelRequest restingBuyCancelRequest = cancelRequestHelper(restingBuyID, 1, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(restingBuyID, 1, 1001);
     engine.submit(restingBuyRequest);
 
-    engine.submit(restingBuyCancelRequest);
+    engine.submit(cancelRequest);
 
     EXPECT_EQ(orderBook.getOrderCancellationCount(), static_cast<Count>(1));
 }
@@ -307,10 +304,10 @@ TEST_F(MatchingEngineCancelTest, Submit_CancelOneBuy_CancelCountIsOne) {
 TEST_F(MatchingEngineCancelTest, Submit_CancelOneSell_CancelCountIsOne) {
     OrderID restingSellID = 1;
     NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 10, Side::Sell, OrderType::Limit, 1000);
-    CancelRequest restingSellCancelRequest = cancelRequestHelper(restingSellID, 1, 1001);
+    CancelRequest cancelRequest = cancelRequestHelper(restingSellID, 1, 1001);
     engine.submit(restingSellRequest);
 
-    engine.submit(restingSellCancelRequest);
+    engine.submit(cancelRequest);
 
     EXPECT_EQ(orderBook.getOrderCancellationCount(), static_cast<Count>(1));
 }
