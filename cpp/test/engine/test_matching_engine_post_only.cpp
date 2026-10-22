@@ -14,33 +14,36 @@ protected:
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyWithIOC_RejectedAsInvalidPostOnlyOrder) {
-    NewOrderRequest request = newOrderRequestHelper(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::IOC, true);
+    OrderID postOnlyIOCID = 1;
+    NewOrderRequest postOnlyIOCRequest = newOrderRequestHelper(postOnlyIOCID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::IOC, true);
 
-    SubmitResult result = engine.submit(request);
+    SubmitResult result = engine.submit(postOnlyIOCRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidPostOnlyOrder);
     EXPECT_EQ(result.order, nullptr);
-    EXPECT_FALSE(orderBook.doesOrderExist(1));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyIOCID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyWithFOK_RejectedAsInvalidPostOnlyOrder) {
-    NewOrderRequest request = newOrderRequestHelper(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::FOK, true);
+    OrderID postOnlyFOKID = 1;
+    NewOrderRequest postOnlyFOKRequest = newOrderRequestHelper(postOnlyFOKID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::FOK, true);
 
-    SubmitResult result = engine.submit(request);
+    SubmitResult result = engine.submit(postOnlyFOKRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidPostOnlyOrder);
     EXPECT_EQ(result.order, nullptr);
-    EXPECT_FALSE(orderBook.doesOrderExist(1));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyFOKID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyMarketOrder_RejectedAsInvalidMarketOrder) {
-    NewOrderRequest request = newOrderRequestHelper(1, 1, 0, 10, Side::Buy, OrderType::Market, 1000, TimeInForce::GTC, true);
+    OrderID postOnlyMarketBuyID = 1;
+    NewOrderRequest postOnlyMarketBuyRequest = newOrderRequestHelper(postOnlyMarketBuyID, 1, 0, 10, Side::Buy, OrderType::Market, 1000, TimeInForce::GTC, true);
 
-    SubmitResult result = engine.submit(request);
+    SubmitResult result = engine.submit(postOnlyMarketBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::InvalidMarketOrder);
     EXPECT_EQ(result.order, nullptr);
-    EXPECT_FALSE(orderBook.doesOrderExist(1));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyMarketBuyID));
 }
 
 // =====================================================================
@@ -48,83 +51,95 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyMarketOrder_RejectedAsInvalidM
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAtBestAsk_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingSell);
+    OrderID restingSellID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingSellRequest);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAboveBestAsk_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 2, 101, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingSell);
+    OrderID restingSellID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 101, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingSellRequest);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyBelowBestAsk_RestsAsPending) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 2, 99, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingSell);
+    OrderID restingSellID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 99, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingSellRequest);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_TRUE(orderBook.doesOrderExist(2));
+    EXPECT_TRUE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAtBestAskWithMultipleAskLevels_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest bestAsk = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest deeperAsk = newOrderRequestHelper(2, 1, 101, 5, Side::Sell, OrderType::Limit, 1001);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(3, 2, 100, 10, Side::Buy, OrderType::Limit, 1002, TimeInForce::GTC, true);
-    engine.submit(bestAsk);
-    engine.submit(deeperAsk);
+    OrderID bestAskID = 1;
+    OrderID deeperAskID = 2;
+    OrderID postOnlyBuyID = 3;
+    NewOrderRequest bestAskRequest = newOrderRequestHelper(bestAskID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest deeperAskRequest = newOrderRequestHelper(deeperAskID, 1, 101, 5, Side::Sell, OrderType::Limit, 1001);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 100, 10, Side::Buy, OrderType::Limit, 1002, TimeInForce::GTC, true);
+    engine.submit(bestAskRequest);
+    engine.submit(deeperAskRequest);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyOnEmptyBook_RestsAsPending) {
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
+    OrderID postOnlyBuyID = 1;
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_TRUE(orderBook.doesOrderExist(1));
+    EXPECT_TRUE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAtBestBid_RestsAtSamePriceLevel) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingBuy);
+    OrderID restingBuyID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuyRequest);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     MarketStructureSnapshot snapshot = orderBook.snapshot(1002);
     LevelInfo bestBidLevel = snapshot.bidDepths.front();
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_TRUE(orderBook.doesOrderExist(2));
+    EXPECT_TRUE(orderBook.doesOrderExist(postOnlyBuyID));
     EXPECT_EQ(bestBidLevel.orderCount, static_cast<Count>(2));
 }
 
@@ -133,83 +148,95 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyAtBestBid_RestsAtSamePriceL
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAtBestBid_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingBuy);
+    OrderID restingBuyID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuyRequest);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlySellID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellBelowBestBid_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 2, 99, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingBuy);
+    OrderID restingBuyID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 99, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuyRequest);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlySellID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAboveBestBid_RestsAsPending) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 2, 101, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingBuy);
+    OrderID restingBuyID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 101, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuyRequest);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_TRUE(orderBook.doesOrderExist(2));
+    EXPECT_TRUE(orderBook.doesOrderExist(postOnlySellID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAtBestBidWithMultipleBidLevels_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest bestBid = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest deeperBid = newOrderRequestHelper(2, 1, 99, 5, Side::Buy, OrderType::Limit, 1001);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(3, 2, 100, 10, Side::Sell, OrderType::Limit, 1002, TimeInForce::GTC, true);
-    engine.submit(bestBid);
-    engine.submit(deeperBid);
+    OrderID bestBidID = 1;
+    OrderID deeperBidID = 2;
+    OrderID postOnlySellID = 3;
+    NewOrderRequest bestBidRequest = newOrderRequestHelper(bestBidID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest deeperBidRequest = newOrderRequestHelper(deeperBidID, 1, 99, 5, Side::Buy, OrderType::Limit, 1001);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1002, TimeInForce::GTC, true);
+    engine.submit(bestBidRequest);
+    engine.submit(deeperBidRequest);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(3));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlySellID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellOnEmptyBook_RestsAsPending) {
-    NewOrderRequest postOnlySell = newOrderRequestHelper(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000, TimeInForce::GTC, true);
+    OrderID postOnlySellID = 1;
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 1, 100, 10, Side::Sell, OrderType::Limit, 1000, TimeInForce::GTC, true);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_TRUE(orderBook.doesOrderExist(1));
+    EXPECT_TRUE(orderBook.doesOrderExist(postOnlySellID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAtBestAsk_RestsAtSamePriceLevel) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingSell);
+    OrderID restingSellID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingSellRequest);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     MarketStructureSnapshot snapshot = orderBook.snapshot(1002);
     LevelInfo bestAskLevel = snapshot.askDepths.front();
     EXPECT_EQ(result.reason, RejectionReason::None);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Pending);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_TRUE(orderBook.doesOrderExist(2));
+    EXPECT_TRUE(orderBook.doesOrderExist(postOnlySellID));
     EXPECT_EQ(bestAskLevel.orderCount, static_cast<Count>(2));
 }
 
@@ -218,35 +245,41 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellAtBestAsk_RestsAtSamePrice
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyRejected_RestingSellStaysPendingWithFullQty) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    OrderPtr restingSellOrder = engine.submit(restingSell).order;
+    OrderID restingSellID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    OrderPtr restingSell = engine.submit(restingSellRequest).order;
 
-    engine.submit(postOnlyBuy);
+    engine.submit(postOnlyBuyRequest);
 
-    EXPECT_EQ(restingSellOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingSellOrder->getQty(), static_cast<Quantity>(5));
-    EXPECT_TRUE(orderBook.doesOrderExist(1));
+    EXPECT_EQ(restingSell->getStatus(), OrderStatus::Pending);
+    EXPECT_EQ(restingSell->getQty(), static_cast<Quantity>(5));
+    EXPECT_TRUE(orderBook.doesOrderExist(restingSellID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellRejected_RestingBuyStaysPendingWithFullQty) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    OrderPtr restingBuyOrder = engine.submit(restingBuy).order;
+    OrderID restingBuyID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    OrderPtr restingBuy = engine.submit(restingBuyRequest).order;
 
-    engine.submit(postOnlySell);
+    engine.submit(postOnlySellRequest);
 
-    EXPECT_EQ(restingBuyOrder->getStatus(), OrderStatus::Pending);
-    EXPECT_EQ(restingBuyOrder->getQty(), static_cast<Quantity>(5));
-    EXPECT_TRUE(orderBook.doesOrderExist(1));
+    EXPECT_EQ(restingBuy->getStatus(), OrderStatus::Pending);
+    EXPECT_EQ(restingBuy->getQty(), static_cast<Quantity>(5));
+    EXPECT_TRUE(orderBook.doesOrderExist(restingBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyRejected_NoTradeExecuted) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingSell);
+    OrderID restingSellID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 2, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingSellRequest);
 
-    engine.submit(postOnlyBuy);
+    engine.submit(postOnlyBuyRequest);
 
     MarketStructureSnapshot snapshot = orderBook.snapshot(1002);
     EXPECT_EQ(snapshot.tempo.tradeExecutionCount, static_cast<Count>(0));
@@ -254,11 +287,13 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyRejected_NoTradeExecuted) {
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellRejected_NoTradeExecuted) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingBuy);
+    OrderID restingBuyID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuyRequest);
 
-    engine.submit(postOnlySell);
+    engine.submit(postOnlySellRequest);
 
     MarketStructureSnapshot snapshot = orderBook.snapshot(1002);
     EXPECT_EQ(snapshot.tempo.tradeExecutionCount, static_cast<Count>(0));
@@ -270,29 +305,35 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellRejected_NoTradeExecuted) 
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlyBuyFromSameOwnerAsBestAsk_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest restingSell = newOrderRequestHelper(1, 1, 100, 5, Side::Sell, OrderType::Limit, 1000);
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(2, 1, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingSell);
+    OwnerID sameOwnerID = 1;
+    OrderID restingSellID = 1;
+    OrderID postOnlyBuyID = 2;
+    NewOrderRequest restingSellRequest = newOrderRequestHelper(restingSellID, sameOwnerID, 100, 5, Side::Sell, OrderType::Limit, 1000);
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, sameOwnerID, 100, 10, Side::Buy, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingSellRequest);
 
-    SubmitResult result = engine.submit(postOnlyBuy);
+    SubmitResult result = engine.submit(postOnlyBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellFromSameOwnerAsBestBid_RejectedAsPostOnlyWouldCross) {
-    NewOrderRequest restingBuy = newOrderRequestHelper(1, 1, 100, 5, Side::Buy, OrderType::Limit, 1000);
-    NewOrderRequest postOnlySell = newOrderRequestHelper(2, 1, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
-    engine.submit(restingBuy);
+    OwnerID sameOwnerID = 1;
+    OrderID restingBuyID = 1;
+    OrderID postOnlySellID = 2;
+    NewOrderRequest restingBuyRequest = newOrderRequestHelper(restingBuyID, sameOwnerID, 100, 5, Side::Buy, OrderType::Limit, 1000);
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, sameOwnerID, 100, 10, Side::Sell, OrderType::Limit, 1001, TimeInForce::GTC, true);
+    engine.submit(restingBuyRequest);
 
-    SubmitResult result = engine.submit(postOnlySell);
+    SubmitResult result = engine.submit(postOnlySellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::PostOnlyWouldCross);
     EXPECT_EQ(result.order->getStatus(), OrderStatus::Cancelled);
     EXPECT_EQ(result.order->getQty(), static_cast<Quantity>(10));
-    EXPECT_FALSE(orderBook.doesOrderExist(2));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlySellID));
 }
 
 // =====================================================================
@@ -300,27 +341,31 @@ TEST_F(MatchingEnginePostOnlyTest, Submit_PostOnlySellFromSameOwnerAsBestBid_Rej
 // =====================================================================
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_IncomingSellAgainstRestingPostOnlyBuy_PostOnlyOrderExecuted) {
-    NewOrderRequest postOnlyBuy = newOrderRequestHelper(1, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
-    NewOrderRequest incomingSell = newOrderRequestHelper(2, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
-    OrderPtr restingPostOnlyOrder = engine.submit(postOnlyBuy).order;
+    OrderID postOnlyBuyID = 1;
+    OrderID incomingSellID = 2;
+    NewOrderRequest postOnlyBuyRequest = newOrderRequestHelper(postOnlyBuyID, 1, 100, 10, Side::Buy, OrderType::Limit, 1000, TimeInForce::GTC, true);
+    NewOrderRequest incomingSellRequest = newOrderRequestHelper(incomingSellID, 2, 100, 10, Side::Sell, OrderType::Limit, 1001);
+    OrderPtr postOnlyBuy = engine.submit(postOnlyBuyRequest).order;
 
-    SubmitResult result = engine.submit(incomingSell);
+    SubmitResult result = engine.submit(incomingSellRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
-    EXPECT_EQ(restingPostOnlyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(restingPostOnlyOrder->getQty(), static_cast<Quantity>(0));
-    EXPECT_FALSE(orderBook.doesOrderExist(1));
+    EXPECT_EQ(postOnlyBuy->getStatus(), OrderStatus::Executed);
+    EXPECT_EQ(postOnlyBuy->getQty(), static_cast<Quantity>(0));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlyBuyID));
 }
 
 TEST_F(MatchingEnginePostOnlyTest, Submit_IncomingBuyAgainstRestingPostOnlySell_PostOnlyOrderExecuted) {
-    NewOrderRequest postOnlySell = newOrderRequestHelper(1, 1, 100, 10, Side::Sell, OrderType::Limit, 1000, TimeInForce::GTC, true);
-    NewOrderRequest incomingBuy = newOrderRequestHelper(2, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
-    OrderPtr restingPostOnlyOrder = engine.submit(postOnlySell).order;
+    OrderID postOnlySellID = 1;
+    OrderID incomingBuyID = 2;
+    NewOrderRequest postOnlySellRequest = newOrderRequestHelper(postOnlySellID, 1, 100, 10, Side::Sell, OrderType::Limit, 1000, TimeInForce::GTC, true);
+    NewOrderRequest incomingBuyRequest = newOrderRequestHelper(incomingBuyID, 2, 100, 10, Side::Buy, OrderType::Limit, 1001);
+    OrderPtr postOnlySell = engine.submit(postOnlySellRequest).order;
 
-    SubmitResult result = engine.submit(incomingBuy);
+    SubmitResult result = engine.submit(incomingBuyRequest);
 
     EXPECT_EQ(result.reason, RejectionReason::None);
-    EXPECT_EQ(restingPostOnlyOrder->getStatus(), OrderStatus::Executed);
-    EXPECT_EQ(restingPostOnlyOrder->getQty(), static_cast<Quantity>(0));
-    EXPECT_FALSE(orderBook.doesOrderExist(1));
+    EXPECT_EQ(postOnlySell->getStatus(), OrderStatus::Executed);
+    EXPECT_EQ(postOnlySell->getQty(), static_cast<Quantity>(0));
+    EXPECT_FALSE(orderBook.doesOrderExist(postOnlySellID));
 }
